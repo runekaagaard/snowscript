@@ -1,0 +1,112 @@
+# Discussion about spec #
+
+    Loops and 'putin' keyword
+        I don't really understand the concept.
+        Could you provide me with some explanation and possibly one or more
+        use cases?
+    
+    Method chaining
+        What exactly is the difference between '.' and '->'
+        Is it correct to state that:
+            * '.' operates on objects. example:
+                ftp = FTP("host")
+                ftp.login("user" "pass")
+            * '->' operates on native types. example:
+                ["a" "b" 3: "c"]->print_r
+        This is not what I define as method chaining. [1]
+        It looks more like go's receiver methods. [2]
+        But this is what I understand from the spec.
+        What's your take on this?
+
+    Use of quotation
+        Will PHP's default quotation rules be applied? I think we should.
+        foo = ^("bar" 'baz' "%bar" '%baz')
+        Gets translated to:
+        <?php $foo = "bar" . 'baz' . "$bar" . '$baz'; ?>
+        I think that looks fair.
+        
+    Escaping
+        Default backslash escape?
+        
+    HAML
+        Hadn't heard of it before, but it looks nice indeed.
+        But doesn't it impose problems with the %-notation? Or is that the 
+        reason you put a '$' before the variable's name?
+        
+    Compatible with all existing PHP code
+        Could you define this more clearly?
+        Does it mean the snow compiler creates code compatible with PHP 3 for
+        example? I don't think it should.
+        
+    Can compile existing code to snow
+        Though this would be a nice feature, is it worth the hassle?
+        Is the benefit large enough to justify amount of work?
+        
+    What exacty is the use of '{ }' for object creation?
+    
+    Should 'const' keyword be 'con'?
+    
+    Should functions/methods be lowerCamelCased()? To make it distinct from
+        vars_with_underscore.
+    
+    String interpolation and variable variables
+        There's a conflict in the spec on lines 99-106
+        I suppose that: string = "%foo()" injects the return of function foo
+        into 'string'. Furthermore there's variable variables:
+        foo = "bar"
+        %foo() # invoke function bar
+        This has to be reworked, when we expand this using the current syntax,
+        what happens here:
+        foo = "bar"
+        baz = "%foo()" # injects the return of foo()?
+        baz = "%%foo" # injects the return of bar()?
+        This seems like a major WTF to me.
+    
+    Multiple assignments
+        Does this mean we can do swapping?
+        a, b = b, a
+        I think the comma can be removed here BTW.
+        
+    Magic 'args' array in functions/methods
+        I like the idea, I also think we should make it read only.
+
+    Functions with inner functions
+        Can you explain this to me? Also provide use case(s) please.
+        
+    Infix operator
+        I don't really understand your 'Infix operator' chapter, line 280
+    
+    Scala-style infix-operator
+        It doesn't look particularly readable or useful.
+
+
+# More musings #
+
+    Postfix  '||'s
+        eg: toBe || notToBe
+        I can totally get in to this. But...
+        It feels like this implies that there's also a postfix '&&'.
+        When there is a postfix '&&', I would almost expect it to be the magic
+        (and imaginary) 'atomic' operator. Formally defined: 
+            'Evaluate operand1 and operand2, when one of them evaluates to false
+             rollback to the state before either one of them was executed'
+             
+    Array dereferencing
+        I don't know whether this will be in PHP6 or not, but would be nice to have
+        Example:
+        first_element = funcThatReturnsArray()[0]
+        
+    Automatic variable naming
+        There are places where we will need to make intermediate variables
+        on the PHP side, with multiple assignments for example.
+        We will need a naming scheme for that, while retaining a
+        'non generated' look.
+
+    
+
+
+
+
+# References #
+    [1]: http://en.wikipedia.org/wiki/Method_chaining
+    [2]: http://golang.org/doc/go_spec.html#Method_declarations

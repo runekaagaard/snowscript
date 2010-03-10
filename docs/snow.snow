@@ -1,0 +1,302 @@
+
+# About snow #
+    "snow" is a meta language that compiles down to php. It has its own syntax 
+    inspired by python, ruby and scala that strives to be DRY, clean and easy to
+    read as well as write. 
+    
+    snow is called "snow" because it should look "pure as snow", because is has
+    significant WHITEspace and because the winter of 2010 in Copenhagen was 
+    extremely cold and snowy.
+    
+    Its main features are:
+        * The generated PHP code is fast and does not look generated. All
+          features of snow are built so they will look nice as regular PHP and
+          so you at all times can throw away the snow code if its "just not fun
+          anymore".
+        * Can compile to PHP using different profiles. During developement one
+          can enable extra safetynets and when everything works a lean fast code
+          can be compiled. Some safetynets include:
+            * Check input and return type for functions and methods.
+            * Valididate argument values for functions and methods.
+            * Custom checks can be created using annotations.
+        * Has significant whitespace.
+        * Loops can return a value using the new "yield" type collector called 
+         "putin" that can collect into all types - not just an array.
+        * Is parsed using PHP which makes it easy to modify and extend.
+        * Has infix operators.
+        * Has operator overloading.
+        * Has method chaining.
+        * Has a _lot_ fewer characters than PHP.
+        * Uses Markdown for comments and can generate doc pages in HTML.
+        * Has support for inline HTML using HAML-style indention based 
+          autoclosing tags.
+        * Is compatible with all existing PHP code.
+        * Can compile existing PHP to snow.
+        * Is very well tested with PHPT, including a roundtrip compiler that
+          converts all existing PHP tests to snow and then back to PHP.
+            
+    This file is valid snow code.
+
+# Conventions #
+    * snow files must be named "[FILENAME].snow".
+    * All lines must begin with a number of spaces dividable by 4. Other 
+      indentation styles are not and will not be supported.
+    
+    snow uses naming conventions to distinguish between constants, classes, 
+    variables and functions. These conventions are compatible with
+    most PHP frameworks and the Pear coding convention. If you are working with
+    PHP code following other conventions keywords that forces a specific
+    interpretation are provided. The conventions are:
+        * CONSTS_ARE_UPPERCASE_SEPERATED_BY_UNDERSCORE
+            * "const looks_like_a_variable" can be used to force a constant that 
+               contains lowercase letters to be interpreted as one.
+        * ClassesAreUpperCamelCase
+            * "new looksLikeAFunction()" can be used to force a class that does 
+              not begin with a capital letter to be interpreted as one.
+        * vars_are_lowercase_separated_by_underscores
+            * "var LOOKS_LIKE_A_CONSTANT" can be used to force a variable that 
+              contains only uppercase and underscores to be interpreted as one.
+        * functions_are_lowercase_separated_by_underscores
+            * "func LooksLikeAClass()" can be used to force a function that 
+              does not begin with a lowercase letter to be interpreted as one.
+        * methods_are_lowercase_separated_by_underscores
+            
+# Various minor changes from php #
+    * "->" is now ".".
+    * "." is now "^".
+    * "^" is now "><".
+    * "%" is now "mod".
+    * The "new" keyword can be omitted.
+    * "function" is now "fn".
+    * "class" is now "cls". #Dennis
+    * "foreach" is replaced with a python style "for" loop.
+    * The old "for" loop is removed.
+    * ";", "{", "}" is removed and whitespace is used as the determining factor.
+    * "array" keyword is replaced with "[]" short form.
+    * "=>" in array is replaced with ":".
+    * "{}" can be used as a short form of object creation.
+    * ":" can be used instead of a new line with increased indentation e.g. for
+      one line functions or one line if sentences.
+    * "//" and "/* ... */" comments no longer work.
+    * "->" is now a keyword for method chaining.
+    * "<?php ?>" is now "<% %>". "<?php ?>" can be used to inject PHP code (Not
+      recommended). "<%" is implied in the beginning of a snow file. "<%=" can
+      be used.
+    * "pow()" is now "**".
+
+# The basics #
+
+# Constants. All variables consisting of only uppercase letters and underscores 
+# will be considered a constant.
+I_AM_GLOBAL = 'Global love'
+
+# $foo and ';' is no more. New string concatenator.
+foo = 'This is nuschool' ^ '!'
+
+# Method chaining with "->". The () can be omitted.
+b = 'string'->ucfirst # b will contain "String".
+
+# "%" is used in strings to denote a variable.
+# Matches multiple levels without the need of the "{}" notation.
+# Functions can be called and their return concatenates to the string.
+a_string = "%foo.bar.stuff | %foo['bar']['stuff'] | %foo('bar', 'stuff')"
+
+# "%" is also used as a "variable variable"
+bar = 'foo'
+%bar() # Will call the function "foo".
+
+# File level function prefix annotation.
+# All functions will be prefixed "bowling_". Inside the file functions can be
+# called without the prefix.
+@fnprefix bowling
+
+# Operators can be used as functions
+a = ^ (
+    'string'
+    myfunc(43)
+    'string'
+)
+b = * (4,5,6) / (3,2,4) # 4 * 5 * 6 / 3 / 2 / 4 
+
+# Multiple assignments. 
+a,b = 1, 2 + 2
+
+# Arguments are available as the array "args" inside functions and methods.
+fn test
+    return args[2]
+    
+# Array and objects #
+    Both have new shortform definitions. The old 'array()' definition can no
+    longer be used.
+    
+    The seperator ',' can be omitted.
+    
+    stdClass is renamed to "Object".
+    
+my_array = [1 2 3]
+my_array = [1,2,3]
+my_array = [
+    'x': 32
+    'y':
+        z: 54
+        m: 'foo'
+]
+my_object = {
+    'x': 32
+    'y':
+        z: 54
+        m: 'foo'
+}
+# The "->" is replaced by ".".
+echo my_object.y.z
+# Static method call.
+SomeClass::static_method()
+    
+# Functions #
+    The argument list of functions is moved above the function definition.
+    This makes it possible to add documentation to each argument without
+    repeating yourself. This helps to avoid docblock rot as well.
+    
+    Each argument must have a type and can have optional value checks. Inner
+    functions are supported in the same way as in python.
+    
+    All types are shortened to three letters(int, str, arr, obj, flo, boo, nul) 
+    and this is also the case when typecasting.
+    
+    When calling functions:
+        * The "," seperator can be omitted:
+            myfunc(45 65 somefunc())
+        * A trailing "," is allowed:
+            myfunc(45,65,somefunc(),)
+        * "()" can be replaced by indentation:
+            myfunc
+                34
+                42
+                false
+        
+@ int x
+    # This is commentary about x.
+    % > 0 && % < 99 && !%->empty # Input validation. "%" replaces variable name.
+fn square
+    return x ** 2 
+# Or the function can be a oneliner using the ":" as a seperator.
+fn square: return x ** 2
+
+# Function with inner function that uses the short form of a function definition.
+# Short form is only recommended for very simple inner functions.
+@ int x
+    # Comment about x.
+fn withinner int y
+    fn inner int x (% > 0)
+        return 2 / x
+    return y->inner
+
+# Loops #
+    "for" keyword is now closer to the good old "foreach". 
+    
+    Understands the "[0-9a-zA-Z] to [0-9a-zA-Z]" infix operator. Implemented the 
+    same way as python 3s "range".
+    
+    A new keyword "putin" is introduced that decides what value or variable
+    the loop will collect into when returning a value from the loop. 
+## Examples ##
+a = get_some_random_array()
+for x in a
+for x,y in a
+for x in 1 to 98 step 2
+# "*=", "/=", "+=", "-=" and "^=" can be used to collect into the value set by 
+# "putin" 
+return for k,v in a putin 1
+    *= k + v
+a = 32
+c = for k,v in array putin a: *= k + v
+   
+# Classes #
+    * @classvar annotation that creates code like "$this->foo = $foo" in the 
+      constructor.
+    
+    #Dennis
+    * Access modifiers are:
+      * pub: public (default)
+      * pro: protected
+      * pri: private
+
+## Example class with example documentation. ##
+    * Markdown is used by default for documentation.
+    * Bluh.
+    * Images can be used: [image.png].
+@classvar int x
+    # "x" is stored as a public class var.
+    % > 0 && !%->empty
+@classvar private static int y
+    # "y" is stored in a private static class var.
+    % > 0 && !%->empty
+@ int z=0
+    # "z" is just passed to the constructor.
+    % > 0 && !%->empty
+cls MyClass
+    # Defaults to public.
+    int zulu = 0
+    
+    # Constructor #
+        Nothing much to tell.
+    fn __construct
+        zulu = z * 2 # "this" is implied.
+        echo 9->other_method # "this" is implied.
+    
+    # Talk about this method.
+    fn some_method
+        return x + y # "this" is implied.
+    
+    # Methods / functions can have inline args as well.
+    fn other_method(int x): return x - 2
+    
+    # Example of static method.
+    @ obj obj (!%->empty)
+    static fn some_static_method: return obj.foo.bar
+               
+foo = MyClass(1,2) # "new" keyword can be ommitted.
+
+## Operator overloading ##
+@ int t
+@ int n
+cls Broek
+    fn *(Broek b): return Broek(t*b.t, n*b.n)
+    # Method overloading.
+    fn *(int i): return Broek(t*i, n)
+    fn /(Broek b): return Broek(t*b.n, n*b.t)
+    fn +(Broek b): 
+        c = n * b.n
+        return Broek(c * t + c * b.t, c)
+    fn -(Broek b):
+        c = n * b.n
+        return Broek(c * t - c * b.t, c)
+b = Broek(4,5)
+c = Broek(2,3)
+d = b * c + c / Broek(1,2)
+# The line above will compile to this:
+<?php $d = $b->times($c)->plus($c->divide(new Broek(1,2)) ?>
+
+## Infix operator ##
+@ int x
+@ int y
+@ int z
+infix x times y plus z: return x * y + z
+a = 4 times 9 plus 98
+
+## Text formats ##
+
+# HAML style inline html
+$s = 
+    <div class="blah">
+        <p>%obj.foo.bar
+
+# Random musings #
+
+# Maybe scala style infix-operator-by-default can be implemented,
+# but not sure how usefull it is. Needs to see more scala examples.
+a = 5 b 2 # Same as b(5,2)
+a = 4 b # Same as b(4)
+a = b 3 4 # Same as b(3,4)
+a = 2 b 4 5 # Same as b(2,4,5)
+a = 2 b c 5 # Same as c(b(2),5)
