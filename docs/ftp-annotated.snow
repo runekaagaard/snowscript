@@ -18,6 +18,9 @@
     Besides that, when explicitly defining a class i'd prefer the keyword 
     'cls', following the '3 chars per keyword'-convention.
 
+# Rune:
+    Definitely it looks _very_ lean and mean without "cls" and "fn".
+
 # Rune: Class because it starts with a capital letter?
 #Dennis: Exactly, no ambiguity here
 FTP
@@ -107,6 +110,11 @@ FTP
             The only thing i'm worried about is lexer/parser implementation. 
             Maybe we can use keyword 'when'? Or do you think it won't impose
             complications?
+        # Rune:
+            Just meant than when we compiled the "unless" sentence into a "if"
+            sentence we would have to reverse the operators. Postfix "if" looks
+            very sexy and dangerous. I like the "when" keyword a lot, better
+            than "unless".
             
         trans_mode = getTransMode(local) unless trans_mode != OPT_TRANS_AUTO # perl style unless
         ftp_put(conn local remote trans_mode) or throw Exception("Couldn't get file '%remote'")
