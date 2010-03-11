@@ -78,6 +78,42 @@
     
     Scala-style infix-operator
         It doesn't look particularly readable or useful.
+        
+    @classvars
+        I think this could be a powerful construct. I have been thinking
+        about it and came with this:
+            cls MyClass
+                #some classvar
+                pro int my_var
+                
+                #This method has 2 parameters:
+                    my_var: This is a classvar, gets 'mapped' to the previously
+                            defined property
+                    my_int: regular parameter
+                @classvar my_var
+                @int my_int
+                fn __construct
+                    # do stuff
+                
+                #This results in an error, myothervar is not yet declared
+                @classvar my_other_var
+                fn somefunc
+                    # do stuff
+        
+        Maybe we can even imply getter/setter generation, possibly controlled
+        by annotations.
+            pro int my_var #setMyVar() and getMyVar() are created, also used in
+                            methods when @classvar annotation is used
+                            Those methods can also be overriden
+            @set
+            pro int other_var # only setOtherVar() is created
+            @get
+            pro int other_var # only getOtherVar() is created
+            @getset
+            pro int other_var # this is the default setting, both getter and
+                                setter are generated
+        
+        Maybe it's just a bit too magic, but i'm curious to know your take on this
 
 
 # More musings #
