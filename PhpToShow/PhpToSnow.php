@@ -7,18 +7,15 @@
  * the tests. Sofar it only works for the tests in the "basic" folder. There is
  * still many gotchas and WTF's. Just commiting this not to loose the files.
  */
-define ('SNOW_PATH', realpath(dirname(__FILE__)));
-include SNOW_PATH . '/php_to_snow_maps.php';
+define ('PHP_TO_SNOW_PATH', realpath(dirname(__FILE__)));
+include PHP_TO_SNOW_PATH . '/php_to_snow_maps.php';
 
 class PhpToSnow {
     const PARSE_WITH_METHOD = 1;
     const PARSE_UNCHANGED = 2;
-    const STATE_NORMAL = 3;
-    const STATE_BEGINNING_OF_LINE = 4;
-
-    private $state = self::STATE_BEGINNING_OF_LINE;
     private $insideDoubleQuotes = FALSE;
     private $insideForLoop = FALSE;
+    private $insideArray = FALSE;
     private $injectBeforeDecreasedIndent = FALSE;
     private $output = '';
     private $indent = 0;
@@ -139,6 +136,8 @@ class PhpToSnow {
     }
     
     private function out($s) {
+        static $last = '';
+        if ($last == '£' && $s == '£') return;
         $this->output .= $s;
         $last = $s;
     }
@@ -148,26 +147,12 @@ class PhpToSnow {
         $out = preg_replace('#%>$#','', $out);
         $out = preg_replace("#\n([¥£]*\n)+#", "\n", $out);
         $out = preg_replace_callback(
-            "#([a-zA-Z_]+)[£]*\(([a-z_]+)\)#",
-            array($this, 'outputResultCallback'),
-            $out
-        );
-        $out = preg_replace_callback(
-            "#([a-zA-Z_]+)[£]*\(('[^']*')\)#",
-            array($this, 'outputResultCallback'),
-            $out
-        );
-        $out = preg_replace_callback(
-            "#([a-zA-Z_]+)[£]*\((\"[^']*\")\)#",
-            array($this, 'outputResultCallback'),
-            $out
-        );
-        $out = preg_replace_callback(
             "#\n([¥]*)[£]+#",
             array($this, 'removePreSpace'),
             $out
         );
         $out = str_replace(array('¥', '£'), ' ', $out);
+        $out = str_replace(array('this.', 'self::'), '', $out);
         $out = trim($out);
         echo "########### AFTER #############\n" . $out . "\n";
     }
@@ -182,11 +167,9 @@ class PhpToSnow {
 
     private function addNewLine() {
         $this->out("\n");
-        $this->state = self::STATE_BEGINNING_OF_LINE;
     }
     private function addIndent() {
         $this->out(str_repeat('¥', $this->indent * 4));
-        $this->state = self::STATE_BEGINNING_OF_LINE;
     }
     
     private function chrash($msg, $data) {
@@ -228,6 +211,11 @@ class PhpToSnow {
          if ($this->insideForLoop) return ';';
     }
 
+    private function COMMA() {
+         if ($this->insideArray) return '£';
+         else return ',';
+    }
+
     private function T_FOREACH($token) {
         $subTokens = $this->getMatchingStrings('(', ')');
         $subTokens = $this->lTrimWhiteSpace($subTokens);
@@ -264,6 +252,20 @@ class PhpToSnow {
         return '';
     }
 
+    private function T_ARRAY($token) {
+        $this->insideArray = TRUE;
+        $subTokens = $this->getMatchingStrings('(', ')');
+        $subTokens = $this->lTrimWhiteSpace($subTokens);
+        array_shift($subTokens);
+        array_pop($subTokens);
+        $output = $this->parseSubtokens($subTokens);
+        $this->out("[$output]");
+        $this->addNewLine();
+        $this->addIndent();
+        $this->insideArray = FALSE;
+        return '';
+    }
+
     private function T_IF($token) {
         $subTokens = $this->getMatchingStrings('(', ')');
         $subTokens = $this->lTrimWhiteSpace($subTokens);
@@ -293,7 +295,10 @@ class PhpToSnow {
         return '"';
     }
 }
-$files = glob(SNOW_PATH . '/tests/basic/*');
+
+new PhpToSnow(file_get_contents(PHP_TO_SNOW_PATH . '/../docs/Ftp.php')); die;
+
+$files = glob(PHP_TO_SNOW_PATH . '/tests/basic/*');
 foreach ($files as $file) {
     $content = file_get_contents($file);
     preg_match('#--FILE--(.*)--EXPECT#Uis', $content, $m);
