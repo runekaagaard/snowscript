@@ -40,6 +40,10 @@
                 call it and we should minimize that. Deleted from snow.snow.
                 
                 Does this clarify and what do you think?
+                
+        Dennis:
+            Yeah, it looks great, I think I like it!
+                
             
     Method chaining
         What exactly is the difference between '.' and '->'
@@ -71,6 +75,20 @@
                 PHP: strtoupper("i am white");
             
             Do you like it and what should we call it?
+            
+        Dennis:
+            I don't really see an added value here, but it just looks _real_
+            nice! And it's just syntactic sugar, since print_r([]) and
+            []->print_r are exacty the same.
+            We must really think this through though. Given the print_r()
+            function, it accepts an optional 2nd parameter 'print', how do we 
+            cope with that? Will this: '[]->print_r(true)' be acceptable?
+            Another thing: I would love to have something like
+            'my_string'->replace('my' 'your')
+            But i'm not sure we should provide that kind of aliases though.
+            
+            About naming, don't know, somehow i like the 'receiver' as they
+            call it in go, see [2]. But don't know if it's descriptive enough.
 
     Use of quotation
         Will PHP's default quotation rules be applied? I think we should.
@@ -99,6 +117,16 @@
             it ends, i.e. "next line with the same or less indentation as the
             beginning line". It could do with some more documentation - will try
             to write that. Is probably rather complicated to code.
+        
+        Dennis:    
+            I think I like it, but I think it's more a 'nice to have', and
+            therefore we should consider it only after we have some working
+            implementation of an interpreter/compiler.
+            The reason is that snow is a little more 'advanced' than php and
+            inline html is/should be a lot less common than in 90% of the php
+            code you see out there.
+            Maybe we can provide a built-in package that works with haml-style
+            templates?
     
     Compatible with all existing PHP code
         Could you define this more clearly?
@@ -108,6 +136,11 @@
         Rune: Lol no no. I just mean that we should be able to call functions,
         methods and constants not complying with the naming conventions of Snow
         so we are compatible with existing non-snow PHP code.
+        
+        Dennis:
+            *Pfew*. ;)
+            We should decide on a target version though. I'd say 5.x.
+            Absolutely drop 4.x, but don't depend on 5.2 features or something.
         
     Can compile existing code to snow
         Though this would be a nice feature, is it worth the hassle?
@@ -124,6 +157,12 @@
                 * Seeing if the tests still passes.
             Which would be an awesome suite of tests for the Snow compiler. Lets 
             see how it goes.
+            
+        Dennis:
+            If you think you can make it work, let's do it then!
+            It gives access to a nice set of tests, but don't get your hopes
+            up since we can't make use of the more advanced snow features.
+            (or the php-snow compiler had to be _very_ advanced).
         
     What exacty is the use of '{ }' for object creation?
         Rune:
@@ -140,6 +179,9 @@
                 $my_object->y->$z = 54;
                 $my_object->y->m = 54;    
             Makes sense?    
+
+        Dennis:
+            I like it.
         
     Should 'const' keyword be 'con'?
         Rune:
@@ -149,6 +191,10 @@
             partly undecided.
             
             What are our rules for naming keywords?
+            
+        Dennis:
+            What is it that you object to on con/cls ?
+            
         
     Should functions/methods be lowerCamelCased()? To make it distinct from
         vars_with_underscore.
@@ -159,6 +205,9 @@
             are named that way. I prefer the vars_with_underscore because it 
             looks very ruby-rockstar simple and readable but am ok with 
             lowerCamelCased() as well.
+        Dennis:
+            You are absolutely right, i was thinking more from a userland
+            perspective.
         
     String interpolation and variable variables
         There's a conflict in the spec on lines 99-106
@@ -186,6 +235,16 @@
                 baz = 'abc' .  $foo();
                 ?>
             I think it looks quite logical. How would you change it?
+            
+        Dennis:
+            Well, I have thought about and I'm okay with that now, I was afraid
+            it would be inconsistent but there's a visual distinction since
+            parenthesis are required on a function call:
+                fn bar: return "bar"
+                foo = "bar"
+                print "%foo" # print the contents of var foo
+                print "%bar()" # print the return of bar()
+                print "%%foo()" # print the return of bar()
     
     Multiple assignments
         Does this mean we can do swapping?
@@ -197,6 +256,8 @@
                 a b = b a # Rather sexy.
             Swapping should be possible but not easy to parse. See comment in 
             the "Automatic variable naming" section.
+        Dennis:
+            Agree, we should focus on other things first.
         
     Magic 'args' array in functions/methods
         I like the idea, I also think we should make it read only.
@@ -231,6 +292,19 @@
                     # Do other stuff
             When compiling to PHP we can auto prefix inner functions with the 
             name of their outer functions.
+            
+        Dennis:
+            Looks nice, but..
+            * How do we resolve naming conflicts?
+                fn _some_func: return "foo" # throw fatal? Would be weird IMO..
+                fn some_func
+                    fn helper: return "bar"
+            * It gives me the impression i'm able to do something like this:
+                fn some_func
+                    fun helper: return "foo"
+                    return helper
+              I'm afraid we can't do that without the help of closures
+              and thus targetting 5.3 specificly
                     
     Infix operator
         I don't really understand your 'Infix operator' chapter, line 280
@@ -297,6 +371,10 @@
                 @set+@get
                 pro int other_var
             that would eliminate the need for @getset as well.            
+        Dennis:
+            Great!
+            You're right, if we allow @getset we should allow @setget as well
+            I propose optional commas
             
 # More musings #
 
@@ -311,6 +389,8 @@
         Rune:
             Will need to see some examples before I fully understand what you
             just wrote :).
+        Dennis:
+            I'll try and elaborate more on this
         
              
     Array dereferencing
@@ -323,6 +403,8 @@
             which can make the generated code ugly very fast! It doesn't sound
             like the PHP core people want array dereferencing which on the other
             hand is a good reason why we should have it :).
+        Dennis:
+            Let's drop it for now then.
         
     Automatic variable naming
         There are places where we will need to make intermediate variables
@@ -337,6 +419,12 @@
             I think we should only implement features where we can guarantie
             that the generated code looks perfect without needing to understand
             the corresponding Snow code.
+            
+        Dennis:
+            When i wrote this I had more places in mind where we would need
+            automatic variable naming, can't remember them now though...
+            I agree we should only implement something like this if we can make
+            it work 100% perfectly
 
 # References #
     [1]: http://en.wikipedia.org/wiki/Method_chaining
