@@ -3,7 +3,7 @@
  * Recursive factorial function.
  * 
  * @param int $n
- *     Must 0 or above.
+ *     Must be 0 or above.
  * @return int
  */
 function fac1($n) {
@@ -20,7 +20,7 @@ var_dump(fac1(10));
  * Procedural factorial function.
  * 
  * @param int $n
- *     Must 0 or above.
+ *     Must be 0 or above.
  * @return int
  */
 function fac2($n) {

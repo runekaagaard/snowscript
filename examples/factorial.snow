@@ -1,7 +1,7 @@
 # Recursive factorial function.
 @int n
-    # Must 0 or above.
-    %n>-1
+    # Must be 0 or above.
+    %>-1
 @return int
 fn fac1
     if n == 0: return 1 
@@ -12,8 +12,8 @@ fac1(10)->var_dump
 
 # Procedural factorial function.
 @int n
-    # Must 0 or above.
-    %n>-1
+    # Must be 0 or above.
+    %>-1
 @return int
 fn fac2
     if n == 0: return 1
