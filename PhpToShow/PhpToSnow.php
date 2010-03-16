@@ -152,7 +152,7 @@ class PhpToSnow {
             $out
         );
         $out = str_replace(array('¥', '£'), ' ', $out);
-        $out = str_replace(array('this.', 'self::'), '', $out);
+        #$out = str_replace(array('self::'), '', $out);
         $out = trim($out);
         echo "########### AFTER #############\n" . $out . "\n";
     }

@@ -1,0 +1,19 @@
+# Recursive factorial function.
+@int n
+    # Must 0 or above.
+    %n>-1
+@return int
+fn fac1
+    return 1 when n == 0
+    return n * fac(n-1)
+fac1(10)->var_dump
+
+# Procedural factorial function.
+@int n
+    # Must 0 or above.
+    %n>-1
+@return int
+fn fac2
+    return for i in n-1 downto 2 putin n
+        *= i
+fac2(10)->var_dump
