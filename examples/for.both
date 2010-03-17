@@ -1,0 +1,103 @@
+# With "in" keyword, without "putin" keyword. #
+
+# Snow.
+for x in z
+# PHP.
+<?php foreach ($z as $x) ?>
+
+# Snow
+for x y in z
+# PHP.
+<?php foreach ($z as $x => $y) ?>
+
+# Snow
+for x in y to z
+# PHP.
+<?php for ($x=y; $x<$z+1; ++$x) ?>
+
+# Snow
+for x in y downto z
+# PHP.
+<?php for ($x=y; $x>$z-1; --$x) ?>
+
+# Without "in" keyword, without "putin" keyword. #
+
+# Snow
+for x to y
+# PHP.
+<?php for ($x; $x<$y+1; ++$x) ?>
+
+# Snow
+for x downto y
+# PHP.
+<?php for ($x; $x>$y-1; --$x) ?>
+
+# With "in" keyword, "putin" and "return". #
+
+# Snow.
+return for x in z putin r='': .= x
+# PHP.
+<?php
+$r = '';
+foreach ($z as $x) {
+    $r .= $x;
+}
+return $r;
+?>
+
+# Snow
+return for x y in z putin r='': .= x,y
+# PHP.
+<?php
+$r = '';
+foreach ($z as $x => $y) {
+    $r .= $x . $y;
+}
+return $r;
+?>
+
+# Snow
+return for x in y to z putin r=1: += x
+# PHP.
+<?php
+$r = 1;
+for ($x=y; $x<$z+1; ++$x) {
+    $r += $x;
+}
+return $r;
+?>
+
+# Snow
+return for x in y downto z putin r=1: += x
+# PHP.
+<?php
+$r = 1;
+for ($x=y; $x>$z-1; --$x) {
+    $r += $x;
+}
+return $r;
+?>
+
+# Without "in", with "putin" and "return". #
+
+# Snow
+return for x to y-1 putin r=1: r += x
+# PHP.
+<?php
+$r = 1;
+for ($x; $x<$y-1+1; ++$x) {
+    $r += $x;
+}
+return $r;
+?>
+
+# Snow
+return for x downto y-1 putin r=1: r += x
+# PHP.
+<?php
+$r = 1;
+for ($x; $x>$y-1-1; --$x) {
+    $r += $x;
+}
+return $r;
+?>
