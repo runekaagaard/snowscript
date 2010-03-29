@@ -2,21 +2,21 @@
 # http://php.net/manual/en/functions.anonymous.php.
 
 class Cart
-    float PRICE_BUTTER  = 1.00
-    float PRICE_MILK = 3.00
-    float PRICE_EGGS = 6.95
-    pro array products = []
+    flo PRICE_BUTTER  = 1.00
+    flo PRICE_MILK = 3.00
+    flo PRICE_EGGS = 6.95
+    pro arr products = []
     
-    @string product
+    @str product
     @int quantity
     fn add    
         products[product] = quantity
     
-    @string product
+    @str product
     fn get_quantity
         return products[product] or FALSE
     
-    @float tax
+    @flo tax
     fn get_total
         total = 0.00
         callback = fn(quantity product) use (tax &total)
