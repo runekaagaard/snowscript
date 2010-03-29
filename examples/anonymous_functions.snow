@@ -16,7 +16,7 @@ class Cart
     fn get_quantity
         return products[product] or FALSE
     
-    float tax
+    @float tax
     fn get_total
         total = 0.00
         callback = fn(quantity product) use (tax &total)
