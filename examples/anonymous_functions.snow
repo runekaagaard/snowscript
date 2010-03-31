@@ -20,7 +20,7 @@ class Cart
     fn get_total
         total = 0.00
         callback = fn(quantity product) use (tax &total)
-            price_per_item = const("%__CLASS__::Price_%product->strtoupper")
+            price_per_item = "%__CLASS__::Price_%product->strtoupper"->const
             total += * (price_per_item quantity (tax + 1))  
         products->array_walk(callback)
         return total->round(2)
