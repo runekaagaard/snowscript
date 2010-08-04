@@ -1,71 +1,74 @@
-cls FTP
-    int OPT_TRANS_ASCII = FTP_ASCII
-    int OPT_TRANS_BINARY = FTP_BINARY
-    int OPT_TRANS_AUTO = 3
+# Class handling FTP operations.
+    Wrapper on top of FTP protocol that enables file/directory listing,
+    upload/download, etc.
+@str host
+    # The ftp host to connect to.
+    !%->empty
+@int port=21
+    # The port to connect to.
+    0 < % < 65536
+@int timeout=30
+    # Connect timeout, bail out if exceeded. 0 means wait forever.
+    0 <= %
+class Ftp
+    pub con int
+        OPT_TRANS_ASCII = FTP_ASCII
+        OPT_TRANS_BINARY = FTP_BINARY
+        OPT_TRANS_AUTO = 3
+    pro
+        arr
+            ascii_types = ["text" "csv"]
+            binary_types = ["jpg" "jpeg" "gif" "psd"]
+        int default_transmode = OPT_TRANS_ASCII
+        ConnectionResource conn # Instance of the class ConnectionResource.
 
-    pro arr ascii_types = ["text" "csv"]
-    pro arr binary_types = ["jpg" "jpeg" "gif" "psd"]
-    pro int default_transmode = OPT_TRANS_ASCII
-    
-    #connection resource
-    pro res conn
-	
-    #constructs FTP object
-        Wrapper on top of FTP protocol
-        Enables file/directory listing, upload/download etc
-    @classvar pro str host
-        #the ftp host to connect to
-        !%->empty
-    @classvar pro int port=21
-        #the port to connect (defaults to 21)
-        %>0 && %<65536
-    @classvar pro int timeout=30
-        #connect timeout, bail out if exceeded
-        #defaults to 30, 0 means wait forever
-    fn __construct
-        conn = ftp_connect(host port timeout) || throw Exception("Couldn't connect to host '%host'")
+    # Constructor.
+        Tries to connect to server or throws an exception.
+    conn = ftp_connect(host port timeout) or throw Exception(
+        "Couldn't connect to host '%host'")
 
     @str user
     @str pass
     fn login: return ftp_login(conn user pass)
-    
+
     @str local
     @str remote
     @int trans_mode
     fn put
-        trans_mode = getTransMode(local) if trans_mode == OPT_TRANS_AUTO
-        ftp_put(conn local remote trans_mode) || throw Exception("Couldn't get file '%remote'")
-    
+        trans_mode = get_trans_mode(local) when trans_mode == OPT_TRANS_AUTO
+        ftp_put(conn local remote trans_mode) or throw Exception(
+            "Couldn't get file '%remote'")
+
     @str local
     @str remote
     @int trans_mode
     fn get
-        trans_mode = getTransMode(local) if trans_mode == OPT_TRANS_AUTO
-        ftp_get(conn local remote trans_mode) || throw Exception("Couldn't get file '%remote'")
+        trans_mode = get_trans_mode(local) when trans_mode == OPT_TRANS_AUTO
+        ftp_get(conn local remote trans_mode) or throw Exception(
+            "Couldn't get file '%remote'")
 
-    #checks whether a file exists on the remote side
+    # Checks whether a file exists on the remote side.
     @str file
-        #the filename to check for
+        # The filename to check for.
         !%->empty
-    fn fileExists
+    fn file_exists
         list = ftp_nlist(conn file->dirname)
         return list->in_array(file->basename)
-    
-    #determine transfermode to use
+
+    # Determine transfermode to use.
     @str file
-    fn getTransMode
+    fn get_trans_mode
         for ext in ascii_types
-            return OPT_TRANS_ASCII if file->substr(-ext->strlen) == ext
+            return OPT_TRANS_ASCII when file->substr(-ext->strlen) == ext
         for ext in binary_types
-            return OPT_TRANS_BINARY if file->substr(-ext->strlen) == ext
+            return OPT_TRANS_BINARY when file->substr(-ext->strlen) == ext
         return default_transmode
-    
+
     fn close: return ftp_close(conn)
 
-
 try
-    ftp = FTP("my.host")
+    ftp = Ftp("my.host")
     ftp.login("user" "pass")
     ftp.get("/remote/file" "/local/file")
-@Exception e
-catch: e->var_dump
+catch(Exception e)
+    e->var_dump
