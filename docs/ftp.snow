@@ -64,7 +64,7 @@ class Ftp
             return ::OPT_TRANS_BINARY when file->substr(-ext->strlen) == ext
         return default_transmode
 
-    fn close: return ftp_close(conn)
+    fn close: return ftp_close(.conn)
 
 try
     ftp = Ftp("my.host")
