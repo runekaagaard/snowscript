@@ -2,26 +2,26 @@
 # http://php.net/manual/en/functions.anonymous.php.
 
 class Cart
-    flo PRICE_BUTTER  = 1.00
-    flo PRICE_MILK = 3.00
-    flo PRICE_EGGS = 6.95
+    con 
+        PRICE_BUTTER  = 1.00
+        PRICE_MILK = 3.00
+        PRICE_EGGS = 6.95
     pro arr products = []
     
     @str product
     @int quantity
-    fn add    
-        products[product] = quantity
+    fn add: products[product] = quantity
     
     @str product
-    fn get_quantity
-        return products[product] or FALSE
+    fn get_quantity: return products[product] or FALSE
     
     @flo tax
     fn get_total
         total = 0.00
         callback = fn(quantity product) use (tax &total)
-            price_per_item = "%__CLASS__::Price_%product->strtoupper"->const
-            total += * (price_per_item quantity (tax + 1))  
+            price product = __CLASS__::Price product->strtoupper
+            price_per_item = "{price}_{product}"->constant
+            total += * (price_per_item quantity (tax + 1))
         products->array_walk(callback)
         return total->round(2)
     
@@ -33,4 +33,4 @@ my_cart.add('milk' 3)
 my_cart.add('eggs' 6)
 
 # Print the total with a 5% sales tax.
-print "%my_cart.get_total(0.05)\n" # The result is 54.29.
+print my_cart.get_total(0.05) , "\n"
