@@ -13,6 +13,7 @@ class TemplateEngine
     protected $func_max_len;
     public function __construct($template_dir)
     {
+        if(!file_exists($template_dir)) throw new Exception("{$template_dir} doesn't exist!");
         $this->template_dir = $template_dir;
         $this->var_format = $this->setVarFormat('{%s}');
         $this->available_funcs =  array('iif', 'loop', 'qs');
