@@ -272,7 +272,7 @@ b = Broek(4,5)
 c = Broek(2,3)
 d = b * c + c / Broek(1,2)
 # The line above will compile to this:
-<?php $d = $b->times($c)->plus($c->divide(new Broek(1,2)) ?>
+<?php $d = $b->times($c)->plus($c->divide(new Broek(1,2))) ?>
 
 ## Text formats ##
 

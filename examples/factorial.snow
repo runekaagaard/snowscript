@@ -2,23 +2,10 @@
 @int n
     # Must be 0 or above.
     %>-1
-@return int
-fn fac1
-    if n == 0: return 1 
-    return n * fac1(n-1)
+@int fn fac1
+    <- 1 when n == 0
+    <- n * fac1(n-1)
 fac1(0)->var_dump
 fac1(1)->var_dump
 fac1(10)->var_dump
 
-# Procedural factorial function.
-@int n
-    # Must be 0 or above.
-    %>-1
-@return int
-fn fac2
-    if n == 0: return 1
-    return for i in n-1 downto 2 putin n
-        *= i
-fac1(0)->var_dump
-fac1(1)->var_dump
-fac2(10)->var_dump

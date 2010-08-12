@@ -1,109 +1,112 @@
 import '../../../blocks_base/UserProfileBase.snow'
+@PDO pdo
 class UserProfile extends UserProfileBase
-    pub _explicitType = 'nl.domain.game.userdata.UserProfile'
-    pub id
-    pub uid
-    pub email
-    pub nick
-    pub pass
-    pub firstName
-    pub suffix
-    pub lastName
-    pub gender
-    
-    @get
-    pro login_errno
+    str
+        _explicitType = 'nl.domain.game.userdata.UserProfile'
+        uid
+        email
+        nick
+        pass
+        firstName
+        suffix
+        lastName
+        gender
+    int
+        id
+    pro int login_errno
+    pro PDO pdo
     
     @uid
-    pub fn retrieveUserProfile
-        stmt = pdo.prepare(getRetrieveUserQuery())
+    fn retrieveUserProfile
+        stmt = .pdo.prepare(getRetrieveUserQuery())
         stmt.execute([uid, uid])
         
         if stmt.rowCount() == 1
             list(result) = stmt.fetchAll(PDO::FETCH_ASSOC)
-            initFromArray(result)
+            result->initFromArray
             
-        return this
+        <- .
         
     @email
-    pub fn emailExists
-        return valueExists('email' email)
+    fn emailExists
+        <- .valueExists('email' email)
         
     @nick
-    pub fn nickExists
-        return valueExists('nick' nick)
+    fn nickExists
+        <- .valueExists('nick' nick)
         
     @field
     @value
-    pub fn valueExists
-        stmt = pdo.prepare(sprintf('select %1$s from user where lower(%1$s) = lower(?)' field))
+    fn valueExists
+        stmt = .pdo.prepare(sprintf('select %1$s from user where lower(%1$s) = lower(?)' field))
         stmt.execute([value->trim])
-        return stmt.rowCount() > 0
+        <- stmt.rowCount() > 0
         
     @email
     @pass
-    pub fn valid
-        fields = getProfileFields()
+    fn valid
+        fields = .getProfileFields()
         farbissina = ['_explicitType' 'id' 'pass']
         for x = 0 to fields.sizeof
             unset(fields[x]) when fields[x].in_array(farbissina) # Doesn't this just look beautiful?
         columns = implode(',' fields)
         sql = 'SELECT' , columns , ' FROM user WHERE (lower(email) = lower(?) or lower(nick) = lower(?)) and pass = ?'
-        stmt = pdo.prepare(sql)
+        stmt = .pdo.prepare(sql)
         stmt.execute([email email pass])
         
-        if stmt.rowCount() == 1
+        <- if stmt.rowCount() == 1
             list(result) = stmt.fetchAll(PDO::FETCH_ASSOC)
             initFormArray(result)
-            return true
+            <-- true
         else
             sql = 'select email from user where lower(email) = lower(?)
             stmt = pdo.prepare(sql)
             stmt.execute([email])
-            login_errno = stmt.rowCount() == 1 ? 1 : 2
-        return false
+            .login_errno = stmt.rowCount() == 1 ? 1 : 2
+            <-- false
         
     @name
-    pub fn isBlackListed
+    fn isBlackListed
         sql = 'select * from username_blacklist u where lower(name) = substring(?, 1, length(name))'
-        stmt = pdo.prepare(sql)
+        stmt = .pdo.prepare(sql)
         stmt.execute([name])
         
-        return stmt.rowCount() > 0
+        <- stmt.rowCount() > 0
         
     @name
-    pub fn getSuggestions
-        stmt = pdo.prepare('call getSuggestions(?, ?)')
+    fn getSuggestions
+        stmt = .pdo.prepare('call getSuggestions(?, ?)')
         stmt.execute([name, 3])
         result = stmt.fetchAll(PDO::FETCH_ASSOC)
-        for row in result putin ret = []: []row['name'] # I don't know about this, but would be nice to be able to push something on array with putin keyword!
-        return ret
+        ret = []
+        for row in result: ret[] = row['name']
+        <- ret
         
     @field
     pro fn outputFilter
-        return true
+        <- true
         
     @email
-    pub fn getUIDFromEmail
+    fn getUIDFromEmail
         sql = 'select uid from user where lower(email) = lower(?)
-        stmt = pdo.prepare(sql)
+        stmt = .pdo.prepare(sql)
         stmt.execute([email])
         
-        return false when stmt.rowCount() == 0
+        <- false when stmt.rowCount() == 0
         list(result) = stmt.fetchAll(PDO::FETCH_ASSOC)
         
-        return result['uid']
+        <- result['uid']
         
-    pub fn getRetrieveUserQuery
-        columns = getProfileFields(true)
-        for x = 0 to columns.sizeof: unset(columns[x]) when columns[x] == '_explicitType'
+    fn getRetrieveUserQuery
+        columns = .getProfileFields(true)
+        for x = 0 to columns->sizeof: unset(columns[x]) when columns[x] == '_explicitType'
         columns = implode(',' columns)
         sql = 'select ' , columns , ' from user where cast(id as char) = ? or uid = ?'
-        return sql
+        <- sql
         
-    pub fn getUpsertUserQuery
-        fields = getProfileFields
-        for x = 0 to fields.sizeof: unset(fields[x]) when fields[x] == '_explicitType'
+    fn getUpsertUserQuery
+        fields = .getProfileFields
+        for x = 0 to fields->sizeof: unset(fields[x]) when fields[x] == '_explicitType'
         
         columns = implode(',' fields) # -> id,uid,email
         values = ':' , implode(',:' fields) # -> :id,:uid,:email
@@ -114,14 +117,15 @@ class UserProfile extends UserProfileBase
         sql = 'insert into user(' , columns , ',regdate)
                 values(' , values , ',now())
                 on duplicate key update ' , updates
-        return sql
+        <- sql
         
-    pub fn getUpdateFields
-        rc = ReflectionClass(this)
+    fn getUpdateFields
+        rc = ReflectionClass(.)
         props = rc.getProperties(ReflectionProperty::IS_PUBLIC)
-        for prop in props putin new_props = []: [prop.name] = this.{prop.name} when prop.name != '_explicitType'
-        return new_props
+        new_props = []
+        for prop in props: new_props[prop.name] = .{prop.name} when prop.name != '_explicitType'
+        <- new_props
         
-    pub fn getArray
-        unset(pdo)
-        return (array)this
+    fn getArray
+        unset(.pdo)
+        return (array).

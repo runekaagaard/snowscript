@@ -1,13 +1,13 @@
 # Class handling FTP operations.
     Wrapper on top of FTP protocol that enables file/directory listing,
     upload/download, etc.
-@str host
+@str pro host
     # The ftp host to connect to.
     !%->empty
-@int port=21
+@int pro port=21
     # The port to connect to.
     0 < % < 65536
-@int timeout=30
+@int pro timeout=30
     # Connect timeout, bail out if exceeded. 0 means wait forever.
     0 <= %
 class Ftp
@@ -20,51 +20,50 @@ class Ftp
             ascii_types = ["text" "csv"]
             binary_types = ["jpg" "jpeg" "gif" "psd"]
         int default_transmode = ::OPT_TRANS_ASCII
-        ConnectionResource conn # Instance of the class ConnectionResource.
+        res conn
 
     # Constructor.
         Tries to connect to server or throws an exception.
     .conn = ftp_connect(host port timeout) or throw Exception(
-        "Couldn't connect to host '%host'")
+        "Couldn't connect to host '{host}'")
 
     @str user
     @str pass
-    fn login: return ftp_login(.conn user pass)
+    fn login: <- ftp_login(.conn user pass)
 
     @str local
     @str remote
-    @int trans_mode
+    @int trans_mode = ::OPT_TRANS_AUTO
     fn put
         trans_mode = get_trans_mode(local) when trans_mode == ::OPT_TRANS_AUTO
         ftp_put(.conn local remote trans_mode) or throw Exception(
-            "Couldn't get file '%remote'")
+            "Couldn't get file '{remote}'")
 
     @str local
     @str remote
-    @int trans_mode
+    @int trans_mode = ::OPT_TRANS_AUTO
     fn get
         trans_mode = get_trans_mode(local) when trans_mode == ::OPT_TRANS_AUTO
         ftp_get(.conn local remote trans_mode) or throw Exception(
-            "Couldn't get file '%remote'")
+            "Couldn't get file '{remote}'")
 
     # Checks whether a file exists on the remote side.
     @str file
         # The filename to check for.
         !%->empty
     fn file_exists
-        list = ftp_nlist(.conn file->dirname)
-        return list->in_array(file->basename)
+        <- .conn->ftp_nlist(file->dirname)->in_array(file->basename)
 
     # Determine transfermode to use.
     @str file
     fn get_trans_mode
         for ext in .ascii_types
-            return ::OPT_TRANS_ASCII when file->substr(-ext->strlen) == ext
+            <- ::OPT_TRANS_ASCII when file->substr(-ext->strlen) == ext
         for ext in .binary_types
-            return ::OPT_TRANS_BINARY when file->substr(-ext->strlen) == ext
-        return default_transmode
+            <- ::OPT_TRANS_BINARY when file->substr(-ext->strlen) == ext
+        <- default_transmode
 
-    fn close: return ftp_close(.conn)
+    fn close: <- ftp_close(.conn)
 
 try
     ftp = Ftp("my.host")
