@@ -1,30 +1,32 @@
 """
 Parser for the Snow language.
-
 Based on http://pyparsing.wikispaces.com/file/view/indentedGrammarExample.py.
 """
 
 from pyparsing import *
 
 data = """\
-fn A(z)
-  A1
-  B = 100
-  G = A2
-  A2
-  A3
-B
-fn BB(a,b,c)
-  BB1
-  fn BBA()
+fn iamfunction
+  myint = 100
+  myweirdstring = iamstringish
+  dummy
+
+dummyvar
+
+fn functionwithargs(a,b)
+  fn fnnoargs
     bba1
     bba2
     bba3
-C
-D
-fn spam(x,y)
-     fn eggs(z)
+
+dummvar2
+
+fn spam(a,b,c)
+     fn eggs
          pass
+
+fn amempty
+    pass
 """
 
 indentStack = [1]
@@ -60,8 +62,10 @@ stmt = Forward()
 suite = Group( OneOrMore( empty + stmt.setParseAction( checkPeerIndent ) )  )
 
 identifier = Word(alphas, alphanums)
-funcDecl = ("fn" + identifier + Group( "(" + Optional( delimitedList(identifier) ) + ")" ))
-funcDef = Group( funcDecl + INDENT + suite + UNDENT )
+
+funcDeclShort = ("fn" + identifier)
+funcDeclFull = (funcDeclShort + Group( "(" + Optional( delimitedList(identifier) ) + ")" ))
+funcDef = Group( (funcDeclFull | funcDeclShort) + INDENT + suite + UNDENT )
 
 rvalue = Forward()
 funcCall = Group(identifier + "(" + Optional(delimitedList(rvalue)) + ")")
@@ -69,8 +73,11 @@ rvalue << (funcCall | identifier | Word(nums))
 assignment = Group(identifier + "=" + rvalue)
 stmt << ( funcDef | assignment | identifier )
 
+# Output
+print "== Code parsed =="
 print data
 parseTree = suite.parseString(data)
 
+print "== ASTish =="
 import pprint
 pprint.pprint( parseTree.asList())
