@@ -1,0 +1,776 @@
+{-
+ - phc -- the open source PHP compiler
+ - See doc/license/README.license for licensing information
+ -
+ - The phc grammar in .tea format. 
+ -
+ - This is the authoritative grammar for phc. 
+ -}
+
+{-
+	Configuration
+-}
+
+output_dir "src/generated";
+prefix "AST";
+external class "Object";
+external class "IR::Node";
+external class "IR::PHP_script";
+external class "IR::FOREIGN";
+use list "List";
+use string "String";
+use namespace "AST";
+no source_rep;
+
+{-
+   Top-level structure	
+-}
+
+PHP_script ::= Statement* ;
+
+Statement ::=
+     Class_def | Interface_def | Method
+	| Return | Static_declaration | Global
+	| Try | Throw | Eval_expr
+	| If | While | Do | For | Foreach
+	| Switch | Break | Continue
+	| Declare | Nop
+	-- Foreign represents a construct from another IR that does not have a
+	-- natural representation in this IR.
+	| FOREIGN<IR::Node*>
+	;
+
+{-
+	Class and method definitions
+-}
+
+Class_def ::= 
+   Class_mod CLASS_NAME extends:CLASS_NAME? implements:INTERFACE_NAME* Member* ;
+Class_mod ::= "abstract"? "final"? ;
+
+Interface_def ::= INTERFACE_NAME extends:INTERFACE_NAME* Member* ;
+
+Member ::= Method | Attribute ;
+
+Method ::= Signature Statement*? ;
+Signature ::= Method_mod is_ref:"&"? METHOD_NAME Formal_parameter* ;
+Method_mod ::= "public"? "protected"? "private"? "static"? "abstract"? "final"? ;
+Formal_parameter ::= Type is_ref:"&"? var:Name_with_default ;
+Type ::= CLASS_NAME? ;
+
+Attribute ::= Attr_mod vars:Name_with_default* ;
+Attr_mod ::= "public"? "protected"? "private"? "static"? "const"?  ;
+
+Name_with_default ::= VARIABLE_NAME Expr? ;
+
+{-
+   Statements
+-}
+
+If ::= Expr iftrue:Statement* iffalse:Statement* ;
+While ::= Expr Statement* ;
+Do ::= Statement* Expr ;
+For ::= init:Expr? cond:Expr? incr:Expr? Statement* ;
+Foreach ::= Expr key:Variable? is_ref:"&"? val:Variable Statement* ;
+
+Switch ::= Expr Switch_case* ;
+Switch_case ::= Expr? Statement* ;
+Break ::= Expr? ;
+Continue ::= Expr? ;
+Return ::= Expr? ;
+
+Static_declaration ::= vars:Name_with_default* ;
+Global ::= Variable_name* ;
+
+Declare ::= Directive+ Statement* ;
+Directive ::= DIRECTIVE_NAME Expr ;
+
+Try ::= Statement* catches:Catch* ;
+Catch ::= CLASS_NAME VARIABLE_NAME Statement* ;
+Throw ::= Expr ;
+
+Eval_expr ::= Expr ;
+
+Nop ::= ;
+
+
+-- Foreign represents a construct from another IR that does not have a natural
+-- representation in this IR.
+
+
+{-
+   Expressions
+-}
+
+Expr ::=
+     Assignment 
+	| Cast | Unary_op | Bin_op 
+	| Constant | Instanceof
+	| Variable | Pre_op 
+	| Method_invocation | New 
+	| Literal 
+	| Op_assignment | List_assignment 
+	| Post_op | Array | Conditional_expr | Ignore_errors 
+	| FOREIGN<IR::Node*>
+	;
+
+Literal ::= INT<long> | REAL<double> | STRING<String*> | BOOL<bool> | NIL<> ;
+   
+Assignment ::= Variable is_ref:"&"? Expr ;
+Op_assignment ::= Variable OP Expr ;
+
+List_assignment ::= List_element?* Expr ;
+List_element ::= Variable | Nested_list_elements ;
+Nested_list_elements ::= List_element?* ;
+
+Cast ::= CAST Expr ;
+Unary_op ::= OP Expr ;
+Bin_op ::= left:Expr OP right:Expr ;
+
+Conditional_expr ::= cond:Expr iftrue:Expr iffalse:Expr ;
+Ignore_errors ::= Expr ;
+
+Constant ::= CLASS_NAME? CONSTANT_NAME ;
+
+Instanceof ::= Expr Class_name ;
+
+Variable ::= Target? Variable_name array_indices:Expr?* ;
+Variable_name ::= VARIABLE_NAME | Reflection ;
+Reflection ::= Expr ;
+
+Target ::= Expr | CLASS_NAME ;
+
+Pre_op ::= OP Variable ;
+Post_op ::= Variable OP ;
+
+Array ::= Array_elem* ;
+Array_elem ::= key:Expr? is_ref:"&"? val:Expr ;
+
+Method_invocation ::= Target? Method_name Actual_parameter* ;
+Method_name ::= METHOD_NAME | Reflection ;
+
+Actual_parameter ::= is_ref:"&"? Expr ;
+
+New ::= Class_name Actual_parameter* ;
+Class_name ::= CLASS_NAME | Reflection ;
+
+{-
+ - Additional structure 
+ -}
+
+Commented_node ::= 
+	  Member | Statement | Interface_def | Class_def | Switch_case | Catch 
+	;
+
+Identifier ::=
+	  INTERFACE_NAME | CLASS_NAME | METHOD_NAME | VARIABLE_NAME 
+	  | CAST | OP | CONSTANT_NAME
+	  | DIRECTIVE_NAME 
+	; 
+
+Source_rep ::= Identifier | Literal ;
+
+{-
+ - Extra attributes and methods (mixin code)
+ -}
+
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#include "lib/error.h"
+#include "lib/Object.h"
+#include "lib/List.h"
+#include "lib/String.h"
+#include "lib/Boolean.h"
+#include "lib/Integer.h"
+#include "lib/AttrMap.h"
+#include "process_ir/IR.h"
+
+class Node : IR::Node
+{
+public:
+	void clone_mixin_from(Node* in)
+	{
+		attrs->clone_all_from (in->attrs);
+	}
+
+	void assert_mixin_valid()
+	{
+		assert(attrs != NULL);
+
+		AttrMap::const_iterator i;
+		for(i = attrs->begin(); i != attrs->end(); i++)
+		{
+			if ((*i).first != "phc.line_number"
+				&& (*i).first != "phc.filename")
+			{
+				assert((*i).second != NULL);
+			}
+		}
+	}
+
+	bool is_mixin_equal(Node* in)
+	{
+		// Compare line number and filename
+		// (We can't compare the entire attrs map because Object cannot
+		// necessarily be compared for equality)
+
+		if(get_line_number() != in->get_line_number())
+			return false;
+
+		if(get_filename() == NULL)
+		{
+			if(in->get_filename() != NULL)
+				return false;
+		}
+		else
+		{
+			if(*get_filename() != *in->get_filename())
+				return false;
+		}
+
+		return true;
+	}
+
+};
+
+class PHP_script : IR::PHP_script {};
+
+class Commented_node 
+{
+public:
+
+	Commented_node ()
+	{
+		attrs->set ("phc.comments", new String_list);
+	}
+
+	// Return the comments associated with the node
+	List<String*>* get_comments()
+	{
+		String_list* comments = dynamic_cast<String_list*>(attrs->get("phc.comments"));
+
+		if (comments == NULL)
+			return new String_list;
+
+		return comments;
+	}
+};
+
+class Signature 
+{
+public:
+	Signature(const char* name) 
+	{
+		this->method_mod = Method_mod::new_PUBLIC();
+		this->is_ref = false;
+		this->method_name = new METHOD_NAME(name);
+		this->formal_parameters = new Formal_parameter_list;
+	}
+};
+
+class Method_mod 
+{
+public:
+	Method_mod()
+	{
+		is_public = false;
+		is_protected = false;
+		is_private = false;
+		is_static = false;
+		is_abstract = false;
+		is_final = false;
+	}
+
+	Method_mod(Method_mod* a, Method_mod* b) 
+	{
+		this->is_public 		= a->is_public		|| b->is_public;
+		this->is_protected	= a->is_protected	|| b->is_protected;
+		this->is_private		= a->is_private	|| b->is_private;
+		this->is_static		= a->is_static		|| b->is_static;
+		this->is_abstract		= a->is_abstract	|| b->is_abstract;
+		this->is_final			= a->is_final		|| b->is_final;
+	}
+
+	static Method_mod* new_PUBLIC() 
+	{
+		return new Method_mod(true, false, false, false, false, false);		
+	}
+
+	static Method_mod* new_PROTECTED() 
+	{ 
+		return new Method_mod(false, true, false, false, false, false);		
+	}
+
+	static Method_mod* new_PRIVATE() 
+	{ 
+		return new Method_mod(false, false, true, false, false, false);		
+	}
+
+	static Method_mod* new_STATIC() 
+	{ 
+		return new Method_mod(false, false, false, true, false, false);		
+	}
+
+	static Method_mod* new_ABSTRACT() 
+	{ 
+		return new Method_mod(false, false, false, false, true, false);		
+	}
+
+	static Method_mod* new_FINAL() 
+	{ 
+		return new Method_mod(false, false, false, false, false, true);		
+	}
+};
+
+class Class_def
+{
+public:
+	Class_def(Class_mod* mod) 
+	{
+		this->class_mod = mod;
+		this->class_name = NULL;
+		this->extends = NULL;
+		this->implements = new INTERFACE_NAME_list;
+		this->members = new Member_list;
+	}
+
+	Class_def(const char* name)
+	{
+		this->class_mod = new Class_mod(false, false);
+		this->class_name = new CLASS_NAME(new String(name));
+		this->extends = NULL;
+		this->implements = new INTERFACE_NAME_list;
+		this->members = new Member_list;
+	}
+
+	void add_member(Member* member) 
+	{
+		this->members->push_back(member);
+	}
+
+	// Returns NULL if the method could not be found
+	Method* get_method(const char* name)
+	{
+		Member_list::const_iterator i;
+		for(i = members->begin(); i != members->end(); i++)
+		{
+			Method* method = dynamic_cast<Method*>(*i);
+			if(method && *method->signature->method_name->value == name)
+				return method;
+		}
+
+		return NULL;
+	}
+};
+
+class Eval_expr
+{
+public:
+	void _init()
+	{
+		assert (expr != NULL);
+	}
+};
+
+class Variable
+{
+public:
+	Variable(Variable_name* name) 
+	{
+		this->target = NULL;
+		this->variable_name = name;
+		this->array_indices = new Expr_list;
+	}
+
+	bool is_simple_variable ()
+	{
+		return (
+				target == NULL
+			&& array_indices->size () == 0
+			&& dynamic_cast<VARIABLE_NAME*> (variable_name));
+	}
+};
+
+class Method_invocation
+{
+public:
+	Method_invocation(const char* name, Expr* arg) 
+	{ 
+		this->target = NULL;
+		this->method_name = new METHOD_NAME(name);
+		Actual_parameter* actual_parameter = new Actual_parameter (false, arg);
+		actual_parameter->copy_location (arg);
+		this->actual_parameters = new Actual_parameter_list (actual_parameter);
+	}
+
+	Method_invocation(METHOD_NAME* name, Expr* arg) 
+	{ 
+		this->target = NULL;
+		this->method_name = name; 
+		Actual_parameter* actual_parameter = new Actual_parameter (false, arg);
+		actual_parameter->copy_location (arg);
+		this->actual_parameters = new Actual_parameter_list (actual_parameter);
+	}
+};
+
+class METHOD_NAME
+{
+public:
+	METHOD_NAME(const char* name)
+	{
+		this->value = new String (name);
+	}
+};
+
+class CLASS_NAME
+{
+public:
+	CLASS_NAME(const char* name)
+	{
+		this->value = new String (name);
+	}
+};
+
+class VARIABLE_NAME
+{
+public:
+	VARIABLE_NAME (const char* name)
+	{
+		this->value = new String (name);
+	}
+};
+
+
+class Formal_parameter
+{
+public:
+	Formal_parameter(Type* type, VARIABLE_NAME* name) 
+	{
+		this->type = type;
+		this->is_ref = false;
+		this->var = new Name_with_default(name, NULL);
+	}
+
+	Formal_parameter(Type* type, bool is_ref, VARIABLE_NAME* name) 
+	{ 
+		this->type = type;
+		this->is_ref = is_ref;
+		this->var = new Name_with_default(name, NULL);
+	}
+};
+
+class Attr_mod
+{
+public:
+	Attr_mod()
+	{
+		is_public = false;
+		is_protected = false;
+		is_private = false;
+		is_static = false;
+		is_const = false;
+	}
+
+	Attr_mod(Method_mod* mm) 
+	{
+		if(mm->is_final)
+			phc_error("The final modifier is only allowed for methods", mm->get_filename(), mm->get_line_number());
+
+		this->is_public = mm->is_public;
+		this->is_protected = mm->is_protected;
+		this->is_private = mm->is_private;
+		this->is_static = mm->is_static;
+		this->is_const = false;
+	}
+
+	static Attr_mod* new_PUBLIC() 
+	{
+		return new Attr_mod(true, false, false, false, false);
+	}
+
+	static Attr_mod* new_PROTECTED() 
+	{ 
+		return new Attr_mod(false, true, false, false, false);
+	}
+
+	static Attr_mod* new_PRIVATE() 
+	{
+		return new Attr_mod(false, false, true, false, false);
+	}
+
+	static Attr_mod* new_STATIC() 
+	{
+		return new Attr_mod(false, false, false, true, false);
+	}
+	
+	static Attr_mod* new_CONST() 
+	{
+		return new Attr_mod(false, false, false, false, true);
+	}
+};
+
+class Op_assignment
+{
+public:
+   Op_assignment(Variable* variable, const char* op, Expr* expr)
+   {
+      this->variable = variable;
+      this->op = new OP(new String(op));
+      this->expr = expr;
+   }
+};
+
+class Bin_op
+{
+public:
+	Bin_op(Expr* left, Expr* right, const char* op) 
+	{
+		this->left = left;
+		this->op = new OP(new String(op));
+		this->right = right;
+	}
+};
+
+class Post_op
+{
+public:
+	Post_op(Variable* var, const char* op) 
+	{
+		this->variable = var;
+		this->op = new OP(new String(op));
+	}
+};
+
+class Pre_op
+{
+public:
+	Pre_op(Variable* var, const char* op) 
+	{
+		this->variable = var;
+		this->op = new OP(new String(op));
+	}
+};
+
+class Unary_op
+{
+public:
+	Unary_op(Expr* expr, const char* op) 
+	{
+		this->expr = expr;
+		this->op = new OP(new String(op));
+	}
+};
+
+class If
+{
+public:
+	If(Expr* expr)
+	{
+		If (expr, new Statement_list, new Statement_list);
+	}
+};
+
+class Cast
+{
+public:
+	Cast(const char* type, String* source_rep, Expr* expr) 
+	{
+		this->cast = new CAST(new String(type));
+		this->cast->set_source_rep (source_rep);
+		this->expr = expr;
+	}
+};
+
+class Source_rep
+{
+public:
+	virtual String* get_value_as_string() = 0;
+
+	bool has_source_rep ()
+	{
+		return (dynamic_cast<String*> (attrs->get ("phc.unparser.source_rep")) != NULL);
+	}
+
+	String* get_source_rep()
+	{
+		String* result = dynamic_cast<String*> (attrs->get ("phc.unparser.source_rep"));
+		if (result == NULL)
+			result = get_value_as_string ();
+
+		return result;
+	}
+
+	void set_source_rep (String* source_rep)
+	{
+		assert (source_rep != NULL);
+		attrs->set ("phc.unparser.source_rep", source_rep);
+	}
+};
+
+class Literal
+{
+public:
+	virtual String* get_value_as_string() = 0;
+};
+
+class INT
+{
+private:
+
+	// Constructors can't call virtual functions, so we create a non-virtual to
+	// do the work. This is then called by the virtual function, and is also
+	// safely called from the constructor.
+	String* _get_value_as_string()
+	{
+		std::ostringstream os;
+		os << value;
+		return new String(os.str());
+	}
+
+public:
+	virtual String* get_value_as_string()
+	{
+		return _get_value_as_string ();
+	}
+
+	INT (long v, String* source_rep)
+	{
+		value = v;
+		set_source_rep (source_rep);
+	}
+
+	bool match_value (INT* that)
+	{
+		return (that->value == value);
+	}
+};
+
+class REAL
+{
+private:
+
+	// See comment in INT::_get_value_as_string ()
+	String* _get_value_as_string()
+	{
+		std::ostringstream os;
+		// setprecision(20) outputs as many digits as required, with
+		// a maximum of 20
+		os << std::setprecision(20) << value;
+		// unfortunately, that means that if no digits are required at
+		// all (after the decimal point), the decimal point is left out
+		// completely; setting the "showpoint" flag fixes this, but then
+		// the STL _always_ shows all 20 digits, which is not what we 
+		// want either. Hence, we insert the ".0" manually if necessary:
+		string str = os.str();
+		if(str.find('.') >= str.size())
+			str.append(".0");
+
+		return new String(str);
+	}
+
+public:
+	virtual String* get_value_as_string()
+	{
+		return _get_value_as_string ();
+	}
+
+	REAL (double v, String* source_rep)
+	{
+		value = v;
+		set_source_rep (source_rep);
+	}
+
+	bool match_value (REAL* that)
+	{
+		return (that->value == value);
+	}
+};
+
+class BOOL
+{
+private:
+	// See comment in INT::_get_value_as_string ()
+	String* _get_value_as_string()
+	{
+		if(value)
+			return new String("True");
+		else
+			return new String("False");
+	}
+
+public:
+	virtual String* get_value_as_string()
+	{
+		return _get_value_as_string ();
+	}
+
+	BOOL (bool v, String* source_rep)
+	{
+		value = v;
+		set_source_rep (source_rep);
+	}
+
+	bool match_value (BOOL* that)
+	{
+		return (that->value == value);
+	}
+};
+
+class STRING
+{
+public:
+	virtual String* get_value_as_string()
+	{
+		return value;
+	}
+
+	bool is_value_valid()
+	{
+		return value != NULL;
+	}
+
+	String* clone_value()
+	{
+		return value->clone();
+	}
+
+	STRING (String* v, String* source_rep)
+	{
+		value = v;
+		set_source_rep (source_rep);
+	}
+
+	bool match_value (STRING* that)
+	{
+		return (*that->value == *value);
+	}
+};
+
+class NIL
+{
+public:
+	virtual String* get_value_as_string()
+	{
+		return new String("NULL");
+	}
+
+	NIL (String* source_rep)
+	{
+		set_source_rep (source_rep);
+	}
+};
+
+class FOREIGN : IR::FOREIGN
+{
+public:
+	bool equals_value (FOREIGN* that)
+	{
+		return value->equals (that->value);
+	}
+
+	IR::Node* get_value()
+	{
+		return value;
+	}
+};

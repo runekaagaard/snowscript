@@ -1,0 +1,66 @@
+                      python4ply - parsing Python in Python
+                                 Version 1.0
+
+This package contains a PLY lexer and grammar definition for the
+Python language.  The parser builds an AST compatible with the
+'compiler' module.  This package also monkey-patches the bytecode
+generation in the compiler module to support a new "AssignExpr" node.
+
+The grammar is based on the "Grammar" file for Python 2.6 (SVN version
+as of 5 February 2008).  The program "grammer_to_ply.py" converts that
+into a PLY definition at "python_grammer.py".  This definition should
+be easy to port to any LALR(1) or similar parser.
+
+The converted "python_grammar.py" parser has actions that build a
+concrete syntax tree.  This is difficult to use.  I used it as the
+basis for "python_yacc.py", which contains the same grammar
+definitions but with actions that build an AST that is effectively
+identical to the one from the compiler module.
+
+The tokens for the parser come from the PLY lexer defined in
+"python_lex.py", along with some filtering to add the needed INDENT,
+DEDENT, and ENDMARKER tokens.
+
+I targeted the buggy, hard-to-use, and soon-to-be-removed compiler.ast
+because it's the simplest way at present to convert from an AST to
+byte code.
+
+If you only want access to a Python AST, uses the "_ast" module, which
+is part of Python 2.5 but wasn't documented until the development of
+Python 2.6.  It uses a somewhat different AST than the compiler module
+and python4ply.  This AST is currently read-only but the Python
+developers are working to improve the built-in "compile" function so
+it can take also take an AST and generate byte code.
+
+This grammar definition is released under the MIT license.  See the
+LICENSE file.  The Grammar definitions derive from the Python source
+distribution so they may be covered under the Python license.  Consult
+your laywer if you have any doubt.
+
+Installation and Use:
+
+This is not an end-user package.  It is not a library.  It contains no
+setup.py.  It is meant for people who want to explore variations of
+the Python language itself.  To figure out how the pieces go together,
+you'll have to read the code and the tutorial.py file.
+
+To run the internal self-test do "python python_yacc.py --self-test".
+That generates an AST with python4ply and with the compiler module and
+compares the results while printing the tree to stdout.  This can be
+helpful when tracking down bugs.
+
+  BUGS:
+
+Probably many, but no serious ones that I know about.  As far as I can
+tell the AST generation agrees with compiler.ast, except where
+compiler.ast is broken.  I have not used my byte code generator to
+compile Python's stdlib, much less run Python's own regression tests
+against those generated .pyc file.
+
+Doesn't handle __future__ statements.  In fact, it only handles a
+Python grammar somewhere between 2.5 and 2.6.  The AST output
+generation uses the compiler module which does look for __future__
+statements, so there will likely be some confusion.  "as" is a
+reserved keyword.
+
+Doesn't handle encodings.

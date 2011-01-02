@@ -1,0 +1,2928 @@
+/*
+ * phc -- the open source PHP compiler
+ * See doc/license/README.license for licensing information
+ *
+ * Syntax definition (based on the PHP 5.1.0 grammar)
+ */
+
+%{
+	#include <assert.h>
+	#include <typeinfo>
+	#include "AST.h"
+	using namespace AST;
+	#include "cmdline.h"
+	#include "lib/Integer.h"
+	#include "lib/String.h"
+	#include "lib/error.h"
+	#include "parsing/PHP_context.h"
+
+	extern struct gengetopt_args_info args_info;
+
+	/*
+	 * Some semantic checks
+	 */
+
+	Variable* expect_variable(Expr* node)
+	{
+		Variable* var = dynamic_cast<Variable*>(node);
+		
+		if(var == NULL && node != NULL)
+			phc_error("Variable name expected", node->get_filename(), node->get_line_number()); \
+			
+		return var;
+	}
+
+	/*
+	 * Define macro to add line numbers and comments to nodes
+	 */
+	#define NEW(class, args)\
+		dynamic_cast<class*>(copy_state(new class args, context))
+	
+	Node* copy_state(Node* node, PHP_context* context)
+	{
+		node->attrs->set("phc.line_number", new Integer(context->source_line));
+		node->attrs->set("phc.filename", context->filename->clone());
+		if(context->starts_line)
+			node->attrs->set_true("phc.unparser.starts_line");
+
+		Commented_node* cnode;
+		cnode = dynamic_cast<Commented_node*>(node);
+		if(cnode)
+		{
+			List<String*>* cmnts = cnode->get_comments();
+			cmnts->push_back_all(&context->last_comments);
+			context->last_comments.clear();
+			context->last_commented_node = cnode;
+		}
+		
+		STRING* str;
+		str = dynamic_cast<STRING*>(node);
+		if(str && context->heredoc_attr != NULL)
+		{
+			str->attrs->set("phc.unparser.heredoc_id", context->heredoc_attr);
+			context->heredoc_attr = NULL;
+		}
+
+		return node;
+	}
+
+	void PHP_error(PHP_context* context, const char* s)
+	{
+		phc_error(s, context->filename, context->source_line);
+	}
+
+	/* Return a new list of statements, containing a single statement */
+	static List<Statement*>* wrap(Statement* statement)
+	{
+		statement->attrs->set_true("phc.unparser.is_wrapped");
+		List<Statement*>* result = new List<Statement*>;
+		result->push_back(statement);
+		return result;
+	}
+
+#define ERR_FOREACH_KEY_REF "Key element cannot be a reference"
+%}
+
+%union
+{
+	Object* object;
+	List<AST::Statement*>* list_ast_statement;
+	List<AST::Catch*>* list_ast_catch;
+	AST::Catch* ast_catch;
+	List<AST::Variable*>* list_ast_variable;
+	AST::Variable* ast_variable;
+	AST::STRING* token_string;
+	AST::Method* ast_method;
+	Integer* integer;
+	AST::Class_def* ast_class_def;
+	AST::CLASS_NAME* token_class_name;
+	AST::Interface_def* ast_interface_def;
+	List<AST::INTERFACE_NAME*>* list_token_interface_name;
+	List<AST::Directive*>* list_ast_directive;
+	List<AST::Switch_case*>* switch_ast_case_list;
+	AST::If* ast_if;
+	List<AST::Formal_parameter*>* list_ast_formal_parameter;
+	AST::Type* ast_type;
+	List<AST::Variable_name*>* list_ast_variable_name;
+	AST::Variable_name* ast_variable_name;
+	List<AST::Member*>* list_ast_member;
+	AST::Attr_mod* ast_attr_mod;
+	AST::Method_mod* ast_method_mod;
+	AST::Expr* ast_expr;
+	AST::Method_invocation* ast_method_invocation;
+	AST::Class_name* class_name;
+	AST::Constant* ast_constant;
+	List<AST::Array_elem*>* list_ast_array_elem;
+	List<AST::Expr*>* list_ast_expr;
+	AST::Nested_list_elements* ast_nested_list_elements;
+	AST::List_element* ast_list_element;
+	String* string;
+	List<AST::Actual_parameter*>* list_ast_actual_parameter;
+	AST::Class_name* ast_class_name;
+	List<AST::Switch_case*>* list_ast_switch_case;
+	AST::Switch_case* ast_switch_case;
+	AST::Try* ast_try;
+	AST::Declare* ast_declare;
+	AST::Foreach* ast_foreach;
+	AST::Switch* ast_switch;
+	AST::For* ast_for;
+	AST::Do* ast_do;
+	AST::While* ast_while;
+	AST::Statement* ast_statement;
+	AST::INT* token_int;
+	AST::OP* token_op;
+	AST::REAL* token_real;
+	AST::BOOL* token_bool;
+	AST::NIL* token_null;
+	List<AST::Name_with_default*>* list_ast_name_with_default;
+	AST::Member* ast_member;
+	AST::Attribute* ast_attribute;
+	AST::New* ast_new;
+}
+
+%{
+	int PHP_lex(YYSTYPE* yylval, void* scanner);
+	#define scanner context->scanner
+%}
+
+%pure_parser
+%name-prefix="PHP_"
+%parse-param {
+			PHP_context* context
+		}
+%lex-param {
+			void* scanner
+		}
+%error-verbose
+
+/*
+ * Define token types
+ */
+
+// Keywords
+
+%token <token_op> K_AND
+%token <token_op> K_OR
+%token <token_op> K_XOR
+%token <token_string> K___FILE__
+%token K_EXCEPTION
+%token <token_int> K___LINE__
+%token K_ARRAY
+%token K_AS
+%token K_BREAK
+%token K_CASE
+%token K_CLASS
+%token K_CONST
+%token K_CONTINUE
+%token K_DECLARE
+%token K_DEFAULT
+%token K_DIE
+%token K_DO
+%token K_ECHO
+%token K_ELSE
+%token K_ELSEIF
+%token K_EMPTY
+%token K_ENDDECLARE
+%token K_ENDFOR
+%token K_ENDFOREACH
+%token K_ENDIF
+%token K_ENDSWITCH
+%token K_ENDWHILE
+%token K_EVAL
+%token K_EXIT
+%token K_EXTENDS
+%token K_FOR
+%token K_FOREACH
+%token K_FUNCTION
+%token K_GLOBAL
+%token K_IF
+%token K_INCLUDE
+%token K_INCLUDE_ONCE
+%token K_INSTANCEOF
+%token K_ISSET
+%token K_LIST
+%token K_NEW
+%token K_PRINT
+%token K_REQUIRE
+%token K_REQUIRE_ONCE
+%token K_RETURN
+%token K_STATIC
+%token K_SWITCH
+%token K_UNSET
+%token K_USE
+%token K_VAR
+%token K_WHILE
+%token <token_string> K___FUNCTION__
+%token <token_string> K___CLASS__
+%token <token_string> K___METHOD__
+%token K_FINAL
+%token K_PHP_USER_FILTER
+%token K_INTERFACE
+%token K_IMPLEMENTS
+%token K_PUBLIC
+%token K_PRIVATE
+%token K_PROTECTED
+%token K_ABSTRACT
+%token K_CLONE
+%token K_TRY
+%token K_CATCH
+%token K_THROW
+%token K_CFUNCTION
+%token K_OLD_FUNCTION
+
+%token K_HALT_COMPILER
+
+// Constants
+
+%token <token_bool> C_TRUE
+%token <token_bool> C_FALSE
+%token <token_null> C_NULL
+
+// Operators
+
+%token <token_op> O_EQEQ
+%token <token_op> O_EQEQEQ
+%token <token_op> O_NOTEQ
+%token <token_op> O_NOTEQEQ
+%token <token_op> O_LE
+%token <token_op> O_GE
+%token O_INC
+%token O_DEC
+%token O_DOUBLEARROW
+%token O_SINGLEARROW
+%token <token_op> O_SL
+%token <token_op> O_SR
+%token <token_op> O_COLONCOLON
+
+%token <token_op> O_LOGICOR
+%token <token_op> O_LOGICAND
+
+%token O_PLUSEQ
+%token O_MINUSEQ
+%token O_MULEQ
+%token O_DIVEQ
+%token O_CONCATEQ
+%token O_MODEQ
+%token O_ANDEQ
+%token O_OREQ
+%token O_XOREQ
+%token O_SLEQ
+%token O_SREQ
+
+%token <token_op> O_MAGIC_CONCAT
+
+// Casts
+
+%token <string> CAST_INT
+%token <string> CAST_REAL
+%token <string> CAST_STRING
+%token <string> CAST_ARRAY
+%token <string> CAST_OBJECT
+%token <string> CAST_BOOL
+%token <string> CAST_UNSET
+
+// Other 
+
+%token <token_string> T_STRING
+%token <string> IDENT
+%token <string> VARIABLE
+%token <token_int> T_INT
+%token <token_real> T_REAL 
+%token <string> INLINE_HTML
+%token <string> INVALID_TOKEN
+
+// Types of simple operators
+%token <token_op> ',' '|' '&' '^' '.' '+' '-' '*' '/' '%' '!' '~' '<' '>'
+
+/*
+ * Resolve conflicts
+ */
+
+%expect 2
+
+%left K_INCLUDE K_INCLUDE_ONCE K_EVAL K_REQUIRE K_REQUIRE_ONCE
+%left ','
+%left K_OR 
+%left K_XOR 
+%left K_AND 
+%right K_PRINT
+%left '=' O_PLUSEQ O_MINUSEQ O_MULEQ O_DIVEQ O_CONCATEQ O_MODEQ O_ANDEQ O_OREQ O_XOREQ O_SLEQ O_SREQ
+%left '?' ':'
+%left O_LOGICOR 
+%left O_LOGICAND
+%left '|' 
+%left '^' 
+%left '&'
+%nonassoc O_EQEQ O_NOTEQ O_EQEQEQ O_NOTEQEQ
+%nonassoc '<' O_LE '>' O_GE 
+%left O_SL O_SR
+%left '+' '-' '.' O_MAGIC_CONCAT
+%left '*' '/' '%'
+%right '!'
+%nonassoc K_INSTANCEOF
+%right '~' O_INC O_DEC CAST_INT CAST_REAL CAST_STRING CAST_ARRAY CAST_OBJECT CAST_BOOL CAST_UNSET '@'
+%right '['
+%nonassoc K_NEW K_CLONE
+%left K_ELSEIF
+%left K_ELSE
+%left K_ENDIF
+%right K_STATIC K_ABSTRACT K_FINAL K_PRIVATE K_PROTECTED K_PUBLIC
+
+%type <list_ast_statement> top_statement_list
+%type <list_ast_statement> top_statement
+%type <list_ast_statement> inner_statement_list
+%type <list_ast_statement> inner_statement
+%type <list_ast_statement> statement
+%type <list_ast_statement> unticked_statement
+%type <list_ast_catch> additional_catches
+%type <list_ast_catch> non_empty_additional_catches
+%type <ast_catch> additional_catch
+%type <list_ast_actual_parameter> unset_variables 
+%type <ast_variable> unset_variable
+%type <token_string> use_filename
+%type <ast_method> function_declaration_statement
+%type <ast_statement> class_declaration_statement
+%type <integer> is_reference
+%type <ast_method> unticked_function_declaration_statement
+%type <ast_statement> unticked_class_declaration_statement
+%type <ast_class_def> class_entry_type
+%type <token_class_name> extends_from
+%type <ast_interface_def> interface_entry
+%type <list_token_interface_name> interface_extends_list
+%type <list_token_interface_name> implements_list
+%type <list_token_interface_name> interface_list
+%type <ast_variable> foreach_optional_arg
+%type <ast_variable> foreach_variable
+%type <list_ast_statement> for_statement
+%type <list_ast_statement> foreach_statement
+%type <list_ast_statement> declare_statement
+%type <list_ast_directive> declare_list
+%type <list_ast_switch_case> switch_case_list
+%type <list_ast_switch_case> case_list
+%type <list_ast_statement> while_statement
+%type <ast_if> elseif_list
+%type <ast_if> new_elseif_list
+%type <list_ast_statement> else_single
+%type <list_ast_statement> new_else_single
+%type <list_ast_formal_parameter> parameter_list
+%type <list_ast_formal_parameter> non_empty_parameter_list
+%type <ast_type> optional_class_type
+%type <list_ast_actual_parameter> function_call_parameter_list
+%type <list_ast_actual_parameter> non_empty_function_call_parameter_list
+%type <list_ast_variable_name> global_var_list
+%type <ast_variable_name> global_var
+%type <list_ast_name_with_default> static_var_list
+%type <list_ast_member> class_statement_list
+%type <ast_member> class_statement
+%type <list_ast_statement> method_body  
+%type <ast_attr_mod> variable_modifiers
+%type <ast_method_mod> method_modifiers
+%type <ast_method_mod> non_empty_member_modifiers
+%type <ast_method_mod> member_modifier
+%type <list_ast_name_with_default> class_variable_declaration
+%type <ast_attribute> class_constant_declaration
+%type <list_ast_actual_parameter> echo_expr_list
+%type <ast_expr> for_expr
+%type <ast_expr> non_empty_for_expr
+%type <ast_expr> expr_without_variable
+%type <ast_method_invocation> function_call
+%type <token_class_name> fully_qualified_class_name
+%type <ast_class_name> class_name_reference
+%type <ast_variable> dynamic_class_name_reference
+%type <list_ast_variable> dynamic_class_name_variable_properties
+%type <ast_variable> dynamic_class_name_variable_property
+%type <ast_method_invocation> exit_expr
+%type <ast_new> ctor_arguments
+%type <ast_expr> common_scalar
+%type <ast_expr> static_scalar
+%type <ast_constant> static_class_constant
+%type <ast_expr> scalar
+%type <list_ast_array_elem> static_array_pair_list
+%type <list_ast_array_elem> non_empty_static_array_pair_list
+%type <ast_expr> expr
+%type <ast_expr> r_variable
+%type <ast_expr> w_variable
+%type <ast_expr> rw_variable
+%type <ast_expr> variable
+%type <list_ast_expr> variable_properties
+%type <ast_expr> variable_property
+%type <list_ast_actual_parameter> method_or_not
+%type <ast_variable> variable_without_objects
+%type <ast_variable> static_member
+%type <ast_expr> base_variable_with_function_calls
+%type <ast_variable> base_variable
+%type <ast_variable> reference_variable
+%type <ast_variable_name> compound_variable
+%type <ast_expr> dim_offset
+%type <ast_variable> object_property
+%type <ast_variable> object_dim_list
+%type <ast_variable_name> variable_name
+%type <integer> simple_indirect_reference
+%type <ast_nested_list_elements> assignment_list
+%type <ast_list_element> assignment_list_element
+%type <list_ast_array_elem> array_pair_list
+%type <list_ast_array_elem> non_empty_array_pair_list
+%type <ast_method_invocation> internal_functions_in_yacc
+%type <list_ast_actual_parameter> isset_variables
+%type <ast_constant> class_constant
+%type <ast_if> keyword_if
+%type <ast_if> keyword_elseif
+%type <ast_foreach> keyword_foreach
+%type <ast_while> keyword_while
+%type <ast_do> keyword_do
+%type <ast_for> keyword_for
+%type <ast_switch> keyword_switch
+%type <ast_declare> keyword_declare
+%type <ast_try> keyword_try
+%type <ast_catch> keyword_catch
+%type <ast_method> keyword_function
+%type <ast_switch_case> keyword_case
+%type <ast_switch_case> keyword_default
+%type <list_ast_statement> block
+
+%%
+
+start: 
+	  top_statement_list
+	  	{
+			// If there are any remaining comments, add them as a NOP
+			if(!context->last_comments.empty())
+				$1->push_back(NEW(Nop, ()));
+	
+			context->php_script = new PHP_script($1);	
+      if(context->hash_bang != NULL)
+        context->php_script->attrs->set("phc.unparser.hash_bang", context->hash_bang);
+		}
+	;
+
+top_statement_list:
+	  top_statement_list top_statement
+	  	{
+			// is_wrapped attribute is not necessary on top-level statements
+			if(!$2->empty())
+				$2->front()->attrs->erase("phc.unparser.is_wrapped");
+
+			$1->push_back_all($2);
+			$$ = $1;
+		}
+	| /* empty */
+		{
+			$$ = new List<Statement*>;
+		}
+	;
+
+top_statement:
+	  statement
+	  	{
+			$$ = $1; 
+		}
+	| function_declaration_statement
+		{
+			$$ = wrap($1);
+		}
+	| class_declaration_statement
+		{
+			$$ = wrap($1);
+		}
+	| K_HALT_COMPILER '(' ')' ';'
+		{
+			assert(0);
+		}
+	;
+
+/*
+ * Mimicks top_statement_list
+ */
+inner_statement_list:
+	  inner_statement_list inner_statement
+	  	{
+			$1->push_back_all($2);
+			$$ = $1;
+		}
+	| /* empty */ 
+		{
+			$$ = new List<Statement*>;
+		}
+	;
+
+inner_statement:
+	  statement
+	  	{
+			$$ = $1;
+		}
+	| function_declaration_statement
+		{
+			$$ = wrap($1);
+		}
+	| class_declaration_statement
+		{
+			$$ = wrap($1);
+		}
+	| K_HALT_COMPILER '(' ')' ';'
+		{
+			assert(0);
+		}
+	;
+
+statement:
+	  unticked_statement
+	  	{
+			$$ = $1;
+		}
+	;
+
+/*
+ * Temporary hack to improve line numbers
+ */
+
+keyword_if: 
+	  K_IF
+		{
+			$$ = NEW(If, (NULL, NULL, NULL));
+		}
+	;
+
+keyword_elseif: 
+	  K_ELSEIF
+		{
+			$$ = NEW(If, (NULL, NULL, NULL));
+		}
+	;
+
+keyword_foreach:
+	  K_FOREACH
+	  	{
+			$$ = NEW(Foreach, (NULL, NULL, false, NULL, NULL));
+		}
+	;
+
+keyword_while:
+	  K_WHILE
+	  	{
+			$$ = NEW(While, (NULL, NULL));
+		}
+	;
+
+keyword_do:
+	  K_DO
+	  	{
+			$$ = NEW(Do, (NULL, NULL));
+		}
+	;
+
+keyword_for:
+	  K_FOR
+	  	{
+			$$ = NEW(For, (NULL, NULL, NULL, NULL));
+		}
+	;
+
+keyword_switch:
+	  K_SWITCH
+	  	{
+			$$ = NEW(Switch, (NULL, NULL));
+		}
+	;
+
+keyword_declare:
+	  K_DECLARE
+	  	{
+			$$ = NEW(Declare, (NULL, NULL));
+		}
+	;
+
+keyword_try:
+	  K_TRY
+	  	{
+			$$ = NEW(Try, (NULL, NULL));
+		}
+	;
+
+keyword_catch:
+	  K_CATCH
+	  	{
+			$$ = NEW(Catch, (NULL, NULL, NULL));
+		}
+	;
+
+keyword_function:
+	  K_FUNCTION
+	    {
+			$$ = NEW(Method, (NULL, NULL));
+		}
+	;
+
+keyword_case:
+	  K_CASE
+	  	{
+			$$ = NEW(Switch_case, (NULL, NULL));
+		}
+	;
+
+keyword_default:
+	  K_DEFAULT
+	  	{
+			$$ = NEW(Switch_case, (NULL, NULL));
+		}
+	;
+
+
+unticked_statement:
+	  block
+	  	{ 
+			$$ = $1;
+		}
+	| keyword_if '(' expr ')' statement elseif_list else_single
+		{
+			$1->expr = $3;
+			$1->iftrue = $5;
+			
+			if($6)
+			{
+				List<Statement*>* new_false = new List<Statement*>;
+				new_false->push_back($6);
+				
+				/* 
+				 * Nest the $6 part
+				 *
+				 * We must add it to the most deeply nested if we can find
+				 * Note that _if_ any of the nested ifs (elseifs) has a false
+				 * branch, then this consists of a single instruction, an If*.
+				 * So, the dynamic_cast is guaranteed to succeed.
+				 *
+				 * This is similar to the code in elseif_list. 
+				 */ 
+				while(!$6->iffalse->empty())
+					$6 = dynamic_cast<If*>($6->iffalse->front());
+				$6->iffalse = $7;
+				
+				$1->iffalse = new_false;
+			}
+			else
+			{
+				$1->iffalse = $7;
+			}
+
+			$$ = wrap($1);
+		}
+	| keyword_if '(' expr ')' ':' inner_statement_list new_elseif_list new_else_single K_ENDIF ';'
+		{
+			// Duplication of logic above for K_IF.
+			
+			$1->expr = $3;
+			$1->iftrue = $6;
+		
+			if($7)
+			{
+				List<Statement*>* new_false = new List<Statement*>;
+				new_false->push_back($7);
+
+				while(!$7->iffalse->empty())
+					$7 = dynamic_cast<If*>($7->iffalse->front());
+				$7->iffalse = $8;
+				
+				$1->iffalse = new_false;	
+			}
+			else
+			{
+				$1->iffalse = $8;
+			}
+	
+			$$ = wrap($1);
+		}
+	| keyword_while '(' expr ')' while_statement
+		{
+			$1->expr = $3;
+			$1->statements = $5;
+
+			$$ = wrap($1);
+		}
+	| keyword_do statement K_WHILE '(' expr ')' ';'
+		{
+			$1->statements = $2;
+			$1->expr = $5;
+			
+			$$ = wrap($1);
+		}
+	| keyword_for '(' for_expr ';' for_expr ';' for_expr ')' for_statement
+		{
+			$1->init = $3;
+			$1->cond = $5;
+			$1->incr = $7;
+			$1->statements = $9;
+			
+			$$ = wrap($1);
+		}
+	| keyword_switch '(' expr ')' switch_case_list
+		{
+			$1->expr = $3;
+			$1->switch_cases = $5;
+			
+			$$ = wrap($1);
+		}
+	| K_BREAK ';'
+		{
+			$$ = wrap(NEW(Break, (NULL)));
+		}
+	| K_BREAK expr ';'
+		{
+			$$ = wrap(NEW(Break, ($2)));
+		}
+	| K_CONTINUE ';'
+		{
+			$$ = wrap(NEW(Continue, (NULL)));
+		}
+	| K_CONTINUE expr ';'
+		{
+			$$ = wrap(NEW(Continue, ($2)));
+		}
+	| K_RETURN ';'
+		{
+			$$ = wrap(NEW(Return, (NULL)));
+		}
+	| K_RETURN expr_without_variable ';'
+		{
+			$$ = wrap(NEW(Return, ($2)));
+		}
+	| K_RETURN variable ';'
+		{
+			$$ = wrap(NEW(Return, ($2)));
+		}
+	| K_GLOBAL global_var_list ';'
+		{
+			$$ = wrap(NEW(Global, ($2)));
+		}
+	| K_STATIC static_var_list ';'
+		{
+			$$ = wrap(NEW(Static_declaration, ($2)));
+		}
+	| K_ECHO echo_expr_list ';'
+		{
+			Method_invocation* inv;
+			inv = NEW(Method_invocation,
+				( NULL // target
+				, NEW(METHOD_NAME, (new String("echo")))
+        , $2)); 
+				
+			inv->attrs->set_true("phc.unparser.no_brackets");
+			$$ = wrap (NEW(Eval_expr, (inv)));
+		}
+	| INLINE_HTML
+		{
+			STRING* scalar = NEW(STRING, ($1, $1));
+			Expr* fn = NEW(Method_invocation, ("echo", scalar));
+			Eval_expr* eval_expr = NEW(Eval_expr, (fn));
+
+			eval_expr->attrs->set_true("phc.unparser.is_inline_html");
+
+			$$ = wrap(eval_expr);
+		}
+	| expr ';'
+		{
+			$$ = wrap(NEW(Eval_expr, ($1)));
+		}
+	| K_USE use_filename ';'
+		{
+			Method_invocation* fn;
+			fn = NEW(Method_invocation, ("use", $2));
+			fn->attrs->set_true("phc.unparser.no_brackets");
+			$$ = wrap(NEW(Eval_expr, (fn)));
+		}
+	| K_UNSET '(' unset_variables ')' ';'
+		{
+			Method_invocation* fn;
+			METHOD_NAME* unset;
+			unset = new METHOD_NAME(new String("unset"));
+			fn = NEW(Method_invocation, (NULL, unset, $3));
+			$$ = wrap(NEW(Eval_expr, (fn)));
+		}
+	| keyword_foreach '(' variable K_AS foreach_variable foreach_optional_arg ')' foreach_statement
+		{
+			$1->expr = $3;
+			$1->statements = $8;
+	
+			if($6)
+			{
+				if($5->attrs->is_true("phc.parser.is_ref"))
+				{
+					phc_error(ERR_FOREACH_KEY_REF, $5->get_filename(), $5->get_line_number());
+				}
+			
+				$1->key = $5;
+				$1->is_ref = $6->attrs->is_true("phc.parser.is_ref");
+				$1->val = $6;
+			}
+			else
+			{
+				$1->key = NULL;
+				$1->is_ref = $5->attrs->is_true("phc.parser.is_ref");
+				$1->val = $5;
+			}
+
+			$$ = wrap($1);
+		}
+	| keyword_foreach '(' expr_without_variable K_AS w_variable foreach_optional_arg ')' foreach_statement
+		{ 
+			// Duplication of the logic in the previous rule
+			$1->expr = $3;
+			$1->statements = $8;
+	
+			if($6)
+			{
+				if($5->attrs->is_true("phc.parser.is_ref"))
+				{
+					phc_error(ERR_FOREACH_KEY_REF, $5->get_filename(), $5->get_line_number());
+				}
+			
+				$1->key = expect_variable($5);
+				$1->is_ref = $6->attrs->is_true("phc.parser.is_ref");
+				$1->val = $6;
+			}
+			else
+			{
+				$1->key = NULL;
+				$1->is_ref = $5->attrs->is_true("phc.parser.is_ref");
+				$1->val = expect_variable($5);
+			}
+
+			$$ = wrap($1);
+		}
+	| keyword_declare '(' declare_list ')' declare_statement	
+		{
+			$1->directives = $3;
+			$1->statements = $5;
+
+			$$ = wrap($1);
+		}
+	| ';'
+		{
+			$$ = wrap(NEW(Nop, ())); 
+		}
+	| keyword_try block keyword_catch '(' fully_qualified_class_name VARIABLE ')' block additional_catches
+		{ 
+			VARIABLE_NAME* var = new VARIABLE_NAME($6);
+			
+			$3->class_name = $5;
+			$3->variable_name = var;
+			$3->statements = $8;
+
+			List<Catch*>* all_catches = new List<Catch*>;
+			all_catches->push_back($3);
+			all_catches->push_back_all($9);
+		
+			$1->statements = $2;
+			$1->catches = all_catches;
+		
+			$$ = wrap($1);
+		}
+	| K_THROW expr ';'
+		{
+			$$ = wrap(NEW(Throw, ($2))); 
+		}
+	;
+
+additional_catches:
+	  non_empty_additional_catches
+		{
+			$$ = $1;
+		}
+	| /* empty */
+		{
+			List<Catch*>* catches = new List<Catch*>;
+			$$ = catches; 
+		}
+	;
+
+non_empty_additional_catches:
+	  additional_catch
+		{
+			List<Catch*>* catches = new List<Catch*>;
+			catches->push_back($1);
+			
+			$$ = catches;
+		}
+	| non_empty_additional_catches additional_catch
+		{
+			$1->push_back($2);
+			
+			$$ = $1; 
+		}
+	;
+
+additional_catch:
+	  keyword_catch '(' fully_qualified_class_name VARIABLE ')' block 
+		{
+			VARIABLE_NAME* var = new VARIABLE_NAME($4);
+			
+			$1->class_name = $3;
+			$1->variable_name = var;
+			$1->statements = $6;
+			
+			$$ = $1; 
+		}
+	;
+
+unset_variables:
+	  unset_variable
+		{
+			List<Actual_parameter*>* vars = new List<Actual_parameter*>;
+			vars->push_back(new Actual_parameter(false, $1));
+			$$ = vars;
+		}
+	| unset_variables ',' unset_variable
+		{
+			$1->push_back(new Actual_parameter(false, $3));
+			$$ = $1; 
+		}
+	;
+
+unset_variable:
+	  variable
+		{
+			$$ = expect_variable($1);
+		}
+	;
+
+use_filename:
+	  T_STRING
+	  	{
+			$$ = $1;	
+		}
+	| '(' T_STRING ')'
+	  	{
+			$$ = $2;	
+		}
+	;
+
+function_declaration_statement:
+	  unticked_function_declaration_statement
+		{
+			$$ = $1;
+		}
+	;
+
+class_declaration_statement:
+	  unticked_class_declaration_statement
+		{
+			$$ = $1;
+		}
+	;
+
+is_reference:
+	  /* empty */
+		{
+			$$ = new Integer(0);
+		}
+	| '&'
+		{
+			$$ = new Integer(1);
+		}
+	;
+
+unticked_function_declaration_statement:
+	  keyword_function is_reference IDENT {context->current_method = dynamic_cast<String*>($3);} '(' parameter_list ')' block
+		{
+			METHOD_NAME* name = new METHOD_NAME($3);
+		
+			Signature* signature = NEW(Signature, (new Method_mod(), $2->value(), name, $6));
+			$1->signature = signature;
+			$1->statements = $8;
+
+			$$ = $1;
+		}
+	;
+
+unticked_class_declaration_statement:
+	  class_entry_type IDENT {context->current_class = dynamic_cast<String*>($2);} extends_from implements_list '{' class_statement_list '}' {context->current_class = new String ();}
+		{ 
+			CLASS_NAME* name = new CLASS_NAME($2);
+
+			$1->class_name = name;
+			$1->extends = $4;
+			$1->implements = $5;
+			$1->members = $7;
+
+			$$ = $1;
+		}
+	| interface_entry IDENT interface_extends_list '{' class_statement_list '}'
+		{
+			INTERFACE_NAME* name = new INTERFACE_NAME($2);
+
+			$1->interface_name = name;
+			$1->extends = $3;
+			$1->members = $5;
+			
+			$$ = $1;
+		}
+	;
+
+/*
+ * We generate the Class_def here to that it gets generated immediately
+ * after having seen the "class" keyword, rather than after having seen the
+ * closing curly brace. 
+ *
+ * This means that the line number for the Class_def object will be 
+ * recorded as the _starting_ line number of the class, rather than the
+ * final line number; moreover, any class comments will also be recorded
+ * correctly.
+ */
+class_entry_type:
+	  K_CLASS
+		{ 
+			Class_mod* mod = NEW(Class_mod, (false, false));
+			$$ = NEW(Class_def, (mod));
+		}
+	| K_ABSTRACT K_CLASS
+		{ 
+			Class_mod* mod = NEW(Class_mod, (true, false)); 
+			$$ = NEW(Class_def, (mod));
+		}
+	| K_FINAL K_CLASS
+		{ 
+			Class_mod* mod = NEW(Class_mod, (false, true)); 
+			$$ = NEW(Class_def, (mod));
+		}
+	;
+
+extends_from:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| K_EXTENDS fully_qualified_class_name 
+		{
+			$$ = $2;
+		}
+	;
+
+interface_entry:
+	  K_INTERFACE
+		{
+			$$ = NEW(Interface_def, (NULL, NULL, NULL));
+		}
+	;
+
+interface_extends_list:
+	  /* empty */
+		{
+			$$ = new List<INTERFACE_NAME*>;
+		}
+	| K_EXTENDS interface_list
+		{
+			$$ = $2;
+		}
+	;
+
+/* 
+ * Vector contains no elements if the class implements no interfaces
+ */
+implements_list:
+	  /* empty */
+		{
+			$$ = new List<INTERFACE_NAME*>;
+		}
+	| K_IMPLEMENTS interface_list
+		{
+			$$ = $2;
+		}
+	;
+
+interface_list:
+	  fully_qualified_class_name
+		{
+			INTERFACE_NAME* ifn = NEW(INTERFACE_NAME, ($1->value));
+		
+			List<INTERFACE_NAME*>* names;
+			names = new List<INTERFACE_NAME*>;
+			names->push_back(ifn);
+			
+			$$ = names;
+		}
+	| interface_list ',' fully_qualified_class_name
+		{
+			INTERFACE_NAME* ifn = NEW(INTERFACE_NAME, ($3->value));
+			$1->push_back(ifn);
+			
+			$$ = $1;
+		}
+	;
+
+foreach_optional_arg:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| O_DOUBLEARROW foreach_variable
+		{
+			$$ = $2;
+		}
+	;
+
+foreach_variable:
+	  w_variable
+		{
+			$$ = expect_variable($1);
+		}
+	| '&' w_variable
+		{ 
+			$2->attrs->set_true("phc.parser.is_ref");
+			$$ = expect_variable($2); 
+		}
+	;
+
+for_statement:
+	  statement
+		{
+			$$ = $1;
+		}
+	| ':' inner_statement_list K_ENDFOR ';'
+		{
+			$$ = $2;
+		}
+	;
+
+foreach_statement:
+	  statement
+		{
+			$$ = $1;
+		}
+	| ':' inner_statement_list K_ENDFOREACH ';'
+		{
+			$$ = $2;
+		}
+	;
+
+declare_statement:
+	  statement
+	  	{
+			$$ = $1;
+		}
+	| ':' inner_statement_list K_ENDDECLARE ';'
+		{
+			$$ = $2;
+		}
+	;
+
+declare_list:
+	  IDENT '=' static_scalar
+	  	{
+			DIRECTIVE_NAME* name = NEW (DIRECTIVE_NAME, ($1));
+
+			List<Directive*>* dirs = new List<Directive*>;
+			Directive* dir = NEW(Directive, (name, $3));
+			
+			dirs->push_back(dir);
+			$$ = dirs;
+		}
+	| declare_list ',' IDENT '=' static_scalar
+		{
+			DIRECTIVE_NAME* name = NEW (DIRECTIVE_NAME, ($3));	
+			
+			Directive* dir = NEW(Directive, (name, $5));
+			$1->push_back(dir);
+			$$ = $1;
+		}
+	;	  
+
+switch_case_list:
+	  '{' case_list '}'
+		{
+			$$ = $2;
+		}
+	| '{' ';' case_list '}'
+		{
+			$$ = $3;
+		}
+	| ':' case_list K_ENDSWITCH ';'
+		{
+			$$ = $2;
+		}
+	| ':' ';' case_list K_ENDSWITCH ';'
+		{
+			$$ = $3;
+		}
+	;
+
+case_list:
+	  /* empty */
+		{
+			$$ = new List<Switch_case*>;
+		}
+	| case_list keyword_case expr case_separator inner_statement_list
+		{
+			$2->statements = $5;
+			$2->expr = $3;
+			
+			$1->push_back($2);
+			
+			$$ = $1;
+		}
+	| case_list keyword_default case_separator inner_statement_list
+		{
+			$2->statements = $4;
+			$2->expr = NULL;
+			
+			$1->push_back($2);
+			
+			$$ = $1;
+		}
+	;
+
+/*
+ * No semantic value
+ */
+case_separator:
+	  ':'
+	| ';'
+	;
+	
+while_statement:
+	  statement
+		{
+			$$ = $1;
+		}
+	| ':' inner_statement_list K_ENDWHILE ';'
+		{
+			$$ = $2;
+		}
+	;
+
+elseif_list:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| elseif_list keyword_elseif '(' expr ')' statement
+		{
+			List<Statement*>* empty = new List<Statement*>;
+			
+			$2->expr = $4;
+			$2->iftrue = $6;
+			$2->iffalse = empty;
+			$2->attrs->set_true("phc.unparser.is_elseif");
+
+			if($1)
+			{
+				List<Statement*>* iffalse = new List<Statement*>;
+				iffalse->push_back($2);
+				
+				/*
+				 * Nest the $1.
+				 * This is similar to the code in unticked_statement for K_IF.
+				 */
+				If* p = $1;
+				while(!p->iffalse->empty())
+					p = dynamic_cast<If*>(p->iffalse->front());
+				p->iffalse = iffalse;		
+						
+				$$ = $1;
+			}
+			else
+			{
+				$$ = $2;
+			}
+		}
+	;
+
+/*
+ * Duplication of elseif_list functionality
+ */
+new_elseif_list:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| new_elseif_list keyword_elseif '(' expr ')' ':' inner_statement_list
+		{
+			List<Statement*>* empty = new List<Statement*>;
+			
+			$2->expr = $4;
+			$2->iftrue = $7;
+			$2->iffalse = empty;
+			$2->attrs->set_true("phc.unparser.is_elseif");
+
+			if($1)
+			{
+				List<Statement*>* iffalse = new List<Statement*>;
+				iffalse->push_back($2);
+				
+				If* p = $1;
+				while(!p->iffalse->empty())
+					p = dynamic_cast<If*>(p->iffalse->front());
+				p->iffalse = iffalse;		
+						
+				$$ = $1;
+			}
+			else
+			{
+				$$ = $2;
+			}
+		}
+	;
+
+else_single:
+	  /* empty */
+		{
+			$$ = new List<Statement*>;
+		}
+	| K_ELSE statement
+		{
+			$$ = $2;
+		}
+	;
+
+/*
+ * Mimicks else_single
+ */
+new_else_single:
+	  /* empty */
+		{
+			$$ = new List<Statement*>;
+		}
+	| K_ELSE ':' inner_statement_list
+		{
+			$$ = $3;
+		}
+	;
+
+parameter_list:
+	  non_empty_parameter_list
+		{
+			$$ = $1;
+		}
+	| /* empty */
+		{ 
+			List<Formal_parameter*>* params = new List<Formal_parameter*>;
+			$$ = params;
+		}
+	;
+
+/*
+ * Lots of duplication in these rules, but what can you do?
+ */
+non_empty_parameter_list:
+	  optional_class_type VARIABLE
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($2);
+			
+			List<Formal_parameter*>* params;
+			
+			params = new List<Formal_parameter*>;
+			params->push_back(NEW(Formal_parameter, ($1, name)));
+			
+			$$ = params; 
+		}
+	| optional_class_type '&' VARIABLE
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			
+			List<Formal_parameter*>* params;
+			
+			params = new List<Formal_parameter*>;
+			params->push_back(NEW(Formal_parameter, ($1, true, name)));
+			
+			$$ = params; 
+		}
+	| optional_class_type '&' VARIABLE '=' static_scalar
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			
+			List<Formal_parameter*>* params;
+			
+			params = new List<Formal_parameter*>;
+			params->push_back(NEW(Formal_parameter, ($1, true, NEW(Name_with_default, (name, $5)))));
+			
+			$$ = params; 
+		}
+	| optional_class_type VARIABLE '=' static_scalar
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($2);
+			
+			List<Formal_parameter*>* params;
+			
+			params = new List<Formal_parameter*>;
+			params->push_back(NEW(Formal_parameter, ($1, false, NEW(Name_with_default, (name, $4)))));
+			
+			$$ = params; 
+		}
+	| non_empty_parameter_list ',' optional_class_type VARIABLE
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($4);
+			
+			$1->push_back(NEW(Formal_parameter, ($3, name)));
+			
+			$$ = $1; 
+		}
+	| non_empty_parameter_list ',' optional_class_type '&' VARIABLE
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($5);
+			
+			$1->push_back(NEW(Formal_parameter, ($3, true, name)));
+			
+			$$ = $1; 
+		}
+	| non_empty_parameter_list ',' optional_class_type '&' VARIABLE '=' static_scalar
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($5);
+			
+			$1->push_back(NEW(Formal_parameter, ($3, true, NEW(Name_with_default, (name, $7)))));
+			
+			$$ = $1; 
+		}
+	| non_empty_parameter_list ',' optional_class_type VARIABLE '=' static_scalar
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($4);
+			
+			$1->push_back(NEW(Formal_parameter, ($3, false, NEW(Name_with_default, (name, $6)))));
+			
+			$$ = $1; 
+		}
+	;
+
+optional_class_type:
+	  /* empty */
+		{
+			$$ = NEW(Type, (NULL));
+		}
+	| IDENT
+		{ 
+			CLASS_NAME* class_name = new CLASS_NAME($1);
+			$$ = NEW(Type, (class_name)); 
+		}
+	| K_ARRAY
+		{
+			CLASS_NAME* class_name = new CLASS_NAME(new String ("array"));
+			$$ = NEW(Type, (class_name)); 
+		}
+	;	
+
+function_call_parameter_list:
+	  non_empty_function_call_parameter_list
+		{
+			$$ = $1;
+		}
+	| /* empty */
+		{
+			$$ = new List<Actual_parameter*>;
+		}
+	;
+
+non_empty_function_call_parameter_list:
+	  expr_without_variable
+		{
+			List<Actual_parameter*>* list = new List<Actual_parameter*>;
+			list->push_back(NEW(Actual_parameter, (false, $1)));
+			$$ = list;
+		}
+	| variable
+		{
+			List<Actual_parameter*>* list = new List<Actual_parameter*>;
+			list->push_back(NEW(Actual_parameter, (false, $1)));
+			$$ = list;
+		}
+	| '&' w_variable
+		{
+			List<Actual_parameter*>* list = new List<Actual_parameter*>;
+			list->push_back(NEW(Actual_parameter, (true, $2)));
+			$$ = list; 
+		}
+	| non_empty_function_call_parameter_list ',' expr_without_variable
+		{
+			$1->push_back(NEW(Actual_parameter, (false, $3)));
+			$$ = $1;
+		}
+	| non_empty_function_call_parameter_list ',' variable
+		{
+			$1->push_back(NEW(Actual_parameter, (false, $3)));
+			$$ = $1;
+		}
+	| non_empty_function_call_parameter_list ',' '&' w_variable
+		{
+			$1->push_back(NEW(Actual_parameter, (true, $4)));
+			$$ = $1; 
+		}
+	;
+
+global_var_list:
+	  global_var_list ',' global_var
+		{
+			$1->push_back($3);
+			$$ = $1;
+		}
+	| global_var
+		{
+			List<Variable_name*>* list = new List<Variable_name*>;
+			list->push_back($1);
+			
+			$$ = list;
+		}
+	;
+
+global_var:
+	  VARIABLE
+		{
+			$$ = NEW(VARIABLE_NAME, ($1));
+		}
+	| '$' r_variable
+		{
+			$$ = NEW(Reflection, ($2));
+		}
+	| '$' '{' expr '}'
+		{ 
+			$3->attrs->set_true("phc.unparser.needs_user_curlies");
+			$$ = NEW(Reflection, ($3));
+		}
+	; 
+
+static_var_list: 
+	  static_var_list ',' VARIABLE
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			$1->push_back(NEW(Name_with_default, (name, NULL)));
+			$$ = $1;
+		}
+	| static_var_list ',' VARIABLE '=' static_scalar
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			$1->push_back(NEW(Name_with_default, (name, $5)));
+			$$ = $1;
+		}
+	| VARIABLE
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($1);
+			List<Name_with_default*>* list = new List<Name_with_default*>;
+			list->push_back(NEW(Name_with_default, (name, NULL)));
+			$$ = list;
+		}
+	| VARIABLE '=' static_scalar
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($1);
+			List<Name_with_default*>* list = new List<Name_with_default*>;
+			list->push_back(NEW(Name_with_default, (name, $3)));
+			$$ = list;
+		}
+	;
+
+class_statement_list:
+	 	class_statement_list class_statement
+		{
+			$1->push_back($2);
+			$$ = $1;			
+		}
+	| /* empty */
+		{
+			$$ = new List<Member*>;
+		}
+	;
+
+class_statement:
+	  variable_modifiers class_variable_declaration ';'
+		{
+			$$ = NEW(Attribute, ($1, $2));
+		}
+	| class_constant_declaration ';'
+		{
+			$$ = $1;
+		}
+	| method_modifiers keyword_function is_reference IDENT {context->current_method = dynamic_cast<String*>($4);} '(' parameter_list ')' method_body {context->current_method = new String;}
+		{
+			METHOD_NAME* name = new METHOD_NAME($4);
+		
+			Signature* signature = NEW(Signature, ($1, $3->value(), name, $7));
+			
+			$2->signature = signature;
+			$2->statements = $9;
+			$$ = $2;
+		}
+	;
+
+method_body:
+	  ';' 
+		{
+			// Abstract method
+			$$ = NULL; 
+		}
+	| block 
+		{
+			$$ = $1;
+		}
+	;
+
+variable_modifiers:
+	  non_empty_member_modifiers
+		{
+			if($1->is_abstract)
+			{
+				phc_error("Cannot declare variables to be abstract", $1->get_filename(), $1->get_line_number());
+			}
+
+			$$ = NEW(Attr_mod, ($1)); 
+		}
+	| K_VAR
+		{
+			$$ = NEW(Attr_mod, (false, false, false, false, false));
+		}
+	;
+
+method_modifiers:
+	  /* empty */
+		{
+			$$ = new Method_mod();
+		}
+	| non_empty_member_modifiers
+		{
+			$$ = $1;
+		}
+	;
+
+non_empty_member_modifiers:
+	  member_modifier
+		{
+			$$ = $1;
+		}
+	| non_empty_member_modifiers member_modifier
+		{
+			$$ = NEW(Method_mod, ($1, $2)); 
+		}
+	;
+
+member_modifier:
+	  K_PUBLIC
+		{
+			$$ = Method_mod::new_PUBLIC();
+		}
+	| K_PROTECTED
+		{
+			$$ = Method_mod::new_PROTECTED();
+		}
+	| K_PRIVATE
+		{
+			$$ = Method_mod::new_PRIVATE();
+		}
+	| K_STATIC
+		{
+			$$ = Method_mod::new_STATIC();
+		}
+	| K_ABSTRACT
+		{
+			$$ = Method_mod::new_ABSTRACT();
+		}
+	| K_FINAL
+		{
+			$$ = Method_mod::new_FINAL();
+		}
+	;
+
+class_variable_declaration:
+	  class_variable_declaration ',' VARIABLE
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			$1->push_back(NEW(Name_with_default, (name, NULL)));
+			$$ = $1;
+		}
+	| class_variable_declaration ',' VARIABLE '=' static_scalar
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			$1->push_back(NEW(Name_with_default, (name, $5)));
+			$$ = $1;			
+		}
+	| VARIABLE
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($1);
+			List<Name_with_default*>* vars = new List<Name_with_default*>;
+			vars->push_back(NEW(Name_with_default, (name, NULL)));
+			$$ = vars;
+		}
+	| VARIABLE '=' static_scalar
+		{ 
+			VARIABLE_NAME* name = new VARIABLE_NAME($1);
+			List<Name_with_default*>* vars = new List<Name_with_default*>;
+			vars->push_back(NEW(Name_with_default, (name, $3)));
+			$$ = vars;
+		}
+	;
+
+class_constant_declaration:
+	  class_constant_declaration ',' IDENT '=' static_scalar
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($3);
+			Name_with_default* var = NEW(Name_with_default, (name, $5));
+			$1->vars->push_back(var);
+			$$ = $1;
+		}
+	| K_CONST IDENT '=' static_scalar
+		{
+			VARIABLE_NAME* name = new VARIABLE_NAME($2);
+			List<Name_with_default*>* vars = new List<Name_with_default*>;
+
+			Attr_mod* attr_mod = Attr_mod::new_CONST();
+			Name_with_default* var = NEW(Name_with_default, (name, $4));
+			vars->push_back(var);
+
+			$$ = NEW(Attribute, (attr_mod, vars));
+		}
+	;
+
+/*
+ * "echo foo, bar;" is translated into a function call to "echo" with
+ * two arguments.
+ *
+ * Note that an echo isnt a function, and behaves slightly differently from
+ * functions, in that the result of the evaluation of an argument is printed
+ * before the next argument is evaluated.
+ */
+echo_expr_list:
+	  echo_expr_list ',' expr
+		{
+			$1->push_back (NEW (Actual_parameter, (false, $3)));
+			$$ = $1;
+		}
+	| expr
+		{
+			$$ = new List<Actual_parameter*>;
+			$$->push_back(NEW(Actual_parameter, (false, $1)));
+		}
+	;
+
+for_expr:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| non_empty_for_expr
+		{
+			$$ = $1
+		}
+	;
+
+/*
+ * Commas are treated as binops
+ */
+non_empty_for_expr:
+	  non_empty_for_expr ',' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr
+		{
+			$$ = $1;
+		}
+	;
+
+expr_without_variable:
+	  K_LIST '(' assignment_list ')' '=' expr
+		{
+			$$ = NEW(List_assignment, ($3->list_elements, $6));
+		}
+	| variable '=' expr
+		{
+			$$ = NEW(Assignment, (expect_variable($1), false, $3));
+		}
+	| variable '=' '&' variable
+		{
+			$$ = NEW(Assignment, (expect_variable($1), true, $4));
+		}
+	| variable '=' '&' K_NEW class_name_reference ctor_arguments 
+		{
+			$6->class_name = $5;
+			$$ = NEW(Assignment, (expect_variable($1), true, $6));
+		}
+	| K_NEW class_name_reference ctor_arguments
+		{
+			$3->class_name = $2;
+			$$ = $3; 
+		}
+	| K_CLONE expr
+		{
+			$$ = NEW(Method_invocation, ("clone", $2)); 
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	| variable O_PLUSEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "+", $3);
+		}
+	| variable O_MINUSEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "-", $3);
+		}
+	| variable O_MULEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "*", $3);
+		}
+	| variable O_DIVEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "/", $3);
+		}
+	| variable O_CONCATEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, ".", $3);
+		}
+	| variable O_MODEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "%", $3);
+		}
+	| variable O_ANDEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "&", $3);
+		}
+	| variable O_OREQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "|", $3);
+		}
+	| variable O_XOREQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "^", $3);
+		}
+	| variable O_SLEQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, "<<", $3);
+		}
+	| variable O_SREQ expr
+		{
+			Variable* var = expect_variable($1);
+			$$ = new Op_assignment(var, ">>", $3);
+		}
+	| rw_variable O_INC
+		{ 
+			$$ = NEW(Post_op, (expect_variable($1), "++"));
+		}
+	| O_INC rw_variable
+		{ 
+			$$ = NEW(Pre_op, (expect_variable($2), "++"));
+		}
+	| rw_variable O_DEC
+		{ 
+			$$ = NEW(Post_op, (expect_variable($1), "--"));
+		}
+	| O_DEC rw_variable
+		{ 
+			$$ = NEW(Pre_op, (expect_variable($2), "--"));
+		}
+	| expr O_LOGICOR expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_LOGICAND expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr K_OR expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr K_AND expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr K_XOR expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '|' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '&' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '^' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '.' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_MAGIC_CONCAT expr '}'
+		{
+			$$ = NEW(Bin_op, ($1, $2, expect_variable($3)));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+
+			/*
+			 * Interface with the lexer: return to in-string state 
+			 */
+			 
+			context->return_to_complex_syntax();
+		}
+   | expr '+' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '-' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '*' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '/' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | expr '%' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_SL expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_SR expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+   | '+' expr
+		{
+			// We ignore unary plus
+			$$ = $2; 
+		}
+   | '-' expr
+		{
+			$$ = NEW(Unary_op, ($1, $2)); 
+		}
+   | '!' expr
+		{
+			$$ = NEW(Unary_op, ($1, $2)); 
+		}
+   | '~' expr
+		{
+			$$ = NEW(Unary_op, ($1, $2)); 
+		}
+	| expr O_EQEQEQ expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_NOTEQEQ expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_EQEQ expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_NOTEQ expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr '<' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_LE expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr '>' expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr O_GE expr
+		{
+			$$ = NEW(Bin_op, ($1, $2, $3));
+			$$->attrs->set_true("phc.unparser.no_binop_brackets");
+		}
+	| expr K_INSTANCEOF class_name_reference
+		{
+			$$ = NEW(Instanceof, ($1, $3));
+		}
+	| '(' expr ')'
+		{
+			$2->attrs->set_true("phc.unparser.needs_user_brackets");
+			
+			$$ = $2;
+		}
+	| expr '?' expr ':' expr
+		{
+			$$ = NEW(Conditional_expr, ($1, $3, $5)); 
+		}
+	| internal_functions_in_yacc
+		{
+			$$ = $1;
+		}
+	| CAST_INT expr
+		{
+			$$ = NEW(Cast, ("int", $1, $2));
+		}
+	| CAST_REAL expr
+		{
+			$$ = NEW(Cast, ("real", $1, $2));
+		}
+	| CAST_STRING expr
+		{
+			$$ = NEW(Cast, ("string", $1, $2));
+		}
+	| CAST_ARRAY expr
+		{
+			$$ = NEW(Cast, ("array", $1, $2));
+		}
+	| CAST_OBJECT expr
+		{
+			$$ = NEW(Cast, ("object", $1, $2));
+		}
+	| CAST_BOOL expr
+		{
+			$$ = NEW(Cast, ("bool", $1, $2));
+		}
+	| CAST_UNSET expr
+		{ 
+			$$ = NEW(Cast, ("unset", $1, $2));
+		}
+	| K_EXIT exit_expr
+		{
+			$$ = $2; 
+		}
+	| '@' expr
+		{
+			$$ = NEW(Ignore_errors, ($2)); 
+		}
+	| scalar
+		{
+			$$ = $1;
+		}
+	| K_ARRAY '(' array_pair_list ')'
+		{
+			$$ = NEW(Array, ($3)); 
+		}
+	| K_PRINT expr
+		{
+			$$ = NEW(Method_invocation, ("print", $2));	
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	;
+
+function_call:
+	  IDENT '(' function_call_parameter_list ')'
+		{
+			METHOD_NAME* fn;
+
+			if(*$1 == "`")
+				fn = new METHOD_NAME(new String("shell_exec"));
+			else
+				fn = new METHOD_NAME($1);
+		
+			$$ = NEW(Method_invocation, (NULL, fn, $3));
+
+			if(*$1 == "`")
+				$$->attrs->set_true("phc.unparser.is_backticked");
+		}
+	| fully_qualified_class_name O_COLONCOLON IDENT '(' function_call_parameter_list ')'
+		{
+			METHOD_NAME* fn = new METHOD_NAME($3);
+
+			$$ = NEW(Method_invocation, ($1, fn, $5));
+		}
+	| fully_qualified_class_name O_COLONCOLON variable_without_objects '(' function_call_parameter_list ')'
+		{
+			$$ = NEW(Method_invocation, ($1, NEW(Reflection, ($3)), $5));
+		}
+	| variable_without_objects '(' function_call_parameter_list ')'
+		{
+			$$ = NEW(Method_invocation, (NULL, NEW(Reflection, ($1)), $3));
+		}
+	;
+
+fully_qualified_class_name:
+	  IDENT
+		{
+			CLASS_NAME* name = new CLASS_NAME($1);
+			$$ = name; 
+		}
+	;
+
+class_name_reference:
+	  IDENT
+		{
+			CLASS_NAME* name = new CLASS_NAME($1);
+
+			$$ = name; 
+		}
+	| dynamic_class_name_reference
+		{ 
+			$$ = NEW(Reflection, ($1)); 
+		}
+	;
+
+/*
+ * Note: the grammar is right recursive, whereas invocation is left recursive
+ * "$a->b->c" is "($a->b)->c"; must be careful to generate the correct tree.
+ */
+dynamic_class_name_reference:
+	  base_variable O_SINGLEARROW object_property dynamic_class_name_variable_properties
+		{
+			$3->target = $1;
+
+			List<Variable*>::const_iterator i;
+			for(i = $4->begin(); i != $4->end(); i++)
+			{
+				(*i)->target = $3;
+				$3 = *i;
+			}
+			
+			$$ = $3; 
+		}
+	| base_variable
+		{
+			$$ = $1;
+		}
+	;
+
+dynamic_class_name_variable_properties:
+	  dynamic_class_name_variable_properties dynamic_class_name_variable_property
+		{
+			$1->push_back($2);
+			$$ = $1;
+		}
+	| /* empty */
+		{ 
+			List<Variable*>* vars = new List<Variable*>;
+			$$ = vars;
+		}
+	;
+
+dynamic_class_name_variable_property:
+	  O_SINGLEARROW object_property
+		{
+			$$ = $2;
+		}
+	;
+
+/*
+ * If no argument is specified (exit; or exit();), assume 0.
+ */
+exit_expr:
+	  /* empty */
+		{
+			Expr* expr = NEW(INT, (0L));
+			Actual_parameter* arg = NEW(Actual_parameter, (false, expr));
+			arg->attrs->set_true("phc.unparser.is_default");
+			$$ = NEW(Method_invocation,
+				( NULL
+				, new METHOD_NAME(new String("exit"))
+				, new List<Actual_parameter*>(arg)
+				));
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	| '(' ')'
+		{
+			Expr* expr = NEW(INT, (0L));
+			Actual_parameter* arg = NEW(Actual_parameter, (false, expr));
+			arg->attrs->set_true("phc.unparser.is_default");
+			$$ = NEW(Method_invocation,
+				( NULL
+				, new METHOD_NAME(new String("exit"))
+				, new List<Actual_parameter*>(arg)
+				));
+		}
+	| '(' expr ')'
+		{
+			Actual_parameter* arg = NEW(Actual_parameter, (false, $2));
+			$$ = NEW(Method_invocation,
+				( NULL
+				, new METHOD_NAME(new String("exit"))
+				, new List<Actual_parameter*>(arg)
+				));
+		}
+	;
+
+/*
+ * We generate the New node here with a NULL class name so that we can
+ * set the phc.unparser.no_brackets attribute if necessary
+ */
+ctor_arguments:
+	  /* empty */
+		{ 
+			List<Actual_parameter*>* args = new List<Actual_parameter*>;
+			
+			$$ = NEW(New, (NULL, args)); 
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	| '(' function_call_parameter_list ')'
+		{
+			$$ = NEW(New, (NULL, $2));
+		}
+	;
+
+common_scalar:
+	  T_INT
+		{
+			$$ = $1; 
+		}
+	| T_REAL 
+		{
+			$$ = $1;	
+		}
+	| T_STRING
+		{
+			$$ = $1;	
+		}
+	| C_FALSE
+		{ 
+			$$ = $1; 
+		}
+	| C_TRUE
+		{ 
+			$$ = $1; 
+		}
+	| C_NULL
+		{ 
+			$$ = $1; 
+		}
+	| K___LINE__
+		{
+			$$ = $1; 
+		}
+	| K___FILE__
+		{
+			$$ = $1; 
+		}
+	| K___CLASS__
+		{
+			$$ = $1; 
+		}
+	| K___METHOD__
+		{
+			$$ = $1;
+		}
+	| K___FUNCTION__
+		{
+			$$ = $1; 
+		}
+	;
+	
+static_scalar:
+	  common_scalar
+		{
+			$$ = $1;
+		}
+	| IDENT
+		{
+			CONSTANT_NAME* name = new CONSTANT_NAME($1);
+			$$ = NEW(Constant, (NULL, name)); 
+		}
+	| '+' static_scalar
+		{
+			// We simply ignore the +
+			$$ = $2;
+		}
+	| '-' static_scalar
+		{
+			$$ = NEW(Unary_op, ($2, "-"));
+		}
+	| K_ARRAY '(' static_array_pair_list ')'
+		{
+			$$ = NEW(Array, ($3));
+		}
+	| static_class_constant
+		{
+			$$ = $1;
+		}
+	;
+
+static_class_constant:
+	  IDENT O_COLONCOLON IDENT
+		{
+			CLASS_NAME* class_name = new CLASS_NAME($1);
+			CONSTANT_NAME* constant = new CONSTANT_NAME($3);
+			
+			$$ = NEW(Constant, (class_name, constant));
+		}
+	;
+
+scalar:
+	  IDENT
+		{
+			CONSTANT_NAME* name = new CONSTANT_NAME($1);
+
+			$$ = NEW(Constant, (NULL, name));
+		}
+	| class_constant
+		{
+			$$ = $1;
+		}
+	| common_scalar
+		{
+			$$ = $1;
+		}
+	;
+
+static_array_pair_list:
+	  /* empty */
+		{
+			$$ = new List<Array_elem*>;
+		}
+	| non_empty_static_array_pair_list possible_comma
+		{
+			$$ = $1;
+		}
+	;
+
+/*
+ * No semantic value
+ */
+possible_comma:
+	  /* empty */
+	| ','
+	;
+
+non_empty_static_array_pair_list:
+	  non_empty_static_array_pair_list ',' static_scalar O_DOUBLEARROW static_scalar
+		{
+			Array_elem* elem = NEW(Array_elem, ($3, false, $5));
+			$1->push_back(elem);
+
+			$$ = $1;
+		}
+	| non_empty_static_array_pair_list ',' static_scalar
+		{
+			Array_elem* elem = NEW(Array_elem, (NULL, false, $3));
+			$1->push_back(elem);
+			
+			$$ = $1;
+		}
+	| static_scalar O_DOUBLEARROW static_scalar
+		{
+			List<Array_elem*>* list = new List<Array_elem*>;
+			Array_elem* elem = NEW(Array_elem, ($1, false, $3));
+			list->push_back(elem);
+
+			$$ = list;
+		}
+	| static_scalar
+		{
+			List<Array_elem*>* list = new List<Array_elem*>;
+			Array_elem* elem = NEW(Array_elem, (NULL, false, $1));
+			list->push_back(elem);
+
+			$$ = list;
+		}
+	;
+
+expr:
+	  r_variable
+		{
+			$$ = $1;
+		}
+	| expr_without_variable
+		{
+			$$ = $1;
+		}
+	;
+
+r_variable:
+	  variable
+		{
+			$$ = $1;
+		}
+	;
+
+w_variable:
+	  variable
+		{
+			$$ = $1;
+		}
+	;
+
+rw_variable:
+	  variable
+		{
+			$$ = $1;
+		}
+	;
+
+/*
+ * The original rule read
+ *
+ * variable ::= base_variable_with_function_calls O_SINGLEARROW object_property
+ *     method_or_not variable_properties
+ *
+ * However, this duplicates work done in variable_properties, because 
+ * variable_properties is a list of variable_property's, and
+ *
+ * variable_property ::= O_SINGLEARROW object_property method_or_not
+ *
+ * Now, in the original grammar, variable_properties allows for an empty list;
+ * that's now changed, so that it requires at least one variable_property.
+ *
+ * We don't normally change the grammar, but this rule is difficult enough
+ * as it is, so that we don't want to be duplicating code.
+ */
+variable:
+	  base_variable_with_function_calls variable_properties
+		{
+			List<Expr*>::iterator i;
+			for(i = $2->begin(); i != $2->end(); i++)
+			{
+				Variable* var = dynamic_cast<Variable*>(*i);
+				Method_invocation* fn = dynamic_cast<Method_invocation*>(*i);
+
+				if(var)
+				{
+					var->target = $1;
+					
+					List<Actual_parameter*>* function_params = dynamic_cast<List<Actual_parameter*>*>(var->attrs->get("phc.parser.function_params"));
+	
+					if(function_params)
+					{
+						$1 = NEW(Method_invocation, (NULL, NEW(Reflection,(var)), function_params));
+					}
+					else
+					{
+						$1 = var;
+					}
+				}
+				else
+				{
+					fn->target = $1;
+					$1 = fn;
+				}
+			}
+
+			$$ = $1;
+		}
+	| base_variable_with_function_calls
+		{
+			$$ = $1;
+		}
+	;
+
+/*
+ * The second rule goes to empty in the original grammar; see the
+ * comment for "variable ::=" why this is changed.
+ */
+variable_properties:
+	  variable_properties variable_property
+		{
+			$1->push_back($2);
+			
+			$$ = $1;
+		}
+	| variable_property 
+		{
+			List<Expr*>* props = new List<Expr*>;
+			props->push_back($1);
+			
+			$$ = props;
+		}
+	;
+
+/* 
+ * We decide to synthesise an Variable or an Method_invocation
+ * based on the absence or presence of a parameter list (method_or_not).
+ * If there is a parameter list, we _try_ to generate a method invocation.
+ *
+ * To do this, we take the name of the variable synthesised by
+ * object_property, and use it for the name of the method invocation. That is,
+ * if the name of the variable is VarName[x], we convert it to FnName[x];
+ * otherwise, it must be an expression and we use the name as-is.
+ *
+ * However, this fails to work if the variable has array indices. This is
+ * the case, for example, in "$x->f[]()" (i.e., "f[]()" as far as 
+ * variable_property is concerned). In this case, the name of the method 
+ * is "$x->f[]"; however, we cannot generate this here because we don't
+ * know the "$x" part. Instead, we synthesise up "f[]" (Variable), and
+ * we set a private attribute in Variable, called "function_params", to
+ * the parameters of the method. The rule "variable ::= " must check for
+ * this attribute, and generate the correct method invocation if set.
+ */ 
+variable_property:
+	  O_SINGLEARROW object_property method_or_not
+		{
+			if($3)
+			{
+				if($2->array_indices->empty())
+				{
+					VARIABLE_NAME* vn = dynamic_cast<VARIABLE_NAME*>($2->variable_name);
+				
+					if(vn)
+					{
+						METHOD_NAME* fn;
+						
+						fn = NEW(METHOD_NAME, (vn->value));
+						$$ = NEW(Method_invocation, (NULL, fn, $3));
+					}
+					else
+					{
+						Reflection* fn;
+
+						fn = dynamic_cast<Reflection*>($2->variable_name);
+						assert(fn);
+						$$ = NEW(Method_invocation, (NULL, fn, $3));
+					}
+				}
+				else
+				{
+					$2->attrs->set("phc.parser.function_params", $3);
+					$$ = $2;
+				}
+			}
+			else
+			{
+				$$ = $2;
+			}
+		}
+	;
+
+method_or_not:
+	  '(' function_call_parameter_list ')'
+		{
+			$$ = $2;
+		}
+	| /* empty */
+		{
+			$$ = NULL;
+		}
+	;
+
+variable_without_objects:
+	  reference_variable
+		{
+			$$ = $1;
+		}
+	| simple_indirect_reference reference_variable
+		{
+			for(long i = 0; i < $1->value(); i++)
+			{
+				$2 = NEW(Variable, (NEW(Reflection, ($2))));
+			}
+			
+			$$ = $2;
+		}
+	;
+
+static_member:
+	  fully_qualified_class_name O_COLONCOLON variable_without_objects
+		{
+			$3->target = $1;
+			$$ = $3; 
+		}
+	;
+
+base_variable_with_function_calls:
+	  base_variable
+		{
+			$$ = $1;
+		}
+	| function_call
+		{
+			$$ = $1;
+		}
+	;
+
+base_variable:
+	  reference_variable
+		{
+			$$ = $1;
+		}
+	| simple_indirect_reference reference_variable
+		{
+			for(long i = 0; i < $1->value(); i++)
+			{
+				$2 = NEW(Variable, (NEW(Reflection, ($2))));
+			}
+
+			$$ = $2;
+		}
+	| static_member
+		{
+			$$ = $1;
+		}
+	;
+
+reference_variable:
+	  reference_variable '[' dim_offset ']'
+		{
+			$1->array_indices->push_back($3);
+			$$ = $1;
+		}
+	| reference_variable '{' expr '}'
+		{
+			if($3 != NULL)
+				$3->attrs->set_true("phc.unparser.index_curlies");
+
+			$1->array_indices->push_back($3);
+			$$ = $1;
+		}
+	| compound_variable
+		{
+			$$ = NEW(Variable, ($1));
+		}
+	;
+
+compound_variable:
+	  VARIABLE
+		{ 
+			VARIABLE_NAME* var = new VARIABLE_NAME($1);
+			$$ = var; 
+		}
+	| '$' '{' expr '}'
+		{ 
+			$3->attrs->set_true("phc.unparser.needs_user_curlies");
+			$$ = NEW(Reflection, ($3)); 
+		}
+	;
+
+dim_offset:
+	  /* empty */
+		{
+			$$ = NULL;
+		}
+	| expr
+		{
+			$$ = $1;
+		}
+	;
+
+object_property:
+	  object_dim_list
+		{
+			$$ = $1;
+		}
+	| variable_without_objects 
+		{
+			// This is a "normal" variable (which includes a $), i.e. $x->$y
+			// So, we need to add a level of indirection
+			$$ = NEW(Variable, (NEW(Reflection, ($1)))); 
+		}
+	;
+
+/*
+ * Mimics reference_variable
+ */
+object_dim_list:
+	  object_dim_list '[' dim_offset ']'
+		{
+			$1->array_indices->push_back($3);
+			$$ = $1;
+		}
+	| object_dim_list '{' expr '}'
+		{
+			if($3 != NULL)
+				$3->attrs->set_true("phc.unparser.index_curlies");
+
+			$1->array_indices->push_back($3);
+			$$ = $1;
+		}
+	| variable_name
+		{
+			$$ = NEW(Variable, ($1)); 
+		}
+	;
+
+/* 
+ * Mimics compound_variable
+ */ 
+variable_name:
+	  IDENT
+		{ 
+			VARIABLE_NAME* var = new VARIABLE_NAME($1);
+			$$ = var; 
+		}
+	| '{' expr '}'
+		{ 
+			$2->attrs->set_true("phc.unparser.needs_user_curlies");
+			$$ = NEW(Reflection, ($2)); 
+		}
+	;
+
+/*
+ * Counts the number of dollar signs (indirections)
+ */
+simple_indirect_reference:
+	  '$'
+		{
+			$$ = new Integer(1);
+		} 
+	| simple_indirect_reference '$'
+		{
+			(*$1)++;
+			$$ = $1; 
+		}
+	;
+
+assignment_list:
+	  assignment_list ',' assignment_list_element
+		{
+			$1->list_elements->push_back($3);
+			
+			$$ = $1; 
+		}
+	| assignment_list_element
+		{
+			List<List_element*>* elements = new List<List_element*>;
+			elements->push_back($1);
+			
+			$$ = NEW(Nested_list_elements, (elements)); 
+		}
+	;
+
+/*
+ * Can be NULL for an empty list element, list($x, , $y)
+ */
+assignment_list_element:
+	  variable
+		{
+			$$ = expect_variable($1); 
+		}
+	| K_LIST '(' assignment_list ')'
+		{
+			$$ = $3;
+		}
+	| /* empty */
+		{
+			$$ = NULL;
+		}
+	;
+
+array_pair_list:
+	  /* emtpy */
+		{
+			$$ = new List<Array_elem*>;
+		}
+	| non_empty_array_pair_list possible_comma
+		{
+			$$ = $1;
+		}
+	;
+
+/*
+ * Code duplicated in non_empty_static_array_pair_list
+ */
+non_empty_array_pair_list:
+	  non_empty_array_pair_list ',' expr O_DOUBLEARROW expr
+		{
+			Array_elem* elem = NEW(Array_elem, ($3, false, $5));
+			$1->push_back(elem);
+
+			$$ = $1;
+		}
+	| non_empty_array_pair_list ',' expr
+		{
+			Array_elem* elem = NEW(Array_elem, (NULL, false, $3));
+			$1->push_back(elem);
+			
+			$$ = $1;
+		}
+	| expr O_DOUBLEARROW expr
+		{
+			List<Array_elem*>* list = new List<Array_elem*>;
+			Array_elem* elem = NEW(Array_elem, ($1, false, $3));
+			list->push_back(elem);
+
+			$$ = list;
+		}
+	| expr
+		{
+			List<Array_elem*>* list = new List<Array_elem*>;
+			Array_elem* elem = NEW(Array_elem, (NULL, false, $1));
+			list->push_back(elem);
+
+			$$ = list;
+		}
+	| non_empty_array_pair_list ',' expr O_DOUBLEARROW '&' w_variable
+		{
+			Array_elem* elem = 
+				NEW(Array_elem, ($3, true, $6));
+			$1->push_back(elem);
+
+			$$ = $1;
+		}
+	| non_empty_array_pair_list ',' '&' w_variable 
+		{
+			Array_elem* elem = 
+				NEW(Array_elem, (NULL, true, $4));
+			$1->push_back(elem);
+			
+			$$ = $1;
+		}
+	| expr O_DOUBLEARROW '&' w_variable 
+		{
+			List<Array_elem*>* list = new List<Array_elem*>;
+			Array_elem* elem = 
+				NEW(Array_elem, ($1, true, $4));
+			list->push_back(elem);
+
+			$$ = list;
+		}
+	| '&' w_variable
+		{
+			List<Array_elem*>* list = new List<Array_elem*>;
+			Array_elem* elem = 
+				NEW(Array_elem, (NULL, true, $2));
+			list->push_back(elem);
+
+			$$ = list;
+		}
+	;
+
+internal_functions_in_yacc:
+	 K_ISSET '(' isset_variables ')' 
+		{
+			METHOD_NAME* fn = NEW(METHOD_NAME, (new String("isset")));
+			$$ = NEW(Method_invocation, (NULL, fn, $3));
+		}
+	| K_EMPTY '(' variable ')'
+		{
+			$$ = NEW(Method_invocation, ("empty", $3));
+		}
+	| K_INCLUDE expr 
+		{
+			$$ = NEW(Method_invocation, ("include", $2));
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	| K_INCLUDE_ONCE expr
+		{
+			$$ = NEW(Method_invocation, ("include_once", $2));
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	| K_EVAL '(' expr ')'
+		{
+			$$ = NEW(Method_invocation, ("eval", $3));
+		}
+	| K_REQUIRE expr 
+		{
+			$$ = NEW(Method_invocation, ("require", $2));
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	| K_REQUIRE_ONCE expr
+		{
+			$$ = NEW(Method_invocation, ("require_once", $2));
+			$$->attrs->set_true("phc.unparser.no_brackets");
+		}
+	;
+
+isset_variables:
+	  variable
+		{
+			List<Actual_parameter*>* params = new List<Actual_parameter*>;
+			
+			params->push_back(NEW(Actual_parameter, (false, $1)));
+			$$ = params;
+		}
+	| isset_variables ',' variable
+		{
+			$1->push_back(NEW(Actual_parameter, (false, $3)));
+			$$ = $1;
+		}
+	;
+
+class_constant:
+	  fully_qualified_class_name O_COLONCOLON IDENT
+		{
+			CONSTANT_NAME* constant = new CONSTANT_NAME($3);
+
+			$$ = NEW(Constant, ($1, constant));
+		}
+	;
+
+/*
+ * Specific to phc; in the original grammar, this always appeared inlined
+ * We factor it out since we need to generate the NOP if necessary
+ */
+block:
+	  '{' inner_statement_list '}'
+		{
+			// If there are any remaining comments, add them as a NOP
+			if(!context->last_comments.empty())
+				$2->push_back(NEW(Nop, ()));
+
+			if(!$2->empty())
+				$2->front()->attrs->erase("phc.unparser.is_wrapped");
+
+			$$ = $2;
+		}

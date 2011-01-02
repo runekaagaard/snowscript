@@ -1,0 +1,2529 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>ply4python</title>
+<style>
+body {
+  background: #ffffff;
+}
+
+/* stolen from the effbot ;) */
+pre.code { 
+    font: 100% "Courier New", Courier, Monaco, monospace;
+    color: #042; background: #f8fff8;
+    margin-left: 20px; margin-right: 20px;
+    padding: 5px 5px 5px 5px;
+    border: 1px dotted #084;
+}
+</style>
+</head>
+
+<body>
+
+<h1>python4ply tutorial</h1>
+
+Table of Contents:
+<ul>
+  <li><a href="#what">What is python4ply?</a></li>
+  <li><a href="#caution">Reminiscing, fabrications, and warnings</a></li>
+  <li><a href="#starting">Getting started</a></li>
+  <li><a href="#numbers">Numbers like 1_000_000 - changing the lexer</a></li>
+  <li><a href="#binary">Numbers expressed in binary</a></li>
+  <li><a href="#decimal">Syntax support for decimal numbers</a></li>
+  <li><a href="#pattern">Creating regular expression pattern objects</a></li>
+  <li><a href="#matching">Adding a match operator</a></li>
+  <li><a href="#matched_groups">Accessing matched groups via $1 and $name variables</a></li>
+  <li><a href="#assert">Checking assert clauses</a></li>
+  <li><a href="#coverage">Code coverage</a></li>
+  <li><a href="#uncovered">Which lines aren't covered?</a></li>
+
+  <li><a href="#other">Other things</a></li>
+</ul>
+
+</P>
+
+<a name="what" />
+<h2>What is it python4ply?</h2>
+
+<P>
+
+<a href="http://dalkescientific.com/Python/python4ply.html">python4ply</a> is a Python parser for the Python language.  The grammar
+definition uses <a href="http://www.dabeaz.com/ply/">PLY</a>, a parser
+system for Python modelled on yacc/lex.  The parser rules use the "<a
+href="http://docs.python.org/lib/module-compiler.html">compiler</a>"
+module from the standard library to build a Python AST and to generate
+byte code for .pyc file.  
+
+</P><P>
+
+You might use python4ply to experiment with variations in the Python
+language.  The PLY-based lexer and parser are much easier to change
+than the C implementation Python itself uses or even the ones written
+in Python which are part of the standard library.  This tutorial walks
+through examples of how to make changes in different levels of the
+system.
+
+</P><P>
+
+If you only want access to Python's normal AST, which includes line
+numbers and byte position for the code fragements, you should use the
+<a href="http://docs.python.org/lib/ast.html">_ast</a> module.
+
+</P>
+
+<a name="caution" />
+<h2>Reminiscing, fabrications, and warnings</h2>
+
+<P>
+
+Back long time ago I had a class assignment to develop a GUI interface
+using drawpoint and drawtext primitives only.  Everything - buttons,
+text displays, even the mouse pointer itself - was built on those
+primitives.  It gave the strange feeling of knowing that GUIs are
+completely and utterly fake.  There's no there there, and it's only
+through a lot of effort that it feels real.  Those that aren't as old
+and grizzled as I am might get the same feeling with modern web GUIs.
+Those fancy sliders and cool UI effects are built on divs and spans
+and CSS and a lot of hard work.  They aren't really there.
+
+</P><P>
+
+This package gives you the same feeling about Python.  It contains a
+Python grammar definition for the PLY parser.  The file python_lex.py
+is the tokenizer, along with some code to synthesize the INDENT,
+DEDENT and ENDMARKER tags.  The file python_yacc.py is the parser.
+The result is an AST compatible with that from the compiler module,
+which you can use to generate Python byte code (".pyc" files).
+
+</P><P>
+
+There's also a python_grammer.py file which makes a nearly useless
+concrete syntax tree.  This parser was created by grammar_to_ply.py,
+which converts the Python "Grammar" definition into a form that PLY
+can more easily understand.  I keep it around to make sure that the
+rules in python_yacc.py stay correct.  You might also find it useful
+if you want to port the grammar directly to yacc or some similar
+parser system.
+
+</P><P>
+
+What this means is this package gives you, if you put work into it,
+the ability to create a Python variant that works on the Python VM, or
+if you put a lot of work into it (like the Jython, PyPy, and
+IronPython developers), a first step into making your own Python
+implementation.
+
+</P><P>
+
+If you think this sound like a great idea, you're probably wrong.
+Down this path lies madness.  Making a new language isn't just a
+matter of adding a new feature.  The parts go together in subtle ways,
+and if you tweak the language and someone else tweaks the language a
+different way, then you quickly stop being able to talk to each other.
+
+</P><P>
+
+Lisp programmers are probably thinking now that this is just a
+half-formed macro system for Python.  They are right.  Once you have an
+AST you can manipulate it in all sorts of ways.  But many experienced
+Lisp programmers will caution against the siren call of macros.  Don't
+make a new language unless you know what dangerous waters you can get
+into.
+
+</P><P>
+
+On the other hand, it's a lot fun.  Someone has to make the new cool
+langauge for the future so you've got to practice somewhere.  And
+there are a few times when changing things at the AST or code
+generation levels might make good sense.
+
+</P><P>
+
+<a href="http://steve-yegge.blogspot.com/">Steve Yegge</a> is right
+when he wrote "<a
+href="http://steve.yegge.googlepages.com/ancient-languages-perl">When
+you write a compiler, you lose your innocence</a>."
+
+</P>
+
+<a name="starting" />
+<h2>Getting started</h2>
+
+<P>
+
+I'll start with the simple thing, to make sure everything works.
+Create the file "owe_me.py" with the following:
+
+<pre class="code">
+# owe_me.py
+amount = 10000000
+print "You owe me", amount, "dollars"
+</pre>
+
+To bytecompile it use the provided "compile.py" file.  This is
+similar to "py_compile.py" from the standard library.
+
+<pre class="code">
+% python compile.py owe_me.py
+Compiling 'owe_me.py'
+% ls -l owe_me.pyc 
+-rw-r--r--   1 dalke  staff  165 Feb 17 19:21 owe_me.pyc
+%
+</pre>
+
+Running this is a bit tricky because the .pyc file is only used when
+the file is imported as a module.  The easiest way around that is to
+import the module via a comment-line call.
+
+<pre class="code">
+% python -c 'import owe_me'
+You owe me 10000000 dollars
+%
+</pre>
+
+(I thought it would be best to use the '-m' option but that seems to
+import the .py file before the .pyc file.  Hmm, I should check into
+that some more.)
+
+</P><P>
+
+If you want to prove that it's using the .pyc generated by this
+"compile.py", try renaming the file
+
+<pre class="code">
+% rm owe_me.pyc
+% python compile.py owe_me.py
+Compiling 'owe_me.py'
+% mv owe_me.pyc you_owe_me.pyc
+% python -c 'import you_owe_me'
+You owe me 10000000 dollars
+%
+</pre>
+
+The compile module also supports a '-e' mode, which executes the file
+after byte compiling it, instead of saving the byte compiled form to a
+file.
+
+<pre class="code">
+% python compile.py -e owe_me.py
+You owe me 10000000 dollars
+%
+</pre>
+
+</P>
+
+<a name="numbers" />
+<h2>Numbers like 1_000_000 - changing the lexer</h2>
+
+<P>
+
+Reading "10000000" is tricky, at least for humans.  Is that 1 million
+or 10 million?  You might be envious of Perl, which supports using "_"
+as a separator in a number
+
+
+<pre class="code">
+% perl
+$amount = 10_000_000;
+print "You owe me $amount\n";
+^D
+You owe me 10000000
+%
+</pre>
+
+</P><P>
+
+You can change the python4ply grammar to support that.  The
+tokenization pattern for base-10 numbers is in python_lex.py in the
+function "t_DEC_NUMBER":
+
+<pre class="code">
+def t_DEC_NUMBER(t):
+    r'[1-9][0-9]*[lL]?'
+    t.type = "NUMBER"
+    value = t.value
+    if value[-1] in "lL":
+        value = value[:-1]
+        f = long
+    else:
+        f = int
+    t.value = (f(value, 10), t.value)
+    return t
+</pre>
+
+</P><P>
+
+Why do I return the 2-tuple of (integer value, original string) in
+t.value?  The python_yacc.py code contains commented out code where
+I'm experimenting with keeping track of the start and end character
+positions for each token and expression.  PLY by default only tracks
+the start position, so I use the string length to get the end
+position.  I'm also theorizing that it will prove useful for those
+doing round-trip conversions and want to keep the number in its
+original presentation.
+
+</P><P>
+
+Okay, so change the pattern to allow "_" as a character after the
+first digit, like this:
+
+<pre class="code">
+    r'[1-9][0-9_]*[lL]?'
+</pre>
+
+then modify the action to remove the underscore character.  The new
+definition is:
+
+<pre class="code">
+def t_DEC_NUMBER(t):
+    r"[1-9][0-9]*[lL]?"
+    t.type = "NUMBER"
+    <b>value = t.value.replace("_", "")</b>
+    if value[-1] in "lL":
+        value = value[:-1]
+        f = long
+    else:
+        f = int
+    t.value = (f(value, 10), t.value)
+    return t
+</pre>
+
+</P><P>
+
+To see if it worked I changed owe_me.py to use underscores, and I
+changed the value to prove that I'm using the new file instead of some
+copy of the old
+
+<pre class="code">
+# owe_me.py
+amount = 20_000_000
+print "You owe me", amount, "dollars"
+</pre>
+
+<pre class="code">
+% python compile.py -e owe_me.py
+You owe me 20000000 dollars
+%
+</pre>
+
+</P>
+
+<a name="binary" />
+<h3>Numbers expressed in binary</h3>
+
+<P>
+
+Python 3.0 will introduce a way to represent numbers in binary using
+the prefix "0b" or "0B", just like hex numbers now can be expressed
+with a leading "0x" or "0X".  For example, "0b1100" will be 12.  This
+is purely a lexer change and is easy to add to python4ply.
+
+</P><P>
+
+It's not quite trivially easy.  The token starts with a "0" which will
+match the octal pattern for numbers, and then "b1100" will match the
+pattern for variable names.  That is,
+
+<pre class="code">
+&gt;&gt;&gt; import tokenize
+&gt;&gt;&gt; tokenize.tokenize(StringIO.StringIO("0b1100").readline)
+1,0-1,1:        NUMBER  '0'
+1,1-1,6:        NAME    'b1100'
+2,0-2,0:        ENDMARKER       ''
+&gt;&gt;&gt;
+</pre>
+
+</P><P>
+
+In PLY the token patterns are tested in the order they occur in the
+lexer file, which is python_lex.py.  (It's a bit more complex; read
+the documentation for details.)  The solution is to put the new binary
+token definition before the octal definition.
+
+
+<pre class="code">
+<b>def t_BIN_NUMBER(t):
+    r"0[bB][01_]+"
+    t.type = "NUMBER"
+    value = t.value[2:].replace("_", "")
+    t.value = (int(value, 2), t.value)
+    return t</b>
+
+def t_OCT_NUMBER(t):
+    r"0[0-7]*[lL]?"
+    t.type = "NUMBER"
+     ...
+</pre>
+
+I think it's pretty obvious but I wrote the thing so I'm biased.  You
+can see I support and ignore any "_" characters in the number.  Binary
+numbers are long and it quickly gets hard to read.
+
+</P><P>
+
+Save that, tweak the "owe_me.py" so it uses a binary number, and use a
+slightly different number to help verify that the code you're going to
+run is the code you think you're going to run.
+
+<pre class="code">
+# owe_me.py
+amount = 0b1_0011_0001_0010_1101_0000_0001
+print "You owe me", amount, "dollars"
+</pre>
+
+And ...
+
+<pre class="code">
+% python compile.py -e owe_me.py
+You owe me 20000001 dollars
+%
+</pre>
+
+it works!
+
+</P><P>
+
+Homework assignment: Ned Batchelder blogged about <a
+href="http://nedbatchelder.com/blog/200410/file_and_line_in_python.html">__FILE__
+and __LINE__ in Python</a> by looking at the stack trace.  Modify
+python4ply so those variable name tokens are true literals; litterally
+the string name and the integer number.
+
+</P>
+
+
+
+
+
+</P>
+
+<a name="decimal" />
+<h2>Syntax support for decimal numbers</h2>
+
+<P>
+
+How about something more complicated?  Python's "decimal" module is a
+fixed point numeric type using base 10, which is especially useful for
+those dealing with money.  Here's an obvious limitation of doing base
+10 calculations in base 2.  I stole it from the decimal documentation.
+
+<pre class="code">
+&gt;&gt;&gt; 1.0 % 0.1
+0.09999999999999995
+&gt;&gt;&gt; import decimal
+&gt;&gt;&gt; d = decimal.Decimal("1.0")
+&gt;&gt;&gt; d
+Decimal("1.0")
+&gt;&gt;&gt; d / decimal.Decimal("0.1")
+Decimal("10")
+&gt;&gt;&gt; 
+</pre>
+
+The normal way to create a decimal number is to "import decimal" then
+use "decimal.Decimal".  I'm going to add grammar-level support so that
+"0d12.3" is the same as decimal.Decimal("12.3").  There's a few
+complications so I'll walk you through how to do this.
+
+</P><P>
+
+I need a new DECIMAL token type that matches "0[dD][0-9]+(\.[0-9]+)?".
+This allows "0d1.23" and "0D1" and "0d0.89" but not "0d.2" nor "0d6."
+Feel free to change that if you want.  Bear in mind possible
+ambiguities; does "0d1.x" mean the valid "Decimal('1').x" or the
+syntax error "Decimal('1.') x".  What about "0d1..sqrt()"?
+
+</P><P>
+
+Designing a new programming language really means having to pay
+attention to nuances like this.
+
+</P><P>
+
+The DECIMAL rule is simple, in part because limitations of what can be
+saved the byte code means the creation of the decimal object must be
+deferred until later.  Just like with the t_BIN_NUMBER rule, this new
+t_DECIMAL rule must go before t_OCT_NUMBER so there's no confusion.
+
+<pre class="code">
+<b>def t_DECIMAL(t):
+    r"0[dD][0-9]+(\.[0-9]+)?"
+    t.value = t.value[2:]
+    return t</b>
+
+def t_OCT_NUMBER(t):
+    r"0[0-7]*[lL]?"
+    t.type = "NUMBER"
+</pre>
+
+</P><P>
+
+If you save this and try it out on the following program
+
+<pre class="code">
+# div.py
+print "float", 1.0 % 0.1
+print "decimal", 0d1.0 % 0d0.1
+</pre>
+
+
+you'll see
+
+<pre class="code">
+% python compile.py -e div.py
+Traceback (most recent call last):
+  File "compile.py", line 76, in &lt;module&gt;
+    execfile(args[0])
+  File "compile.py", line 43, in execfile
+    tree = python_yacc.parse(text, source_filename)
+  File "/Users/dalke/src/python4ply-1.0/python_yacc.py", line 2607, in parse
+    parse_tree = parser.parse(source, lexer=lexer)
+  File "/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages/ply/yacc.py", line 237, in parse
+    lookahead = get_token()     # Get the next token
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 657, in token
+    x = self.token_stream.next()
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 609, in add_endmarker
+    for tok in token_stream:
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 534, in synthesize_indentation_tokens
+    for token in token_stream:
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 493, in annotate_indentation_state
+    for token in token_stream:
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 435, in create_strings
+    for tok in token_stream:
+  File "/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages/ply/lex.py", line 305, in token
+    func.__name__, newtok.type),lexdata[lexpos:])
+ply.lex.LexError: /Users/dalke/src/python4ply-1.0/python_lex.py:203: Rule 't_DECIMAL' returned an unknown token type 'DECIMAL'
+</pre>
+
+The list of known token type names is given in the 'token' variable,
+defined at the top of python_lex.py.  I'll add "DECIMAL" to the list
+
+<pre class="code">
+tokens = tuple(python_tokens.tokens) + (
+    "NEWLINE",
+
+    "NUMBER",
+    "NAME",
+    "WS",
+    <b>"DECIMAL",</b>
+
+    "STRING_START_TRIPLE",
+    "STRING_START_SINGLE",
+     ....
+</pre>
+
+</P><P>
+
+With that change I get a new error message.  Whoopie for me!
+
+<pre class="code">
+% python compile.py -e div.py
+Traceback (most recent call last):
+  File "compile.py", line 76, in &lt;module&gt;
+    execfile(args[0])
+  File "compile.py", line 43, in execfile
+    tree = python_yacc.parse(text, source_filename)
+  File "/Users/dalke/src/python4ply-1.0/python_yacc.py", line 2607, in parse
+    parse_tree = parser.parse(source, lexer=lexer)
+  File "/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages/ply/yacc.py", line 346, in parse
+    tok = self.errorfunc(errtoken)
+  File "/Users/dalke/src/python4ply-1.0/python_yacc.py", line 2488, in p_error
+    python_lex.raise_syntax_error("invalid syntax", t)
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 27, in raise_syntax_error
+    _raise_error(message, t, SyntaxError)
+  File "/Users/dalke/src/python4ply-1.0/python_lex.py", line 24, in _raise_error
+    raise klass(message, (filename, lineno, offset+1, text))
+  File "div.py", line 3
+    print "decimal", 0d1.0 % 0d0.1
+                     ^
+SyntaxError: invalid syntax
+</pre>
+
+That's because the parser doesn't know what to do with a DECIMAL.
+What do you think it should it do?  The ast.Const node only takes a
+string or a built-in numeric value.  It doesn't take general Python
+objects because those can't be marshalled into bytecode.
+
+</P><P>
+
+I'll wait a moment for you to think about it.
+
+</P><P>
+
+Thought enough?  No?  Okay, just a moment more.
+
+</P><P>
+
+This new token should correspond to making a new Decimal object at
+that point.  You might think you could be more clever than that and
+create the decimals during module imports, like I will do for the
+regular expression definitions coming later on in this tutorial.  That
+would make the object creation occur only once, instead of once for
+each function call or for every time through a loop.  But a decimal
+object depends on a global/thread-local context, and if I move the
+decimal creation then I might create it in the wrong context.
+
+</P><P>
+
+To make my life easier, I'm going to import the Decimal class as the
+super seekret module variable "_$Decimal".  This is a variable name
+that can't occur in normal Python (because of the "$") and which is
+hidden from "... import *" statements (because of the leading "_").
+That way the object creation is mostly a matter of calling
+"_$Decimal(s)" in the right place, which I can only do by constructing
+the AST myself.
+
+</P><P>
+
+What will that look like?  I'll use the compiler package to show what
+that AST should look like:
+
+<pre class="code">
+&gt;&gt;&gt; import compiler
+&gt;&gt;&gt; compiler.parse("from decimal import Decimal as D")
+Module(None, Stmt([From('decimal', [('Decimal', 'D')], 0)]))
+&gt;&gt;&gt; compiler.parse("Decimal('12.345')")
+Module(None, Stmt([Discard(CallFunc(Name('Decimal'),
+[Const('12.345')], None, None))]))
+&gt;&gt;&gt;
+</pre>
+
+</P><P>
+
+The new DECIMAL token can go anywhere a NUMBER and NAME can go.
+That's an "atom" in the Python grammar.
+
+<pre class="code">
+atom: ('(' [yield_expr|testlist_gexp] ')' |
+       '[' [listmaker] ']' |
+       '{' [dictmaker] '}' |
+       '`' testlist1 '`' |
+       NAME | NUMBER | STRING+)
+</pre>
+
+The last three of these are defined in python_yacc.py as:
+
+<pre class="code">
+def p_atom_9(p):
+    'atom : NAME'
+    p[0] = ast.Name(p[1])
+    locate(p[0], p.lineno(1))#, text_bounds(p, 1))
+
+def p_atom_10(p):
+    'atom : NUMBER'
+    value, orig_text = p[1]
+    p[0] = ast.Const(value)
+    locate(p[0], p.lineno(1))#, (p.lexpos(1), p.lexpos(1) + len(orig_text)))
+
+def p_atom_11(p):
+    'atom : atom_plus'
+    # get the STRING (atom_plus does the string concatenation)
+    s, lineno, span = p[1]
+    p[0] = ast.Const(s)
+    locate(p[0], lineno)#, span)
+</pre>
+
+They are simple because the AST nodes are designed for Python.  Nearly
+every token type and statement type maps directly to an AST node.  The
+"locate" function assigns a line number to each created node, and you
+can see some of my experimental work also assign a start and end byte
+location.
+
+</P><P>
+
+Here's the new definition for DECIMAL, which is a bit more complex
+because I need to call _$Decimal.  Remember that I can't simply use an
+ast.Const containing a decimal.Decimal because the byte code
+generation only supports strings and numbers.
+
+<pre class="code">
+<b>def p_atom_12(p):
+    "atom : DECIMAL"
+    decimal_string = p[1]
+    p[0] = ast.CallFunc(ast.Name("_$Decimal"),
+                        [ast.Const(decimal_string)], None, None)
+    locate(p[0], p.lineno(1))</b>
+</pre>
+
+</P><P>
+
+At this point running the code should fail because _$Decimal doesn't
+exist.
+
+<pre class="code">
+% python compile.py -e div.py
+yacc: Warning. Token 'WS' defined, but not used.
+yacc: Warning. Token 'STRING_START_SINGLE' defined, but not used.
+yacc: Warning. Token 'STRING_START_TRIPLE' defined, but not used.
+yacc: Warning. Token 'STRING_CONTINUE' defined, but not used.
+yacc: Warning. Token 'STRING_END' defined, but not used.
+/Users/dalke/src/python4ply-1.0/python_yacc.py:2473: Warning. Rule 'encoding_decl' defined, but not used.
+yacc: Warning. There are 5 unused tokens.
+yacc: Warning. There is 1 unused rule.
+yacc: Symbol 'encoding_decl' is unreachable.
+yacc: Generating LALR parsing table...
+float 0.1
+decimal
+Traceback (most recent call last):
+  File "compile.py", line 76, in &lt;module&gt;
+    execfile(args[0])
+  File "compile.py", line 48, in execfile
+    exec code in mod.__dict__
+  File "div.py", line 3, in &lt;module&gt;
+    print "decimal", 0d1.0 % 0d0.1
+NameError: name '_$Decimal' is not defined
+</pre>
+
+</P><P>
+
+Why are the 'yacc:' messages there?  PLY uses a cached parsing table
+for better performance.  When it notices a change in the grammar it
+invalidates the cache and rebuilds the table based on the new grammar.
+What you're seeing here are the messages from the rebuild.
+
+</P><P>
+
+Why is the exception there?  Because the function call uses _$Decimal
+but that name doesn't exist.  Why does it report line 3 even through I
+only assigned a line number to the ast.CallFunc and not the ast.Name,
+which is what acutally failed?  Because the AST generation code in the
+compiler module doesn't always assign line numbers so the byte code
+generation step assumes it's the same as the line number for the
+previously generated instruction.
+
+</P><P>
+
+For extra credit, why does the following report the error on line 3
+instead of line 1?
+
+<pre class="code">
+def p_atom_12(p):
+    "atom : DECIMAL"
+    decimal_string = p[1]
+    p[0] = ast.CallFunc(ast.Name("_$Decimal"),
+                        [ast.Const(decimal_string)], None, None)
+    locate(p[0], 1)  # Why doesn't this report the error on line 1?
+</pre>
+
+</P><P>
+
+The last bit of magic is to import the Decimal constructor correctly.
+The root term in the Python grammar is "file_input".  (There's another
+root if you're doing an 'eval'.)  One case is for an empty file and
+the other is for a file that contains statements.  The code as distributed
+looks like this:
+
+<pre class="code">
+def p_file_input_1(p):
+    "file_input : ENDMARKER"
+    # Empty file
+    stmt = ast.Stmt([])
+    locate(stmt, 1)#, (None, None))
+    p[0] = ast.Module(None, stmt)
+    locate(p[0], 1)#, (None, None))
+
+def p_file_input_2(p):
+    "file_input : file_input_star ENDMARKER"
+    stmt = ast.Stmt(p[1])
+    locate(stmt, p[1][0].lineno)#, bounds(p[1][0], p[1][-1]))
+    docstring, stmt = extract_docstring(stmt)
+    p[0] = ast.Module(docstring, stmt)
+    locate(p[0], 1)#, (None, None))
+</pre>
+
+By definition the empty file can't have any Decimal statements in it
+so I'll only worry about p_file_input_2.  But I won't worry much.  For
+instance, for now I won't worry that the file can contain __future__
+statements.  These must go before any statement other than the doc
+string.  (If you really want to worry about that then feel free to
+worry.  And also worry that in older Pythons "as" and "with" were not
+reserved words.)
+
+</P><P>
+
+I'll insert the new import statement as the first statement in the
+created module.
+
+<pre class="code">
+def p_file_input_2(p):
+    "file_input : file_input_star ENDMARKER"
+    stmt = ast.Stmt(p[1])
+    locate(stmt, p[1][0].lineno)#, bounds(p[1][0], p[1][-1]))
+    docstring, stmt = extract_docstring(stmt)
+    <b>stmt.nodes.insert(0, ast.From("decimal", [("Decimal", "_$Decimal")], 0))</b>
+    p[0] = ast.Module(docstring, stmt)
+    locate(p[0], 1)#, (None, None))
+</pre>
+
+That's it.
+
+</P><P>
+
+That was it?
+
+</P><P>
+
+Yes, that was it.  Want to see it work?
+
+<pre class="code">
+% cat div.py
+# div.py
+print "float", 1.0 % 0.1
+print "decimal", 0d1.0 % 0d0.1
+% python compile.py -e div.py
+float 0.1
+decimal 0.0
+% 
+</pre>
+
+</P><P>
+
+Only a dozen or so lines of code to add syntax-level support for a
+decimal type, and the generated bytecode is compatible with existing
+Python byte code.
+
+<pre class="code">
+% python compile.py div.py
+Compiling 'div.py'
+% python
+Python 2.5 (r25:51918, Sep 19 2006, 08:49:13) 
+[GCC 4.0.1 (Apple Computer, Inc. build 5341)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; import div
+float 0.1
+decimal 0.0
+&gt;&gt;&gt; 
+</pre>
+
+</P><P>
+
+If you've read this far then you're probably also thinking "this is
+really cool!  I can add X and Y and Z to my Python code and life would
+be so much better."  Mark my words young Jedi - this is the path to
+the dark side.  On the other hand, what does not kill you make you
+strong.  And I like traffic lights, but only when they're green.
+
+</P><P>
+
+Kidding aside, it is really cool, but bear in mind the many problems
+of making any new language like less tool support, few people using
+it, higher support costs, and subtle interaction errors between
+features.  If you deploy this internally for other developers you'll
+probably waste days or weeks of work as people run the wrong Python on
+a piece of code.
+
+</P>
+
+<a name="pattern" />
+<h2>Creating regular expression pattern objects</h2>
+
+<P>
+
+Regular expressions are fun.  The first contact I had with them was
+through DOS globbing, where "*.*" matched all files with an extension.
+Then I started using Unix, and started using Archie, which supported
+regular expressions.  Hmm, that was in 1990.  I read the documentation
+for regexps but I didn't understand them.  Instead I mentally
+translated the glob "?" to "." and the glob "*" to ".*".
+
+</P><P>
+
+Luckily for me I was in college and I took a theory of automata
+course.  I loved that course.  It taught me a lot about how to think
+about computers as what they are - glorified state machines.
+
+</P><P>
+
+Other programmers also really like regular expressions, and languages
+like Perl, Ruby, and Javascript consider them so important that are
+given syntax level support.  Python is not one of those languages, and
+someone coming from Ruby, where you can do
+
+<pre class="code">
+# lines.rb
+File.open("python_yacc.py").each do |line|
+  if line =~ /def (\w+)/
+    puts "#{$1}\n"
+  end  
+end
+</pre>
+
+will probably find the corresponding Python both tedious and (because
+of the separation between the pattern definition and use) harder to
+read:
+
+<pre class="code">
+# lines.py
+import re
+
+pattern = re.compile(r"def (\w+)")
+
+for line in open("python_yacc.py"):
+    m = pattern.match(line)
+    if m is not None:
+        print m.group(1)
+</pre>
+
+This code is generally considered the best practice for Python.  It
+could be made a bit shorter by using re.match instead of the
+precompiled pattern, but at the cost of some performance.
+
+</P><P>
+
+The original regular expression library in Python was called '<a
+href="http://www.python.org/doc/1.6/lib/module-regex.html">regex</a>'.
+It was based on Emacs regular expressions and made obsolete with
+Python 1.5.  It was replaced by the '<a
+href="http://docs.python.org/lib/module-re.html">re</a>' module (in
+various incarnations) with perl5-compatible syntax.  One advantage in
+Python <i>not</i> having special syntax for regular expressions was the
+ability to change regular expression libaries gracefully.  On the
+other hand, over the last about 15 years the Perl5 regular expression
+syntax has pretty much become the dominate regular expression syntax.
+I don't think there's a need to make major changes now.
+
+</P><P>
+
+I'll give Perl5 regular expressions (as implemented by the 're'
+module) first-class syntax support for creating patterns.  That will
+shorten the code by getting rid of the "import re" and the
+"re.compile()" call.  Here's how I want the pattern creation to look
+like
+
+<pre class="code">
+pattern = m/def (\w+)/
+</pre>
+
+This new syntax is vaguely modelled after Perl's.  It must start with
+a "m/" and end with a "/" on the same line.  I do not allow any "/"
+characters inside the pattern.  If you need it, use the octal escape
+\057 or figure out and implement your own escape mechanism.  Note that
+my new syntax might break existing code because
+
+<pre class="code">
+m=12
+a=3
+i=2
+print m/a/i
+</pre>
+
+is already valid.
+
+</P><P>
+
+The first step is to add a new token name and definition to
+"python_lex.py".  Here I've removed the DECIMAL token I talked about
+earlier.  You don't need to, but I figure it's less confusing for
+those starting with a fresh install.
+
+<pre class="code">
+tokens = tuple(python_tokens.tokens) + (
+    "NEWLINE",
+
+    "NUMBER",
+    <b>"PATTERN",   # The new token type name</b>
+    "NAME",
+    "WS",
+    ...
+</pre>
+
+</P><P>
+
+The new token definition goes before the t_NAME definition, to prevent
+the NAME from matching first.  This token returns a 2-ple of the
+regular expression pattern as a string, and the flags to pass to
+re.compile.  I need to pass it back as basic types and not a pattern
+object because the bytecode generation only understands the basic
+Python types.
+
+<pre class="code">
+<b>import re
+_re_flags = {
+    "i": re.IGNORECASE,
+    "l": re.LOCALE,
+    "m": re.MULTILINE,
+    "s": re.DOTALL,
+    #"x": re.VERBOSE, # not useful in this context
+    "u": re.UNICODE,
+}
+def t_PATTERN(t):
+    r"m/[^/]*/[a-z]*"
+    m, pattern, opts = t.value.split("/")
+    
+    flags = 0
+    for c in opts:
+        flag = _re_flags.get(c, None)
+        if flag is None:
+            # I could pin this down to the specific character position
+            raise_syntax_error(
+                "unsupported pattern modifier %r" % (c,), t)
+        flags |= flag
+    # test compile to make sure that it's a valid pattern
+    try:
+        re.compile(pattern, flags)
+    except re.error, err:
+        # Sadly, re.error doesn't include the error position
+        raise_syntax_error(err.message, t)
+    t.value = (pattern, flags)
+    return t</b>
+
+
+# This goes after the strings otherwise r"" is seen as the NAME("r")
+def t_NAME(t):
+    r"[a-zA-Z_][a-zA-Z0-9_]*"
+    t.type = RESERVED.get(t.value, "NAME")
+    return t
+</pre>
+
+</P><P>
+
+This PATTERN will be a new "atom" at the grammar level, which will
+correspond to a call to re.compile("pattern", options).  The AST needs
+to look like
+
+<pre class="code">
+&gt;&gt;&gt; from compiler import parse
+&gt;&gt;&gt; parse("compile('pattern', 10)")
+Module(None, Stmt([Discard(CallFunc(Name('compile'), [Const('pattern'),
+Const(10)], None, None))]))
+&gt;&gt;&gt;
+</pre>
+
+</P><P>
+
+The python_yacc.py by default contains 11 p_atom_* patterns.  I used
+p_atom_12 for the earlier DECIMAL support so to prevent accidental
+confusion I'll label this as p_atom_13.  The name doesn't make much
+difference so long as it starts with "p_" and is different from the
+other function names.
+
+<pre class="code">
+<b>def p_atom_13(p):
+    'atom : PATTERN'
+    pattern, flags = p[1]
+    p[0] = ast.CallFunc(ast.Name("_$re_compile"), [ast.Const(pattern),
+                                                   ast.Const(flags)])
+    locate(p[0], p.lineno(1))</b>
+</pre>
+
+</P><P>
+
+See how I'm using the impossible variable name '_$re_compile'?  That's
+going to be "re.compile" and I'll use the same trick I did with the
+DECIMAL support and insert the AST corresponding to
+
+<pre class="code">
+from re import compile as _$compile
+</pre>
+
+at the start of the module definition,
+
+<pre class="code">
+def p_file_input_2(p):
+    "file_input : file_input_star ENDMARKER"
+    stmt = ast.Stmt(p[1])
+    locate(stmt, p[1][0].lineno)#, bounds(p[1][0], p[1][-1]))
+    docstring, stmt = extract_docstring(stmt)
+    <b>stmt.nodes.insert(0, ast.From("re", [("compile", "_$re_compile")], 0))</b>
+    p[0] = ast.Module(docstring, stmt)
+    locate(p[0], 1)#, (None, None))
+</pre>
+
+</P><P>
+
+I'll test this with a simple program
+
+<pre class="code">
+# pattern_test.py
+data = "name: Andrew Dalke   country:  Kingdom of Sweden "
+pattern = m/Name: *(\w.*?) *Country: *(\w.*?) *$/i
+m = pattern.match(data)
+if m:
+    print repr(m.group(1)), "lives in", repr(m.group(2))
+else:
+    print "unknown"
+</pre>
+
+<pre class="code">
+% python compile.py -e pattern_test.py 
+'Andrew Dalke' lives in 'Kingdom of Sweden'
+%
+</pre>
+
+and to see that it generates byte code
+
+<pre class="code">
+% python compile.py  pattern_test.py
+Compiling 'pattern_test.py'
+% rm pattern_test.py
+% python -c 'import pattern_test'
+'Andrew Dalke' lives in 'Kingdom of Sweden'
+%
+</pre>
+
+</P><P>
+
+Go ahead.  See what happens when you give it a bad pattern or an
+unknown modifier flag.
+
+</P><P>
+
+If you actually use this, or think about what's going on, you'll see
+there's going to be a usability problem.  (Usability is hard.  Writing
+new languages is easy.  Writing usable new languages is .. well, you
+get the point.)  What's the problem?  People will write patterns like:
+
+<pre class="code">
+# count_atoms.py
+import time
+
+# Count the number of atoms in a PDB file
+# Lines to match looks like:
+# ATOM   6312  CB  ALA 3 235      24.681  54.463 137.827  1.00 51.30
+# HETATM 6333  CA  MYR 4   1       6.722  54.417  88.584  1.00 50.79
+count = 0
+t1 = time.time()
+for line in open("nucleosome.pdb"):
+  if m/(ATOM  |HETATM)/.match(line):
+    count += 1
+print count, "atoms in", time.time()-t1, "seconds"
+</pre>
+
+</P><P>
+
+BTW, this shows my history in molecular modeling.  A "PDB" file
+describes the position of atoms in a molecule, amoung other things.
+This file contains the histone octamer along with some DNA double
+helix wrapped around it.  But that's not important right now.
+
+</P><P>
+
+When I run that program I get timing values like
+
+<pre class="code">
+% python compile.py -e count_atoms.py
+11843 atoms in 0.04518699646 seconds
+%
+</pre>
+
+</P><P>
+
+This main loop calls re.compile("(ATOM |HETATM)") for each line,
+instead of computing it once outside the loop.  Translating the code
+into normal Python it looks like
+
+<pre class="code">
+from re import compile as re_compile
+
+for line in open("nucleosome.pdb"):
+  if re_compile("(ATOM  |HETATM)").match(line):
+    count += 1
+</pre>
+
+This means re.compile is called for every line in the file.  The re
+module does cache the most recent patterns so it's not all that bad,
+but it takes time to check that cache.
+</P><P>
+
+On the other hand, in my Python variant with a special pattern symbol
+I know that the pattern cannot be changed.  It could be created once
+during module import and reused.  That corresponds to
+
+<pre class="code">
+from re import compile as re_compile
+pattern = re_compile("(ATOM  |HETATM)")
+
+for line in open("nucleosome.pdb"):
+    if pattern.match(line):
+        count += 1
+</pre>
+
+</P><P>
+
+There are many ways to implement this.  I'll describe just one.  When
+I build the AST I'll create and use a new variable name for each and
+remember the name and its two parameters.  Then at the very end when
+I'm making the module I'll add all of the re.compile definitions to
+the top-level of the module.
+
+</P><P>
+
+When I imported decimal.Decimal and assigned it to the variable name
+"_$Decimal" I chose the name manually.  After all, I only needed one
+name and I knew there weren't going to be conflicts.  In this case
+I'll need an indefinite number of new names; one for each pattern.
+This is traditionally done through a function named "gensym" for
+"generate new symbol"; and who am I to break with tradition?
+
+<pre class="code">
+<b>import itertools
+counter = itertools.count()
+def gensym(prefix="gensym-"):
+  return prefix + str(counter.next())</b>
+</pre>
+
+<pre class="code">
+&gt;&gt;&gt; gensym()
+'gensym-0'
+&gt;&gt;&gt; gensym()
+'gensym-1'
+&gt;&gt;&gt; gensym("hello")
+'hello2'
+&gt;&gt;&gt; gensym("_$re")
+'_$re3'
+&gt;&gt;&gt; 
+</pre>
+
+</P><P>
+
+I'll need a place to store the data.  The PLY way seems to be to store
+that in the lexer or the parser instance, which makes it single
+threaded.  Well, unless you use a threading.local().  Anyhoo, here
+I'll store the data in the parser as a "patterns" list.  This will
+have 3-tuples of (variable name, pattern, flags).
+
+<pre class="code">
+def parse(source, filename="&lt;string&gt;"):
+    # There is a bug in PLY 2.3; it doesn't like the empty string.
+    # Bug reported and will be fixed for 2.4.
+    # http://groups.google.com/group/ply-hack/msg/cbbfc50837818a29
+    if not source:
+        source = "\n"
+    lexer = python_lex.lexer
+    <b>parser.patterns = []  # info for new pattern definition goes here</b>
+    try:
+        parse_tree = parser.parse(source, lexer=lexer)
+    except SyntaxError, err:
+        ...
+</pre>
+
+</P><P>
+
+The atom rule for "PATTERN" is easier.  I reach into the parser object
+and append the 3-tuple, and the AST node only does a Name lookup of
+the new symbol.
+
+<pre class="code">
+def p_atom_13(p):
+    'atom : PATTERN'
+    sym = gensym("_$re-")
+    pattern, flags = p[1]
+    <b>p.parser.patterns.append( (sym, pattern, flags) )</b>
+    p[0] = ast.Name(sym)
+    locate(p[0], p.lineno(1))
+</pre>
+
+</P><P>
+
+Finally, I need to change the "p_file_input_2" so if there are any
+pattern objects then I import the re.compile function and create the
+pattern definitions.  Here's what the underlying AST will look like
+
+<pre class="code">
+&gt;&gt;&gt; from compiler import parse
+&gt;&gt;&gt; parse("x = re_compile('pattern', 8)")
+Module(None, Stmt([Assign([AssName('x', 'OP_ASSIGN')],
+CallFunc(Name('re_compile'), [Const('pattern'), Const(8)], None, None))]))
+&gt;&gt;&gt;
+</pre>
+
+and here's the new function
+
+<pre class="code">
+def p_file_input_2(p):
+    "file_input : file_input_star ENDMARKER"
+    stmt = ast.Stmt(p[1])
+    locate(stmt, p[1][0].lineno)#, bounds(p[1][0], p[1][-1]))
+    docstring, stmt = extract_docstring(stmt)
+    
+    <b># If there are any syntax-level defined patterns
+    if p.parser.patterns:
+        # from re import compile as _$re_compile
+        new_nodes = [ast.From("re", [("compile", "_$re_compile")], 0)]
+        for (sym, pattern, flags) in p.parser.patterns:
+            # symbol = _$re_compile(pattern, flags)
+            node = ast.Assign(
+                [ast.AssName(sym, 'OP_ASSIGN')],
+                ast.CallFunc(ast.Name('_$re_compile'),
+                       [ast.Const(pattern), ast.Const(flags)], None, None))
+            new_nodes.append(node)
+        stmt.nodes[:0] = new_nodes</b>
+    
+    p[0] = ast.Module(docstring, stmt)
+    locate(p[0], 1)#, (None, None))
+</pre>
+
+<pre class="code">
+% python compile.py -e count_atoms.py
+11843 atoms in 0.0161190032959 seconds
+%
+</pre>
+
+The time went from 0.045 to 0.016 seconds, which is 64% faster.
+(That's 1/2.8, which I find easier to understand.)
+
+</P><P>
+
+The Perl runtime is optimized for that language and likely implements
+other ways to make this type of pattern matching fast.  For example, I
+stored the patterns as variables in the normal module namespace,
+though in a way that does not override normal Python variables.
+Module lookup is a dictionary lookup but since the patterns won't
+change one optimization is to have a special patterns list and look up
+the patterns by index.
+
+</P><P>
+
+By the way, the above precomputed-pattern code has a subtle error.
+The following would be legal according to the Python grammar
+
+<pre class="code">
+m/a/ = 9
+</pre>
+
+because the m/a/ gets turned into a Python NAME, which is allowed on
+the left-hand-side of the assignment, which gets turned into an
+assignment via the function expr_to_assign.  It should not be possible
+to assign to the pattern name.
+
+</P><P>
+
+That's easy to fix.  The conversion
+between a normal expression and an assignment expression is in
+"expr_to_assign".  I'll have it raise an exception if an ast.Name node
+contains the name that used for a special pattern
+
+<pre class="code">
+def expr_to_assign(term):
+    if isinstance(term, ast.Name):
+        x = ast.AssName(term.name, 'OP_ASSIGN')
+        if term.name == "None":
+            raise_syntax_error("assignment to None", term)
+        <b>elif term.name.startswith("_$re"):
+            raise_syntax_error("cannot assign to a regular expression", term)</b>
+        locate(x, term.lineno)#, term.span)
+        return x
+    elif isinstance(term, ast.Tuple):
+        ...
+</pre>
+
+</P>
+
+<a name="matching" />
+<h2>Adding a match operator</h2>
+
+<P>
+
+These changes make it easier to define a pattern, but not to use it.
+As another example of (fake?) Perl envy.  I'm going to support its
+"=~" match syntax so that the following is valid:
+
+<pre class="code">
+# count_atoms.py
+import time
+
+# Count the number of atoms in a PDB file
+# Lines to match looks like:
+# ATOM   6312  CB  ALA 3 235      24.681  54.463 137.827  1.00 51.30
+# HETATM 6333  CA  MYR 4   1       6.722  54.417  88.584  1.00 50.79
+count = 0
+t1 = time.time()
+for line in open("nucleosome.pdb"):
+  if line =~ m/(ATOM  |HETATM)/:
+      count += 1
+print count, "atoms in", time.time()-t1, "seconds"
+</pre>
+
+</P><P>
+
+This turned out to be very simple.  I need a new token for "=~".  Most
+of the simple tokens are defined in "python_tokens.py".  I added
+"EQUALMATCH" in the list of tokens in the place shown here
+
+<pre class="code">
+ ...
+PERCENTEQUAL %=
+AMPEREQUAL &=
+CIRCUMFLEXEQUAL ^=
+EQUALMATCH =~
+
+COLON :
+COMMA ,
+ ...
+</pre>
+
+</P><P>
+
+Note that this will break legal existing code, like
+
+<pre class="code">
+&gt;&gt;&gt; a=~2
+&gt;&gt;&gt; a
+-3
+&gt;&gt;&gt; 
+</pre>
+
+The lexer doesn't need anything else because I've already defined a
+PATTERN token.
+
+</P><P>
+
+I need to decide the precedence level of =~.  Is it as strong as "**"
+or as weak as "or", or some place in between?  I decided to make it as
+weak as "or", which is defined by the "test" definition.  Here's my
+new "p_test_4" function:
+
+<pre class="code">
+<b>def p_test_4(p):
+    'test : or_test EQUALMATCH PATTERN'
+    # pattern.search(or_test)
+    sym = gensym("_$re-")
+    pattern, flags = p[3]
+    p.parser.patterns.append((sym, pattern, flags))
+    p[0] = ast.Compare(
+        ast.CallFunc(ast.Getattr(ast.Name(sym), 'search'), [p[1]], None, None),
+        [("is not", ast.Name("None"))])
+    locate(p[0], p.lineno(2))</b>
+</pre>
+
+</P><P>
+
+I got the AST definition by looking at
+
+<pre class="code">
+&gt;&gt;&gt; from compiler import parse
+&gt;&gt;&gt; parse("pat.search(line) is not None")
+Module(None, Stmt([Discard(Compare(CallFunc(Getattr(Name('pat'), 'search'),
+[Name('line')], None, None), [('is not', Name('None'))]))]))
+&gt;&gt;&gt; 
+</pre>
+
+</P><P>
+
+And that's it!  Well, I could add an optimization in this case and
+move the ".search" outside the loop, but that's an exercise left for
+the student.
+
+</P><P>
+
+Now I'll put a toe into evil, just to see how cold it is.  I'm going
+to add support for
+
+<pre class="code">
+# get_function_names.py
+for line in open("python_yacc.py"):
+    if line =~ m/def (\w+)/:
+        print repr($1)
+</pre>
+
+That is, if the =~ matches then $1, $2, ... will match group 1, 2.
+Oh, and while I'm at it, if there's a named group then $name will
+retrieve it.  And '$' will mean to get the match object itself.
+
+</P><P>
+
+To make it work I need some way to do assignment in the expression.
+Python doesn't really support that, except for a hack around how
+variables leak inside list comprehensions.
+
+<pre class="code">
+&gt;&gt;&gt; y = 5
+&gt;&gt;&gt; if [x for x in [y]][0] == 5:
+...   print "y is 5"
+... 
+y is 5
+&gt;&gt;&gt; x
+5
+&gt;&gt;&gt; 
+</pre>
+
+That's an ugly, complicated hack and I don't want to use it.
+
+</P><P>
+
+Instead I created a new AST node called "AssignExpr" which is like an
+"Assign" node except that it can be used in an expression.  The
+compiler module doesn't know about it and it's hard to change the code
+through subclassing, so I patch the compiler and its bytecode
+generation code so it understand the new node type.  These changes are
+in "compiler_patches.py" and the patches are done when the module is
+imported.  Take a look at the module if you want to see what it does.
+
+</P><P>
+
+It doesn't escape my notice that with AssignExpr there's only a
+handful of lines needed for support assignment in an expression, like
+
+<pre class="code">
+if line = readline():
+    print repr(line)
+</pre>
+
+Before you do that yourself, read the Python <a
+href="http://www.python.org/doc/faq/general/#why-can-t-i-use-an-assignment-in-an-expression">FAQ</a>
+for why Python doesn't support this.
+
+</P><P>
+
+To support the new pattern match syntax I need to make two changes to
+python_yacc.py.  The first is to import the monkeypatch module:
+
+<pre class="code">
+import compiler_patches
+</pre>
+
+then make the changes to the p_test_4 function to save the match
+object to the variable "$".
+
+<pre class="code">
+def p_test_4(p):
+    'test : or_test EQUALMATCH PATTERN'
+    # pattern.search(or_test)
+    sym = gensym("_$re-")
+    pattern, flags = p[3]
+    p.parser.patterns.append((sym, pattern, flags))
+    p[0] = ast.Compare(
+<b>        ast.AssignExpr([ast.AssName("$", "OP_ASSIGN")],
+                       ast.CallFunc(ast.Getattr(ast.Name(sym), 'search'),
+                                    [p[1]], None, None)),</b>
+        [("is not", ast.Name("None"))])
+    locate(p[0], p.lineno(2))
+</pre>
+
+</P><P>
+
+Does it work?  Try this program, which is based on the Ruby code I
+started with at the start of this tutorial section, oh so long ago.
+
+
+<pre class="code">
+# get_function_names.py
+for line in open("python_yacc.py"):
+    if line =~ m/def (\w+)/:
+        # I don't yet have syntax support to get to the special '$'
+        # variable so I have to get it from the globals dictionary.
+        print repr(globals()["$"].group(1))
+</pre>
+
+<pre class="code">
+% python compile.py -e get_function_names.py
+'gensym'
+'raise_syntax_error'
+'locate'
+'bounds'
+'text_bounds'
+'extract_docstring'
+'__init__'
+'__init__'
+'add_arg'
+'add_star_arg'
+'p_file_input_1'
+'p_file_input_2'
+'p_file_input_star_1'
+'p_file_input_star_2'
+'p_file_input_star_3'
+    ...
+</pre>
+
+</P><P>
+
+Sweet!
+
+<a name="matched_groups" />
+<h3>Access matched groups via $1 and $name variables</h3>
+
+Now I want to support the $1 and $name notations.  That's a new MATCH
+token which I'll define as
+
+<pre class="code">
+<b>def t_MATCH(t):
+    r"\$[0-9a-zA-Z_]*"
+    # This can be "$" or "$1" or "$name"
+    value = t.value
+    if value == "$":
+        # Get the object itself
+        t.value = None
+    else:
+        name = value[1:]
+        if name.isdigit():
+            # Lookup by number
+            t.value = int(name, 10)
+        else:
+            # Lookup by name
+            t.value = name
+    return t</b>
+</pre>
+
+Don't forget to add "MATCH" to the list of token names!
+
+</P><P>
+
+Here's the only change to the python_yacc.py file
+
+
+<pre class="code">
+<b>def p_atom_14(p):
+    'atom : MATCH'
+    m = p[1]
+    if m is None:
+        p[0] = ast.Name("$")
+    else:
+        p[0] = ast.CallFunc(ast.Getattr(ast.Name("$"), "group"),
+                            [ast.Const(m)], None, None)</b>
+</pre>
+
+</P><P>
+
+Does it work?
+
+<pre class="code">
+# get_function_names.py
+for line in open("python_yacc.py"):
+    if line =~ m/def (?P&lt;name&gt;\w+)/:
+        print repr($1), repr($name)
+</pre>
+
+<pre class="code">
+% python compile.py -e get_function_names.py
+'gensym' 'gensym'
+'raise_syntax_error' 'raise_syntax_error'
+'locate' 'locate'
+'bounds' 'bounds'
+'text_bounds' 'text_bounds'
+'extract_docstring' 'extract_docstring'
+'__init__' '__init__'
+'__init__' '__init__'
+'add_arg' 'add_arg'
+'add_star_arg' 'add_star_arg'
+  ...
+</pre>
+
+or the bit more complicated variation to show that $name also works,
+although it assumes the formal parameter list fits on one line:
+
+<pre class="code">
+# get_function_names.py
+for line in open("python_yacc.py"):
+    if line =~ m/def (?P&lt;name&gt;\w+) *(?P&lt;args&gt;\(.*\)) *:/:
+        print repr($1), repr($args)
+</pre>
+
+<pre class="code">
+% python compile.py -e get_function_names.py
+'gensym' '(prefix="gensym-")'
+'raise_syntax_error' '(message, node=None, lineno=None)'
+'locate' '(node, lineno):#, (span_start, span_end))'
+'bounds' '(x, y)'
+'text_bounds' '(p, arg1, arg2=None)'
+'extract_docstring' '(stmt)'
+'__init__' '(self, argnames, defaults, flags)'
+'__init__' '(self, args=None, star_args=None, dstar_args=None)'
+'add_arg' '(self, arg)'
+'add_star_arg' '(self, star_args, dstar_args)'
+    ..
+</pre>
+
+</P><P>
+
+I'm going to leave the ability to assign to '$'.  In this case it
+seems useful to be able to reset '$' or assign it to some other match
+object.  But then again assigning to '$' then using '$1' assumes that
+the assigned object has a .group(1).
+
+</P><P>
+
+See how hard it is to catch all the nuances in making even a simple
+change to a language?
+
+</P><P>
+
+Speaking of simple changes, adding support for variable names with
+terminal "?" and "!" also seems simple.  It's mostly a matter of
+changing the t_NAME definition and the PVM handles it without a
+problem, but parts of the standard library and third-party code won't
+know about the new variable name syntax, so you'll end up with small
+breakage.
+
+</P>
+
+<a name="assert" />
+<h2>Checking assert clauses</h2>
+
+<P>
+
+What's wrong with the following made-up example?
+
+<pre class="code">
+assert 0 not in results, "problem in: %r" % data
+</pre>
+
+Most likely the variable name "data" was changed to the slightly
+better "results" but not changed everywhere.  If this case is truly
+impossible then the unittests can't ever get to the diagnostic
+statement and it's very hard to check.  But perhaps there is a way,
+and in that case the raised exception will be
+
+<pre class="code">
+NameError: name 'data' is not defined
+</pre>
+
+and not an AssertionError.
+
+</P><P>
+
+If you want to check that the failure side of the assert always works
+then one solution is to rewrite the AST so that the failure is always
+created, then stored to a temporary variable and used if the test
+fails.  That is, to rewrite the AST so that
+
+<pre class="code">
+assert X, Y
+</pre>
+
+becomes something like
+
+<pre class="code">
+_$assert = Y
+assert X, _$assert
+</pre>
+
+</P><P>
+
+It's not hard, but a bit harder than it should be.  That assert
+statement is handled by p_assert_stmt_2
+
+<pre class="code">
+def p_assert_stmt_2(p):
+    'assert_stmt : ASSERT test COMMA test'
+    node = ast.Assert(p[2], p[4])
+    locate(node, p.lineno(1))#, bounds(text_bounds(p, 1), p[4]))
+    p[0] = [node]
+</pre>
+
+</P><P>
+
+The easiest solution is to have it return two statement lines
+
+<pre class="code">
+def p_assert_stmt_2(p):
+    'assert_stmt : ASSERT test COMMA test'
+<b>    assign = ast.Assign([ast.AssName("_$assert", "OP_ASSIGN")], p[4])
+    assert_ = ast.Assert(p[2], p[4])
+    locate(assign, p.lineno(1))
+    locate(assert_, p.lineno(1))
+    p[0] = [assign, assert_]</b>
+</pre>
+
+</P><P>
+
+(I'll draw back the covers a bit - the reason is this is easy is
+because I modified the code while writing this to make it easier.
+Before the change it assumed that each statement corresponded to one
+and only node in the AST.)
+
+</P><P>
+
+I'll try it out with this simple program
+
+<pre class="code">
+# assert.py
+assert 1, s
+</pre>
+
+<pre class="code">
+% python assert.py 
+% python compile.py -e assert.py
+Traceback (most recent call last):
+  File "compile.py", line 76, in &lt;module&gt;
+    execfile(args[0])
+  File "compile.py", line 48, in execfile
+    exec code in mod.__dict__
+  File "assert.py", line 1, in &lt;module&gt;
+    assert 1, s
+NameError: name 's' is not defined
+%
+</pre>
+
+</P><P>
+
+This transformation of the Python code does have some performance
+impact because it's always doing extra code, and the new code doesn't
+obey the "-O" setting to disable assert statement.  There's also going
+to be some cases where the fail code can't properly be executed unless
+the test condition fails.
+
+</P><P>
+
+I can imagine embedded directives that enable or disable certain
+features, perhaps through special tags in the comments or new token
+types.  None stand out as being obvious and without a good driving
+example I won't show how.  If you're going to try something out,
+remember that the tokenizer can easily be changed to store each
+comment and its line number.
+
+</P>
+
+<a name="coverage" />
+<h2>Code coverage</h2>
+
+<P>
+
+What about code and branch coverage?  There are already some tools for
+code coverage, most notably Ned Batchelder's "<a
+href="http://nedbatchelder.com/code/modules/coverage.html">coverage</a>".
+That page links to a few other tools.
+
+</P><P>
+
+They generally work by using the Python standard library to parse
+Python and find line numbers for executable code, then use the
+sys.settrace hook to get runtime callbacks with information about
+which lines are being executed.
+
+</P><P>
+
+There are limitations with this approach, nicely listed at
+<a href="http://nedbatchelder.com/code/modules/rees-coverage.html">http://nedbatchelder.com/code/modules/rees-coverage.html</a>
+
+</P><P>
+
+I have control over the entire AST and even some of the byte code
+generation so there are tricks I can do that they can't.  I can
+instrument every piece of executable code to report the line number,
+instead of calling settrace.
+
+</P><P>
+
+I'll start with the basics and call the function
+
+<pre class="code">
+def trace(lineno):
+    print "line", lineno
+</pre>
+
+before executing any new statement.  All statements are listed in an
+ast.Stmt node so this should be easy but there are a couple of
+complications that make it hard to generate these calls while building
+the AST.  I can't add code before the docstring because the bit of
+code which extracts the docstring (called "extract_docstring") gets it
+from the first statement, if it's of the correct form.  Inserting the
+trace call means the first statement will always be a trace.
+
+</P><P>
+
+I also can't add trace calls before "from __future__ import" calls,
+which must occur before any other code.
+
+</P><P>
+
+While I could make it work while building the AST, it was easier to
+create the AST as-is then transform it to include the trace calls.
+
+<pre class="code">
+def parse(source, filename="&lt;string&gt;"):
+    # There is a bug in PLY 2.3; it doesn't like the empty string.
+    # Bug reported and will be fixed for 2.4.
+    # http://groups.google.com/group/ply-hack/msg/cbbfc50837818a29
+    if not source:
+        source = "\n"
+    lexer = python_lex.lexer
+    try:
+        parse_tree = parser.parse(source, lexer=lexer)
+    except SyntaxError, err:
+        # Insert the missing data and reraise
+        assert hasattr(err, "lineno"), "SytaxError is missing lineno"
+        geek_lineno = err.lineno - 1
+        start_of_line = lexer.lexer.line_offsets[geek_lineno]
+        end_of_line = lexer.lexer.line_offsets[geek_lineno+1]-1
+        text = source[start_of_line:end_of_line]
+        err.filename = filename
+        err.text = text
+        raise
+    <b>add_trace(parse_tree.node, 1)</b>
+    misc.set_filename(filename, parse_tree)
+    syntax.check(parse_tree)
+    return parse_tree
+</pre>
+
+</P><P>
+
+The new add_trace function is a recursive function that takes two
+parameters: an ast node (for simplicity the top-level one must be the
+module's ast.Stmt node) and the flag "is_module" which is True if the
+node is the top-level ast.Stmt).  The top-level ast.Stmt is important
+because it's the one which contains the "from __future__" statements.
+
+<pre class="code">
+<b>def add_trace(node, is_module):
+    if isinstance(node, ast.Stmt):
+        if is_module:
+            # the top-level ast.Stmt is special because it
+            # can contain "from __future__ import ..." statements
+            # which cannot have any code before them.
+            start = after_import_future(node.nodes)
+            new_nodes = node.nodes[:start]
+            nodes = node.nodes[start:]
+
+            #       Define a new 'trace' function
+            # def trace(lineno):
+            #     print "line", lineno
+            def_node = ast.Function(
+                None, 'trace', ['lineno'], [], 0, None,
+                ast.Stmt([ast.Printnl([ast.Const('line'), ast.Name('lineno')],
+                                      None)]))
+            new_nodes.append(def_node)
+        else:
+            # not the top-level module
+            new_nodes = []
+            nodes = node.nodes
+
+        for child in nodes:
+            # Get the line number that's about to be executed
+            lineno = child.lineno
+            # Call the trace function
+            trace = ast.Discard(
+                ast.CallFunc(ast.Name('trace'),
+                             [ast.Const(lineno)], None, None))
+            locate(trace, lineno)
+            new_nodes.append(trace)  # add the call to the AST
+            new_nodes.append(child)  # and then do the old code
+            add_trace(child, 0)
+        node.nodes[:] = new_nodes    # replace the old list of ast nodes
+
+    else:
+        # Recursively descend through all nodes to find ast.Stmt nodes
+        # "getChildNodes" is part of the compiler.ast node API
+        for child in node.getChildNodes():
+            add_trace(child, 0)</b>
+</pre>
+
+</P><P>
+
+There's nothing particularly hard about the code and I think the
+comments suffice.  It calls the "after_import_future" helper
+function which finds the index after the last "from __future__ ..."
+statement.
+
+<pre class="code">
+<b>def after_import_future(nodes):
+    for i, node in enumerate(nodes):
+        if not (isinstance(node, ast.From) and
+                node.modname == "__future__"):
+            return i
+    else:
+        # all elements are 'from __future__ import ..' statements
+        return len(nodes)
+    return 0  # empty list</b>
+</pre>
+
+And again, that's it.
+
+</P><P>
+
+What to see it work?  I figured you would.  Here's an implementation
+of the popular "fizzbuzz" program
+
+<pre class="code">
+# fizzbuzz.py
+for i in range(1, 10):
+    if i % 15 == 0:
+        print i, "fizzbuzz"
+    elif i % 5 == 0:
+        print i, "buzz"
+    elif i % 3 == 0:
+        print i, "fizz"
+    else:
+        print i
+</pre>
+
+and its output
+
+<pre class="code">
+% python compile.py -e fizzbuzz.py
+line 2
+line 3
+line 10
+1
+line 3
+line 10
+2
+line 3
+line 8
+3 fizz
+line 3
+line 10
+4
+line 3
+line 6
+5 buzz
+line 3
+line 8
+6 fizz
+line 3
+line 10
+7
+line 3
+line 10
+8
+line 3
+line 8
+9 fizz
+%
+</pre>
+
+</P><P>
+
+If you stare at it for a while you'll see that that line 4 is never
+called because i is never a multiple of 15.  Stare at it longer and
+you'll see that it only reports the line of the 'for' statement once
+and only the 'if' of the 'if/elif/else' lines.  That's not so useful.
+
+</P><P>
+
+Are you interested in seeing what you get from sys.settrace?  If you
+do the obvious thing and define a callback and call settrace before
+running the fizzbuzz code, like this
+
+<pre class="code">
+# This does not work like you might expect
+import sys
+
+def report(frame, event, arg):
+    if event == "line":
+        lineno = frame.f_lineno
+        print "line", lineno
+    return report
+
+sys.settrace(report)
+
+for i in range(1, 10):
+    if i % 15 == 0:
+        print i, "fizzbuzz"
+    elif i % 5 == 0:
+        print i, "buzz"
+    elif i % 3 == 0:
+        print i, "fizz"
+    else:
+        print i
+</pre>
+
+</P><P>
+
+To quote from the documentation
+
+<blockquote>
+The global trace function is invoked (with event set to 'call')
+whenever a new local scope is entered; it should return a reference to
+the local trace function to be used that scope, or None if the scope
+shouldn't be traced.
+</blockquote>
+
+</P><P>
+
+In this case there is no new local scope, so you'll get no output.
+You need to structure it like this.
+
+<pre class="code">
+import sys
+
+def report(frame, event, arg):
+    if event == "line":
+        lineno = frame.f_lineno
+        print "line", lineno
+    return report
+
+sys.settrace(report)
+
+def main():
+    for i in range(1, 10):
+        if i % 15 == 0:
+            print i, "fizzbuzz"
+        elif i % 5 == 0:
+            print i, "buzz"
+        elif i % 3 == 0:
+            print i, "fizz"
+        else:
+            print i
+
+main()
+</pre>
+
+</P><P>
+
+Once you do that the trace output is
+
+<pre class="code">
+line 12
+line 13
+line 15
+line 17
+line 20
+1
+line 12
+line 13
+line 15
+line 17
+line 20
+2
+line 12
+line 13
+line 15
+line 17
+line 18
+3 fizz
+line 12
+line 13
+line 15
+line 17
+line 20
+4
+line 12
+line 13
+line 15
+line 16
+5 buzz
+line 12
+line 13
+line 15
+line 17
+line 18
+6 fizz
+line 12
+line 13
+line 15
+line 17
+line 20
+7
+line 12
+line 13
+line 15
+line 17
+line 20
+8
+line 12
+line 13
+line 15
+line 17
+line 18
+9 fizz
+line 12
+</pre>
+
+It's obviously more detailed because it reports the elif statements,
+and perhaps better because it shows that its' going back to the for
+statement for each loop.
+
+</P><P>
+
+How do I get the same effect given the AST?  One solution is to also
+instrument the "if" and "for" statements, so it's effectively like:
+
+<pre class="code">
+def trace(lineno):
+    print "line", lineno
+
+def trace_iter(lineno, it):
+    for x in it:
+        yield x
+        print "loop", lineno
+
+# fizzbuzz.py
+trace(2)
+for i in trace_iter(2, range(1, 10)):
+    if trace(3) or (i % 15 == 0):
+        trace(4); print i, "fizzbuzz"
+    elif trace(5) or (i % 5 == 0):
+        trace(5); print i, "buzz"
+    elif trace(7) or (i % 3 == 0):
+        trace(6); print i, "fizz"
+    else:
+        trace(7); print i
+</pre>
+
+</P><P>
+
+Doing this calls for a few changes in the add_trace code.  As you've
+seen, defining the AST directly is verbose and harder to read than
+Python code so to make things easier I'll use compiler.parse to turn
+Python code into an AST, then add that AST into the main program's
+AST.  Add the following to python_yacc.py, which creates a
+module-level variable called _header_ast:
+
+<pre class="code">
+<b>_header_ast = compiler.parse("""
+def trace(lineno):
+    print "line", lineno
+
+def trace_iter(lineno, it):
+    for x in it:
+        yield x
+        print "loop", lineno
+""").node.nodes</b>
+</pre>
+
+</P><P>
+
+This is only proof-of-concept code.  If you do this for real you
+should put all of the tracing code into its own module instead of
+inserting into each byte-compiled module.  I would probably use a
+class, instantiated with the module name, a checksum of some sort, and
+a way to register which line numbers are present.  The actual details
+will depend highly on what you want from it.
+
+</P><P>
+
+Here's the new add_trace.  The new bits are how I integrate the new
+_header_ast and the two parts at the end where I handle ast.For and
+ast.If nodes.  The comments should be descriptive enough.
+
+<pre class="code">
+def add_trace(node, is_module):
+    if isinstance(node, ast.Stmt):
+        if is_module:
+            # the top-level ast.Stmt is special because it
+            # can contain "from __future__ import ..." statements
+            # which cannot have any code before them.
+            start = after_import_future(node.nodes)
+            new_nodes = node.nodes[:start]
+            nodes = node.nodes[start:]
+
+            # Define a new trace functions
+            <b>new_nodes.extend(_header_ast)</b>
+        else:
+            # not the top-level module
+            new_nodes = []
+            nodes = node.nodes
+
+        for child in nodes:
+            # Get the line number that's about to be executed
+            lineno = child.lineno
+            # Call the trace function
+            trace = ast.Discard(
+                ast.CallFunc(ast.Name('trace'),
+                             [ast.Const(lineno)], None, None))
+            locate(trace, lineno)
+            new_nodes.append(trace)  # add the call to the AST
+            new_nodes.append(child)  # and then do the old code
+            add_trace(child, 0)
+        node.nodes[:] = new_nodes    # replace the old list of ast nodes
+    else:
+        # Recursively descend through all nodes to find ast.Stmt nodes
+        # "getChildNodes" is part of the compiler.ast node API
+        for child in node.getChildNodes():
+            add_trace(child, 0)
+
+<b>        # Do this after the recursive transformations so I don't
+        # modify modified code.
+        if isinstance(node, ast.For):
+            # Place a wrapper around the iterator in the list.
+            # Result looks like:
+            #   for x in trace_iter(4, original_list):
+            node.list = ast.CallFunc(ast.Name("trace_iter"),
+                                     [ast.Const(node.lineno), node.list],
+                                     None, None)
+        elif isinstance(node, ast.If):
+            # Add "trace" calls for each elif; [0] is the if test
+            # Result looks like
+            #   if original_test_0: suite_0
+            #   elif lineno(2) or (original_test_1): suite_1
+            #   elif lineno(3) or (original_test_2): suite_2
+            #     ...
+            #   else: else_suite
+            for i in range(1, len(node.tests)):
+                if_test, code = node.tests[i]
+                node.tests[i] = (
+                    ast.Or([ast.CallFunc(ast.Name("trace"),
+                                          [ast.Const(if_test.lineno)], None, None),
+                             if_test]),
+                    code)</b>
+</pre>
+
+</P><P>
+
+Does it work?
+
+<pre class="code">
+% python compile.py -e fizzbuzz.py
+
+line 2
+line 3
+line 5
+line 7
+line 10
+1
+loop 2
+line 3
+line 5
+line 7
+line 10
+2
+loop 2
+line 3
+line 5
+line 7
+line 8
+3 fizz
+loop 2
+line 3
+line 5
+line 7
+line 10
+4
+loop 2
+line 3
+line 5
+line 6
+5 buzz
+loop 2
+line 3
+line 5
+line 7
+line 8
+6 fizz
+loop 2
+line 3
+line 5
+line 7
+line 10
+7
+loop 2
+line 3
+line 5
+line 7
+line 10
+8
+loop 2
+line 3
+line 5
+line 7
+line 8
+9 fizz
+loop 2
+</pre>
+
+Definitely more verbose, and it looks like it's reporting everything
+correctly.  With a bit more work I think I could instrument all of the
+statements to report full coverage, but I've not done that.  Yet.  Do
+you want to?  Please?  It would save me a lot of work.
+
+</P>
+<a name="uncovered" />
+<h3>Which lines aren't covered?</h3>
+<P>
+
+The output is still missing coverage for line 4.  I had to check that
+by eye.  It would be better to have the instrumentation tell me what's
+missing.  The following shows one way to do it, which might be a
+sketch for a larger more robust system.
+
+</P><P>
+
+I know which lines can be covered when I added the instrumentation so
+every time I add new instrumentation I'll also keep track of its line
+number in the "seen_linenos" set.  Once I know all the line numbers I
+can use them to initialize a dictionary in the AST called
+"lineno_counts", which maps the line number to number of times the
+instrumentation for it occured.
+
+</P><P>
+
+When the program is over, which I get from registering a callback via
+"atexit.register", I'll go through the lineno_counts for each line
+I'll display the line number and either "********" if the
+corresponding count is 0, or the count itself.
+
+<pre class="code">
+_header_ast = compiler.parse("""
+def trace(lineno):
+    <b>lineno_counts[lineno] += 1</b>
+
+def trace_iter(lineno, it):
+    for x in it:
+        yield x
+        <b>lineno_counts[lineno] += 1</b>
+
+<b>def report_coverage():
+    print "  === line coverage ==="
+    for (lineno, count) in sorted(lineno_counts.items()):
+        if count == 0:
+            print lineno, "********"
+        else:
+            print lineno, count
+
+import atexit
+atexit.register(report_coverage)</b>
+
+""").node.nodes
+
+def add_trace(node, is_module, seen_linenos):
+    if isinstance(node, ast.Stmt):
+        if is_module:
+            # the top-level ast.Stmt is special because it
+            # can contain "from __future__ import ..." statements
+            # which cannot have any code before them.
+            start = after_import_future(node.nodes)
+            new_nodes = node.nodes[:start]
+            nodes = node.nodes[start:]
+
+            <b>#       Define a new trace functions
+            # count_ast is identical to:
+            #    lineno_counts = dict.fromkeys([], 0)
+            count_ast = compiler.parse(
+                "lineno_counts = dict.fromkeys([], 0)").node.nodes[0]
+            new_nodes.append(count_ast)</b>
+            new_nodes.extend(_header_ast)
+        else:
+            # not the top-level module
+            new_nodes = []
+            nodes = node.nodes
+
+        for child in nodes:
+            # Get the line number that's about to be executed
+            lineno = child.lineno
+            # Call the trace function
+            trace = ast.Discard(
+                ast.CallFunc(ast.Name('trace'),
+                             [ast.Const(lineno)], None, None))
+            <b>seen_linenos.add(lineno)</b>
+            locate(trace, lineno)
+            new_nodes.append(trace)  # add the call to the AST
+            new_nodes.append(child)  # and then do the old code
+            add_trace(child, 0, seen_linenos)
+        node.nodes[:] = new_nodes    # replace the old list of ast nodes
+        <b>if is_module:
+            # Insert the possible line numbers into the initialization
+            # for the 'lineno_counts' dictionary.
+            data_nodes = count_ast.expr.args[0].nodes = []
+            for lineno in seen_linenos:
+                data_nodes.append(ast.Const(lineno))</b>
+    else:
+        # Recursively descend through all nodes to find ast.Stmt nodes
+        # "getChildNodes" is part of the compiler.ast node API
+        for child in node.getChildNodes():
+            add_trace(child, 0, seen_linenos)
+
+        # Do this after the recursive transformations so I don't
+        # modify modified code.
+        if isinstance(node, ast.For):
+            # Place a wrapper around the iterator in the list.
+            # Result looks like:
+            #   for x in trace_iter(4, original_list):
+            node.list = ast.CallFunc(ast.Name("trace_iter"),
+                                     [ast.Const(node.lineno), node.list],
+                                     None, None)
+            <b>seen_linenos.add(node.lineno)</b>
+
+        elif isinstance(node, ast.If):
+            # Add "trace" calls for each elif; [0] is the if test
+            # Result looks like
+            #   if original_test_0: suite_0
+            #   elif lineno(2) and (original_test_1): suite_1
+            #   elif lineno(3) and (original_test_2): suite_2
+            #     ...
+            #   else: else_suite
+            for i in range(1, len(node.tests)):
+                if_test, code = node.tests[i]
+                node.tests[i] = (
+                    ast.Or([ast.CallFunc(ast.Name("trace"),
+                                          [ast.Const(if_test.lineno)], None, None),
+                             if_test]),
+                    code)
+                <b>seen_linenos.add(if_test.lineno)</b>
+</pre>
+
+</P><P>
+
+This also means changing the "add_trace" call in the parse function, to
+
+<pre class="code">
+def parse(source, filename="&lt;string&gt;"):
+     ...
+        err.text = text
+        raise
+    <b>add_trace(parse_tree.node, 1, set())</b>
+    misc.set_filename(filename, parse_tree)
+    syntax.check(parse_tree)
+    return parse_tree
+</pre>
+
+The result?
+
+<pre class="code">
+% python compile.py -e x.py
+1
+2
+3 fizz
+4
+5 buzz
+6 fizz
+7
+8
+9 fizz
+  === line coverage ===
+2 10
+3 9
+4 ********
+5 9
+6 1
+7 8
+8 3
+10 5
+</pre>
+
+</P>
+
+<a name="other" />
+<h2>Other things</h2>
+
+<P>
+
+Hmm.  What else is there to do?
+
+</P><P>
+
+Quite a bit.  My original purpose in doing this was to instrument
+Python code for branch coverage.  You can see I'm at the point where I
+can do that now, but it's more than I'm going to cover in a tutorial.
+Or perhaps you'll work on it and save me the effort?
+
+</P><P>
+
+Python 3 is in early alpha.  It's incompatible with the Python 2
+series, the last of which will be Python 2.6.  The currently suggested
+upgrade path is to make your code 2.6 compatible then use the 2to3
+converter to turn it into Python 3 code.  The converter does only
+static analysis of the structure, without any inferencing.  It can't
+check everything.  What about adding run-time instrumentation that
+can, for example, check that the result of .keys() is never used as a
+list?  Then run the unittests and see if there are any problems.
+
+</P><P>
+
+But bear in mind that I don't trust this code for mission critical
+work, at least not without a lot of testing.  The compiler module has
+known bugs, and will be removed for 3.0.  I've not put everything
+through its paces.  So at this point use python4ply for
+experiementational work and be prepared to dig into code to figure out
+what's going on.
+
+</P><P>
+
+Because the compiler module will be removed, the best thing for the
+future is to rewrite the AST generation so it uses the same AST nodes
+as in the _ast module.  That is, so it uses Python's own AST structure
+and AST -> bytecode generation.  I'm not looking forward to that, and
+it will prevent cool bytecode hacks like my monkeypatched AssignExpr.
+Perhaps you can to write a pure Python bytecode generation engine?
+
+</P><P>
+
+A more general program could also support __future__ statements
+correctly, so 'with' and 'as' aren't keywords when parsing old Python
+files.  It should also handle inline encoding declarations.  Again,
+don't look at me ... unless you've got money?
+
+</P>
+
+
+<h2><center>Enjoy!</center></h2>
+
+
+</body> </html>
