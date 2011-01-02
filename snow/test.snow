@@ -21,6 +21,11 @@ class Foo extends Bar:
         flo y = get_my_float(.x)
     pri sta str privar = "Pure as Snow"
 
+    fn other:
+        <- i am string = """
+        long string
+        i am
+        """->strtoupper()
     # The constructor.
     #    Needs two args that bla.
     parent::__construct(x s)
