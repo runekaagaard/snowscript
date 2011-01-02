@@ -31,8 +31,6 @@ kwlist = [
     'require', 'require_once', 'print', 'unset',
 ]
 
-# Missing '<-'
-
 RESERVED = {}
 for literal in kwlist:
     name = literal.upper()
@@ -42,29 +40,33 @@ for literal in kwlist:
 
 # These are sorted with 3-character tokens first, then 2-character then 1.
 for line in """
-LEFTSHIFTEQUAL  <<=
-RIGHTSHIFTEQUAL  >>=
-DOUBLESTAREQUAL  **=
-DOUBLESLASHEQUAL  //=
+INC ++
+DEC --
+IS_IDENTICAL ===
+IS_NOT_IDENTICAL !==
+IS_EQUAL ==
+IS_NOT_EQUAL !=
+IS_SMALLER_OR_EQUAL <=
+IS_GREATER_OR_EQUAL >=
+PLUS_EQUAL +=
+MINUS_EQUAL -=
+MUL_EQUAL *=
+DIV_EQUAL /=
+CONCAT_EQUAL |=
+MOD_EQUAL mod=
+SL_EQUAL bleft=
+SR_EQUAL bright=
+AND_EQUAL band=
+OR_EQUAL bor=
+XOR_EQUAL bxor=
+SL bleft
+SR bright
+POW **
 
-EQEQUAL ==
-NOTEQUAL !=
-NOTEQUAL <>
-LESSEQUAL <=
-LEFTSHIFT <<
-GREATEREQUAL >=
-RIGHTSHIFT >>
-PLUSEQUAL +=
-MINEQUAL -=
-DOUBLESTAR **
-STAREQUAL *=
-DOUBLESLASH //
-SLASHEQUAL /=
-VBAREQUAL |=
-PERCENTEQUAL %=
-AMPEREQUAL &=
-CIRCUMFLEXEQUAL ^=
+RETURN <-
+INNER_RETURN <--
 
+DOUBLE_COLON ::
 COLON :
 COMMA ,
 SEMI ;
@@ -72,7 +74,7 @@ PLUS +
 MINUS -
 STAR *
 SLASH /
-VBAR |
+PIPE |
 AMPER &
 LESS <
 GREATER >

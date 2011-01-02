@@ -25,4 +25,9 @@ class Foo extends Bar:
     #    Needs two args that bla.
     parent::__construct(x s)
 
-    pri fn output: echo ::privar
+    pri fn output: 
+        echo ::privar | 31
+        def yo:
+            echo "i am the man"
+            <-- "inner return"
+        <- 34
