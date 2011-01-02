@@ -1,21 +1,15 @@
-"""PLY tokenizer for parsing Python"""
+"""
+PLY tokenizer for the Snow language
 
-# Written by Andrew Dalke
-# Copyright (c) 2008 by Dalke Scientific, AB
-# 
-# See LICENSE for details.
+@author Rune Kaagaard
+"""
 
 import re
 import tokenize
-
 from ply import lex
-
-import python_tokens
+import snow_tokens
 
 SHOW_TOKENS = False
-# make some changes to agree more closely with the compiler module.
-# I think the compiler module is wrong for these cases
-BACKWARDS_COMPATIBLE = False
 
 def _raise_error(message, t, klass):
     lineno, lexpos, lexer = t.lineno, t.lexpos, t.lexer
@@ -37,14 +31,14 @@ def raise_indentation_error(message, t):
 
 
 # Import only the definitions starting with "t_"
-globals().update( (k,v) for (k,v) in python_tokens.__dict__.items()
+globals().update( (k,v) for (k,v) in snow_tokens.__dict__.items()
                         if k.startswith("t_") )
 
-RESERVED = python_tokens.RESERVED
+RESERVED = snow_tokens.RESERVED
 
 TOKEN = lex.TOKEN
 
-tokens = tuple(python_tokens.tokens) + (
+tokens = tuple(snow_tokens.tokens) + (
     "NEWLINE",
 
     "NUMBER",
@@ -449,7 +443,7 @@ def create_strings(lexer, token_stream):
             raise_syntax_error(error_message[start_tok.type], start_tok)
 
         # Reached the end of the string
-        if BACKWARDS_COMPATIBLE and "SINGLE" in start_tok.type:
+        if "SINGLE" in start_tok.type:
             # The compiler module uses the end of the single quoted
             # string to determine the strings line number.  I prefer
             # the start of the string.
@@ -660,7 +654,7 @@ class PythonLexer(object):
 
 lexer = PythonLexer()
 
-text = open("snow_lexer.py").read()
-lexer.input(text, "snow_lexer.py")
+text = open("test.snow").read()
+lexer.input(text, "test.snow")
 for tok in lexer:
     print tok
