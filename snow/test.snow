@@ -21,14 +21,20 @@ class Foo extends Bar:
         flo y = get_my_float(.x)
     pri sta str privar = "Pure as Snow"
 
+    # The constructor.
+    #    Needs two args that bla.
+    parent::__construct(x s)
+
     fn other:
         <- i am string = """
         long string
         i am
         """->strtoupper()
-    # The constructor.
-    #    Needs two args that bla.
-    parent::__construct(x s)
+
+    #fn third:
+    #    am_string = 'multi
+    #    line
+    #    string'
 
     pri fn output: 
         echo ::privar | 31
