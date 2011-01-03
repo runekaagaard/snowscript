@@ -1,0 +1,425 @@
+from glob import glob
+from snow_lexer import SnowLexer
+from difflib import unified_diff
+from termcolor import colored
+import sys
+import os
+
+def lex_snow(code):
+    """
+    Lexes given Snow code and returns a string representing lexed tokens.
+    """
+    lexer = SnowLexer()
+    lexer.input(code, '')
+    tokens_as_string = ''
+    for t in lexer:
+        if type(t.value) == type(tuple()):
+            value = t.value[1]
+        else:
+            value = t.value
+        if value:
+            value = value.replace('\n', r'\n')
+        if t.type == 'STRING':
+            value = value.replace(' ', '.')
+        value = ": " + str(value)
+        tokens_as_string += "%s%s\n" % (t.type, value)
+    return tokens_as_string.strip()
+
+# Set dir
+os.chdir(os.path.abspath(os.path.dirname(__file__)))
+
+# Delete old .out files.
+os.system('rm -f lexer/tests/*.out')
+
+# Run test 'suite'
+failure = succes = 0
+for file in glob('lexer/tests/*.test'):
+    code, tokens_expected = [_.strip() for _ in open(file).read().split("++++")]
+    tokens_actual = lex_snow(code)
+    if tokens_expected != tokens_actual:
+        failure += 1
+        print "Failing test: %s" % file
+        for line in unified_diff(tokens_expected.splitlines(), 
+            tokens_actual.splitlines(), fromfile='expected', tofile='actual', 
+            lineterm=''):
+            print line
+        print
+        with open(file.replace('.test', '') + '.out', 'w') as f:
+            f.write(tokens_actual)
+    else:
+        succes +=1
+        
+msg = "%d failures and %d successes out of %d tests" % (failure, succes, 
+                                                         failure + succes)
+print colored(msg, 'white', 'on_red' if failure else 'on_green')
+----
+NAME: from
+NAME: glob
+NAME: import
+NAME: glob
+NEWLINE: \n
+NAME: from
+NAME: snow_lexer
+NAME: import
+NAME: SnowLexer
+NEWLINE: \n
+NAME: from
+NAME: difflib
+NAME: import
+NAME: unified_diff
+NEWLINE: \n
+NAME: from
+NAME: termcolor
+NAME: import
+NAME: colored
+NEWLINE: \n
+NAME: import
+NAME: sys
+NEWLINE: \n
+NAME: import
+NAME: os
+NEWLINE: \n\n
+NAME: def
+NAME: lex_snow
+LPAR: (
+NAME: code
+RPAR: )
+COLON: :
+NEWLINE: \n
+INDENT: None
+STRING: \n....Lexes.given.Snow.code.and.returns.a.string.representing.lexed.tokens.\n....
+NEWLINE: \n
+NAME: lexer
+EQUAL: =
+NAME: SnowLexer
+LPAR: (
+RPAR: )
+NEWLINE: \n
+NAME: lexer
+DOT: .
+NAME: input
+LPAR: (
+NAME: code
+COMMA: ,
+STRING: 
+RPAR: )
+NEWLINE: \n
+NAME: tokens_as_string
+EQUAL: =
+STRING: 
+NEWLINE: \n
+FOR: for
+NAME: t
+IN: in
+NAME: lexer
+COLON: :
+NEWLINE: \n
+INDENT: None
+IF: if
+NAME: type
+LPAR: (
+NAME: t
+DOT: .
+NAME: value
+RPAR: )
+IS_EQUAL: ==
+NAME: type
+LPAR: (
+NAME: tuple
+LPAR: (
+RPAR: )
+RPAR: )
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: value
+EQUAL: =
+NAME: t
+DOT: .
+NAME: value
+LSQB: [
+NUMBER: 1
+RSQB: ]
+NEWLINE: \n
+DEDENT: None
+ELSE: else
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: value
+EQUAL: =
+NAME: t
+DOT: .
+NAME: value
+NEWLINE: \n
+DEDENT: None
+IF: if
+NAME: value
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: value
+EQUAL: =
+NAME: value
+DOT: .
+NAME: replace
+LPAR: (
+STRING: \n
+COMMA: ,
+NAME: r
+STRING: \n
+RPAR: )
+NEWLINE: \n
+DEDENT: None
+IF: if
+NAME: t
+DOT: .
+NAME: type
+IS_EQUAL: ==
+STRING: STRING
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: value
+EQUAL: =
+NAME: value
+DOT: .
+NAME: replace
+LPAR: (
+STRING: .
+COMMA: ,
+STRING: .
+RPAR: )
+NEWLINE: \n
+DEDENT: None
+NAME: value
+EQUAL: =
+STRING: :.
+PLUS: +
+NAME: str
+LPAR: (
+NAME: value
+RPAR: )
+NEWLINE: \n
+NAME: tokens_as_string
+PLUS_EQUAL: +=
+STRING: %s%s\n
+PERCENT: %
+LPAR: (
+NAME: t
+DOT: .
+NAME: type
+COMMA: ,
+NAME: value
+RPAR: )
+NEWLINE: \n
+DEDENT: None
+NAME: return
+NAME: tokens_as_string
+DOT: .
+NAME: strip
+LPAR: (
+RPAR: )
+NEWLINE: \n\n
+DEDENT: None
+NAME: os
+DOT: .
+NAME: chdir
+LPAR: (
+NAME: os
+DOT: .
+NAME: path
+DOT: .
+NAME: abspath
+LPAR: (
+NAME: os
+DOT: .
+NAME: path
+DOT: .
+NAME: dirname
+LPAR: (
+NAME: __file__
+RPAR: )
+RPAR: )
+RPAR: )
+NEWLINE: \n\n
+NAME: os
+DOT: .
+NAME: system
+LPAR: (
+STRING: rm.-f.lexer/tests/*.out
+RPAR: )
+NEWLINE: \n\n
+NAME: failure
+EQUAL: =
+NAME: succes
+EQUAL: =
+NUMBER: 0
+NEWLINE: \n
+FOR: for
+NAME: file
+IN: in
+NAME: glob
+LPAR: (
+STRING: lexer/tests/*.test
+RPAR: )
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: code
+COMMA: ,
+NAME: tokens_expected
+EQUAL: =
+LSQB: [
+NAME: _
+DOT: .
+NAME: strip
+LPAR: (
+RPAR: )
+FOR: for
+NAME: _
+IN: in
+NAME: open
+LPAR: (
+NAME: file
+RPAR: )
+DOT: .
+NAME: read
+LPAR: (
+RPAR: )
+DOT: .
+NAME: split
+LPAR: (
+STRING: ++++
+RPAR: )
+RSQB: ]
+NEWLINE: \n
+NAME: tokens_actual
+EQUAL: =
+NAME: lex_snow
+LPAR: (
+NAME: code
+RPAR: )
+NEWLINE: \n
+IF: if
+NAME: tokens_expected
+IS_NOT_EQUAL: !=
+NAME: tokens_actual
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: failure
+PLUS_EQUAL: +=
+NUMBER: 1
+NEWLINE: \n
+PRINT: print
+STRING: Failing.test:.%s
+PERCENT: %
+NAME: file
+NEWLINE: \n
+FOR: for
+NAME: line
+IN: in
+NAME: unified_diff
+LPAR: (
+NAME: tokens_expected
+DOT: .
+NAME: splitlines
+LPAR: (
+RPAR: )
+COMMA: ,
+NAME: tokens_actual
+DOT: .
+NAME: splitlines
+LPAR: (
+RPAR: )
+COMMA: ,
+NAME: fromfile
+EQUAL: =
+STRING: expected
+COMMA: ,
+NAME: tofile
+EQUAL: =
+STRING: actual
+COMMA: ,
+NAME: lineterm
+EQUAL: =
+STRING: 
+RPAR: )
+COLON: :
+NEWLINE: \n
+INDENT: None
+PRINT: print
+NAME: line
+NEWLINE: \n
+DEDENT: None
+PRINT: print
+NEWLINE: \n
+NAME: with
+NAME: open
+LPAR: (
+NAME: file
+DOT: .
+NAME: replace
+LPAR: (
+STRING: .test
+COMMA: ,
+STRING: 
+RPAR: )
+PLUS: +
+STRING: .out
+COMMA: ,
+STRING: w
+RPAR: )
+NAME: as
+NAME: f
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: f
+DOT: .
+NAME: write
+LPAR: (
+NAME: tokens_actual
+RPAR: )
+NEWLINE: \n
+DEDENT: None
+DEDENT: None
+ELSE: else
+COLON: :
+NEWLINE: \n
+INDENT: None
+NAME: succes
+PLUS_EQUAL: +=
+NUMBER: 1
+NEWLINE: \n
+DEDENT: None
+DEDENT: None
+NAME: msg
+EQUAL: =
+STRING: %d.failures.and.%d.successes.out.of.%d.tests
+PERCENT: %
+LPAR: (
+NAME: failure
+COMMA: ,
+NAME: succes
+COMMA: ,
+NAME: failure
+PLUS: +
+NAME: succes
+RPAR: )
+NEWLINE: \n
+PRINT: print
+NAME: colored
+LPAR: (
+NAME: msg
+COMMA: ,
+STRING: white
+COMMA: ,
+STRING: on_red
+IF: if
+NAME: failure
+ELSE: else
+STRING: on_green
+RPAR: )
+ENDMARKER: None
