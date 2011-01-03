@@ -1,0 +1,17 @@
+'single1'
+"single2"
+'multi
+   1
+x'
+"multi
+   2
+x"
+----
+STRING: single1
+NEWLINE: \n
+STRING: single2
+NEWLINE: \n
+STRING: multi\n...1\nx
+NEWLINE: \n
+STRING: multi\n...2\nx
+ENDMARKER: None

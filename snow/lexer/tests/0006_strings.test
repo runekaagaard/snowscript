@@ -1,0 +1,13 @@
+'"'
+"'"
+'''""''""'''
+"""''""''"""
+----
+STRING: "
+NEWLINE: \n
+STRING: '
+NEWLINE: \n
+STRING: ""''""
+NEWLINE: \n
+STRING: ''""''
+ENDMARKER: None

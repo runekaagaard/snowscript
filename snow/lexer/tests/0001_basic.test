@@ -1,6 +1,19 @@
 a = 4
+b = 2 * 3 + 4 - 12 / 13
 ----
 NAME: a
 EQUAL: =
 NUMBER: 4
+NEWLINE: \n
+NAME: b
+EQUAL: =
+NUMBER: 2
+STAR: *
+NUMBER: 3
+PLUS: +
+NUMBER: 4
+MINUS: -
+NUMBER: 12
+SLASH: /
+NUMBER: 13
 ENDMARKER: None
