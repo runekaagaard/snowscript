@@ -31,10 +31,15 @@ class Foo extends Bar:
         i am
         """->strtoupper()
 
-    #fn third:
-    #    am_string = 'multi
-    #    line
-    #    string'
+    fn third:
+        am_string = 'multi
+        line
+        string'
+        
+        me_also = "
+        multi
+        line
+        "
 
     pri fn output: 
         echo ::privar | 31

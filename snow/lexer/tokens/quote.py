@@ -1,3 +1,5 @@
+from lexer.error import raise_syntax_error
+
 # This is a q1: '
 # This is a q2: "
 # These are single quoted strings:  'this' "and" r"that"
@@ -18,7 +20,7 @@ def t_SINGLEQ1_SINGLEQ2_TRIPLEQ1_TRIPLEQ2_escaped(t):
 ##### Triple Q1
 
 def t_start_triple_quoted_q1_string(t):
-    r"[uU]?[rR]?'''"
+    r"'''"
     t.lexer.push_state("TRIPLEQ1")
     t.type = "STRING_START_TRIPLE"
     if "r" in t.value or "R" in t.value:
@@ -46,7 +48,7 @@ def t_TRIPLEQ1_end(t):
 
 
 def t_start_triple_quoted_q2_string(t):
-    r'[uU]?[rR]?"""'
+    r'"""'
     t.lexer.push_state("TRIPLEQ2")
     t.type = "STRING_START_TRIPLE"
     if "r" in t.value or "R" in t.value:
@@ -84,7 +86,7 @@ def t_TRIPLEQ2_error(t):
 ##### Single quoted strings
 
 def t_start_single_quoted_q1_string(t):
-    r"[uU]?[rR]?'"
+    r"'"
     t.lexer.push_state("SINGLEQ1")
     t.type = "STRING_START_SINGLE"
     if "r" in t.value or "R" in t.value:
@@ -94,7 +96,7 @@ def t_start_single_quoted_q1_string(t):
     return t
 
 def t_SINGLEQ1_simple(t):
-    r"[^'\\\n]+"
+    r"[^'\\]+"
     t.type = "STRING_CONTINUE"
     return t
 
@@ -106,7 +108,7 @@ def t_SINGLEQ1_end(t):
     return t
 
 def t_start_single_quoted_q2_string(t):
-    r'[uU]?[rR]?"'
+    r'"'
     t.lexer.push_state("SINGLEQ2")
     t.type = "STRING_START_SINGLE"
     if "r" in t.value or "R" in t.value:
@@ -116,7 +118,7 @@ def t_start_single_quoted_q2_string(t):
     return t
 
 def t_SINGLEQ2_simple(t):
-    r'[^"\\\n]+'
+    r'[^"\\]+'
     t.type = "STRING_CONTINUE"
     return t
 
