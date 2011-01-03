@@ -1,5 +1,5 @@
 """
-PLY tokenizer for the Snow language
+PLY tokenizer for the Snow language.
 
 @author Rune Kaagaard
 """
@@ -14,6 +14,7 @@ from lexer.tokens.brackets import *
 from lexer.tokens.quote import *
 from lexer.indentation import get_line_offsets, make_token_stream
 from lexer.error import raise_syntax_error, raise_indentation_error
+import sys
 # Debugging, should go away.
 from sys import exit as e
 from pprint import pprint as p
@@ -58,8 +59,7 @@ class SnowLexer(object):
 
     def token(self):
         try:
-            x = self.token_stream.next()
-            return x
+            return self.token_stream.next()
         except StopIteration:
             return None
 
@@ -71,5 +71,17 @@ if __name__ == '__main__':
     lexer = SnowLexer()
     text = open("test.snow").read()
     lexer.input(text, "test.snow")
-    for tok in lexer:
-        print tok
+    for t in lexer:
+        if t.type in ('STRING', 'NAME', 'NEWLINE'):
+            if type(t.value) == type(tuple()):
+                value = t.value[1]
+            else:
+                value = t.value
+            if value:
+                value = value.replace('\n', r'\n')
+            if t.type == 'STRING':
+                value = value.replace(' ', '.')
+            value = ": " + value    
+        else:
+            value = ''
+        print "%s%s" % (t.type, value)

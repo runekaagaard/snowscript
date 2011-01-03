@@ -68,3 +68,6 @@ def t_NAME(t):
     r"[a-zA-Z_][a-zA-Z0-9_]*"
     t.type = RESERVED.get(t.value, "NAME")
     return t
+    
+def t_error(t):
+    raise_syntax_error("invalid syntax", t)

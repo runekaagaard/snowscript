@@ -1,0 +1,6 @@
+a = 4
+----
+NAME: a
+EQUAL: =
+NUMBER: 4
+ENDMARKER: None

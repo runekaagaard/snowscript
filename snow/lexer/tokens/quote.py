@@ -133,7 +133,7 @@ t_SINGLEQ1_ignore = ""  # supress PLY warning
 t_SINGLEQ2_ignore = ""  # supress PLY warning
 
 def t_SINGLEQ1_error(t):
-    raise_syntax_error("EOL while scanning single quoted string", t)
+    raise_syntax_error("EOF while scanning single quoted string", t)
 
 def t_SINGLEQ2_error(t):
-    raise_syntax_error("EOL while scanning single quoted string", t)
+    raise_syntax_error("EOF while scanning single quoted string", t)
