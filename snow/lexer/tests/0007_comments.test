@@ -3,6 +3,7 @@
 a = b
 # comment
     more comment
+        momore comment
 not comment
 ----
 COMMENT: # I comment
@@ -16,6 +17,8 @@ NEWLINE: \n
 COMMENT: # comment
 NEWLINE: \n
 COMMENT: #[4]more comment
+NEWLINE: \n
+COMMENT: #[8]momore comment
 NEWLINE: \n
 NAME: not
 NAME: comment

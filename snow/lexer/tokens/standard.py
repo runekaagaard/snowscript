@@ -1,5 +1,6 @@
 # Debug
 from sys import exit as e
+from pprint import pprint as p
 
 # List of all Snow tokens.
 tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE', 'CATCH', 'CLASS', 'CLONE', 'DECLARE', 'DEFAULT', 'DO', 'ELSE', 'EXTENDS', 'FINAL', 'FOR', 'IF', 'IMPLEMENTS', 'INTERFACE', 'NAMESPACE', 'NEW', 'OR', 'SWITCH', 'THROW', 'TRY', 'USE', 'WHILE', 'XOR', 'GLO', 'PRI', 'PRO', 'PUB', 'STA', 'CON', 'WHEN', 'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD', 'BAND', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 'EXIT', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 'REQUIRE_ONCE', 'PRINT', 'UNSET', 'INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL', 'CONCAT_EQUAL', 'MOD_EQUAL', 'SL_EQUAL', 'SR_EQUAL', 'AND_EQUAL', 'OR_EQUAL', 'XOR_EQUAL', 'SL', 'SR', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER', 'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR', 'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT']
@@ -65,6 +66,13 @@ t_RSQB = r'\]'
 #    if 1: #comment
 def t_COMMENT(t):
     r"[ ]*\043[^\n]*"  # \043 is '#' ; otherwise PLY thinks it's an re comment
+    # t.lexer.next()
+    # This should lookahead in a cloned version of the lexer and identify
+    # nested comments the same ways as lexer.comment.catch_indentend_comments()
+    # does it. The found nested comments should then be appended to the first
+    # comment with prefixed r"\n". Then the next() method on the actual lexer
+    # should be called the same number of times that the number of found nested
+    # comments.
     return t
     
 def t_NAME(t):

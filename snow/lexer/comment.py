@@ -18,8 +18,5 @@ def catch_indentend_comments(code):
                     continue
         lines.append(line)
         ms = BEGIN_WITH_HASH.search(line)
-        if ms:
-            prev_len = len(ms.group(1))
-        else:
-            prev_len = None
+        prev_len = None if not ms else len(ms.group(1))
     return "\n".join(lines)
