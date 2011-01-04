@@ -1,6 +1,8 @@
 from ply import lex
 import re
 from lexer.quoted_strings import create_strings
+from lexer.error import raise_indentation_error
+
 SHOW_TOKENS = False
 
 def _new_token(type, lineno):

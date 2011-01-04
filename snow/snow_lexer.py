@@ -14,6 +14,7 @@ from lexer.tokens.brackets import *
 from lexer.tokens.quote import *
 from lexer.indentation import get_line_offsets, make_token_stream
 from lexer.error import raise_syntax_error, raise_indentation_error
+from lexer.comment import catch_indentend_comments
 import sys
 # Debugging, should go away.
 from sys import exit as e
@@ -50,6 +51,7 @@ class SnowLexer(object):
         self.token_stream = None
 
     def input(self, data, filename="<string>", add_endmarker=True):
+        data = catch_indentend_comments(data)
         self.lexer.input(data)
         self.lexer.paren_count = 0
         self.lexer.is_raw = False

@@ -1,3 +1,10 @@
+from lexer.error import raise_syntax_error
+
+error_message = {
+    "STRING_START_TRIPLE": "EOF while scanning triple-quoted string",
+    "STRING_START_SINGLE": "EOL while scanning single-quoted string",
+}
+
 def _parse_quoted_string(start_tok, string_toks):
     """Pythonic strings like r"" are not supported in Snow."""
     s = "".join(tok.value for tok in string_toks)

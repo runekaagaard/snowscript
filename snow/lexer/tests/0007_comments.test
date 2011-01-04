@@ -1,0 +1,22 @@
+# I comment
+    So it its
+a = b
+# comment
+    more comment
+not comment
+----
+COMMENT: # I comment
+NEWLINE: \n
+COMMENT: #[4]So it its
+NEWLINE: \n
+NAME: a
+EQUAL: =
+NAME: b
+NEWLINE: \n
+COMMENT: # comment
+NEWLINE: \n
+COMMENT: #[4]more comment
+NEWLINE: \n
+NAME: not
+NAME: comment
+ENDMARKER: None
