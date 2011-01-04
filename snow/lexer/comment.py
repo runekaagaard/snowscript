@@ -20,3 +20,4 @@ def catch_indentend_comments(code):
         ms = BEGIN_WITH_HASH.search(line)
         prev_len = None if not ms else len(ms.group(1))
     return "\n".join(lines)
+

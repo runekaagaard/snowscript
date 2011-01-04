@@ -32,6 +32,7 @@ states = (
     ("SINGLEQ2", "exclusive"),
     ("TRIPLEQ1", "exclusive"),
     ("TRIPLEQ2", "exclusive"),
+    ("COMMENT", "exclusive"),
 )
 
 class SnowLexer(object):
@@ -51,7 +52,7 @@ class SnowLexer(object):
         self.token_stream = None
 
     def input(self, data, filename="<string>", add_endmarker=True):
-        data = catch_indentend_comments(data)
+        # data = catch_indentend_comments(data)
         self.lexer.input(data)
         self.lexer.paren_count = 0
         self.lexer.is_raw = False

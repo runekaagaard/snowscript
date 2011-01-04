@@ -1,25 +1,39 @@
-# I comment
-    So it its
-a = b
-# comment
-    more comment
-        momore comment
-not comment
+# Yo
+if a > 3:
+    # I comment
+        So it its
+        and this
+        
+        
+      and this
+      # and this
+    comment_no_more()
+    ###
+###
 ----
-COMMENT: # I comment
+COMMENT: # Yo
 NEWLINE: \n
-COMMENT: #[4]So it its
-NEWLINE: \n
+IF: if
 NAME: a
-EQUAL: =
-NAME: b
+GREATER: >
+NUMBER: 3
+COLON: :
 NEWLINE: \n
-COMMENT: # comment
+INDENT: None
+COMMENT: # I comment
+INSIDE_COMMENT: \n        So it its
+INSIDE_COMMENT: \n        and this
+INSIDE_COMMENT: \n        
+INSIDE_COMMENT: \n        
+INSIDE_COMMENT: \n      and this
+INSIDE_COMMENT: \n      # and this
 NEWLINE: \n
-COMMENT: #[4]more comment
+NAME: comment_no_more
+LPAR: (
+RPAR: )
 NEWLINE: \n
-COMMENT: #[8]momore comment
+COMMENT: ###
 NEWLINE: \n
-NAME: not
-NAME: comment
+DEDENT: None
+COMMENT: ###
 ENDMARKER: None

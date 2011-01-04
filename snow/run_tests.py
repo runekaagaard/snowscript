@@ -43,7 +43,7 @@ for file in glob('lexer/tests/' + glob_string):
     tokens_actual = lex_snow(code)
     if tokens_expected != tokens_actual:
         failure += 1
-        print "Failing test: %s" % file
+        print colored("Failing test: %s" % file, 'red')
         for line in unified_diff(tokens_expected.splitlines(), 
             tokens_actual.splitlines(), fromfile='expected', tofile='actual', 
             lineterm=''):
@@ -54,6 +54,6 @@ for file in glob('lexer/tests/' + glob_string):
     else:
         succes +=1
         
-msg = "%d failures and %d successes out of %d tests" % (failure, succes, 
-                                                         failure + succes)
+msg = "%d total :: %d good :: %d bad" % (failure + succes, succes, failure)
 print colored(msg, 'white', 'on_red' if failure else 'on_green')
+
