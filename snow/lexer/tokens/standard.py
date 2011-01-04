@@ -79,7 +79,7 @@ def t_COMMENT(t):
         line is indented.
         """
         pos = t.lexpos
-        while pos > -1:
+        while pos > 0:
             if t.lexer.lexdata[pos] == "\n":
                 t.lexer.comment_indent = t.lexpos - pos - 1
                 break
