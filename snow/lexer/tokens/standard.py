@@ -103,6 +103,10 @@ def t_COMMENT_error(t):
     
 def t_COMMENT_INSIDE_COMMENT(t):
     r"\n([ ]*).*"
+    # Empty lines are still comments, so we wont switch state back to INITIAL.
+    if t.value.strip() == '':
+        return t
+        
     # Looks a head and changes the state back to INITIAL if the next line is not
     # indented further than the first comment line.
     lexer = t.lexer.clone()

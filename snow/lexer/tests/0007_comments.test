@@ -4,7 +4,7 @@ if a > 3:
         So it its
         and this
         
-        
+  
       and this
       # and this
     comment_no_more()
@@ -24,7 +24,7 @@ COMMENT: # I comment
 INSIDE_COMMENT: \n        So it its
 INSIDE_COMMENT: \n        and this
 INSIDE_COMMENT: \n        
-INSIDE_COMMENT: \n        
+INSIDE_COMMENT: \n  
 INSIDE_COMMENT: \n      and this
 INSIDE_COMMENT: \n      # and this
 NEWLINE: \n
