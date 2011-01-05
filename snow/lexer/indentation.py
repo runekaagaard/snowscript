@@ -169,8 +169,8 @@ def synthesize_indentation_tokens(token_stream):
                 except ValueError:
                     # I report the error position at the start of the
                     # token.  Python reports it at the end.  I prefer mine.
-                    raise_indentation_error(
-     "unindent does not match any outer indentation level", token)
+                    raise_indentation_error("unindent does not match any outer " 
+                                            "indentation level", token)
                 for _ in range(i+1, len(levels)):
                     yield DEDENT(token.lineno)
                     levels.pop()

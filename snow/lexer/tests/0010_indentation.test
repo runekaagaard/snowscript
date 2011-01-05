@@ -1,0 +1,34 @@
+fn myfunc
+    for i in [a,
+    # Comment
+      too
+    b
+    # Comment
+        Comment
+    ]:
+        print yo
+----
+FN: fn
+NAME: myfunc
+NEWLINE: \n
+INDENT: None
+FOR: for
+NAME: i
+IN: in
+LSQB: [
+NAME: a
+COMMA: ,
+COMMENT: # Comment
+INSIDE_COMMENT: \n      too
+NAME: b
+COMMENT: # Comment
+INSIDE_COMMENT: \n        Comment
+RSQB: ]
+COLON: :
+NEWLINE: \n
+INDENT: None
+PRINT: print
+NAME: yo
+DEDENT: None
+DEDENT: None
+ENDMARKER: None

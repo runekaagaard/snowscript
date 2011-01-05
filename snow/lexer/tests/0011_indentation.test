@@ -1,0 +1,25 @@
+fn call_funct(
+    b
+     c
+    # Comment
+     To
+   d(wassup)
+  a > 3
+)
+----
+FN: fn
+NAME: call_funct
+LPAR: (
+NAME: b
+NAME: c
+COMMENT: # Comment
+INSIDE_COMMENT: \n     To
+NAME: d
+LPAR: (
+NAME: wassup
+RPAR: )
+NAME: a
+GREATER: >
+NUMBER: 3
+RPAR: )
+ENDMARKER: None
