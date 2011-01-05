@@ -32,6 +32,7 @@ states = (
     ("TRIPLEQ1", "exclusive"),
     ("TRIPLEQ2", "exclusive"),
     ("COMMENT", "exclusive"),
+    ("HTML", "exclusive"),
 )
 
 class SnowLexer(object):

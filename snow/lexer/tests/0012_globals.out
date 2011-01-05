@@ -1,7 +1,0 @@
-GLOBAL: $my_global3
-EQUAL: =
-NUMBER: 52
-NEWLINE: \n
-ECHO: echo
-GLOBAL: $also3_global___
-ENDMARKER: None

@@ -1,0 +1,22 @@
+echo "i am snow" %>
+I am html
+still < %
+echo html
+<%
+now_snow()
+%> YO YO YO <%
+----
+ECHO: echo
+STRING: i.am.snow
+BEGIN_HTML: %>
+INSIDE_HTML: \nI am html\nstill < %\necho html\n
+BEGIN_SNOW: <%
+NEWLINE: \n
+NAME: now_snow
+LPAR: (
+RPAR: )
+NEWLINE: \n
+BEGIN_HTML: %>
+INSIDE_HTML:  YO YO YO 
+BEGIN_SNOW: <%
+ENDMARKER: None
