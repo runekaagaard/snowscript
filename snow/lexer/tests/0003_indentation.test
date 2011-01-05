@@ -1,13 +1,12 @@
-fn foo():
+fn foo()
     pass
-    fn bar():
+    fn bar()
         pass
 ----
 FN: fn
 NAME: foo
 LPAR: (
 RPAR: )
-COLON: :
 NEWLINE: \n
 INDENT: None
 PASS: pass
@@ -16,7 +15,6 @@ FN: fn
 NAME: bar
 LPAR: (
 RPAR: )
-COLON: :
 NEWLINE: \n
 INDENT: None
 PASS: pass

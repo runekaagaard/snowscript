@@ -1,0 +1,41 @@
+for i in is
+    print i
+    fn foo
+        <-- 42
+    fn bar: <-- get_bar()
+    yo()
+echo bar
+----
+FOR: for
+NAME: i
+IN: in
+NAME: is
+NEWLINE: \n
+INDENT: None
+PRINT: print
+NAME: i
+NEWLINE: \n
+FN: fn
+NAME: foo
+NEWLINE: \n
+INDENT: None
+INNER_RETURN: <--
+NUMBER: 42
+NEWLINE: \n
+DEDENT: None
+FN: fn
+NAME: bar
+COLON: :
+INNER_RETURN: <--
+NAME: get_bar
+LPAR: (
+RPAR: )
+NEWLINE: \n
+NAME: yo
+LPAR: (
+RPAR: )
+NEWLINE: \n
+DEDENT: None
+ECHO: echo
+NAME: bar
+ENDMARKER: None

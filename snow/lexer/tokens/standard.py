@@ -9,6 +9,10 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE', 'CATCH'
 # Dict of all reserved keywords.
 RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE', 'when': 'WHEN', 'abstract': 'ABSTRACT', 'pri': 'PRI', 'box': 'BOX', 'pro': 'PRO', 'echo': 'ECHO', 'catch': 'CATCH', 'bright': 'BRIGHT', 'exit': 'EXIT', 'in': 'IN', 'if': 'IF', 'fallthru': 'FALLTHRU', 'use': 'USE', 'end': 'END', 'for': 'FOR', 'downto': 'DOWNTO', 'namespace': 'NAMESPACE', 'while': 'WHILE', 'isset': 'ISSET', 'next': 'NEXT', 'to': 'TO', 'extends': 'EXTENDS', 'implements': 'IMPLEMENTS', 'print': 'PRINT', 'new': 'NEW', 'include': 'INCLUDE', 'final': 'FINAL', 'empty': 'EMPTY', 'require_once': 'REQUIRE_ONCE', 'do': 'DO', 'clone': 'CLONE', 'pub': 'PUB', 'else': 'ELSE', 'band': 'BAND', 'interface': 'INTERFACE', 'xor': 'XOR', 'class': 'CLASS', 'fn': 'FN', 'mod': 'MOD', 'case': 'CASE', 'throw': 'THROW', '_and_': '_AND_', 'sta': 'STA', 'glo': 'GLO', 'default': 'DEFAULT', 'bxor': 'BXOR', 'require': 'REQUIRE', 'list': 'LIST', 'or': 'OR', 'try': 'TRY', 'switch': 'SWITCH', 'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 'declare': 'DECLARE', 'unset': 'UNSET', 'con': 'CON', 'pass': 'PASS'}
 
+# Forces indentation.
+INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'DEFAULT',
+    'FN', 'CLASS', 'CON', 'PUB', 'PRO', 'PRI', 'STA', 'WHILE')
+
 ## Token definitions ##
 
 t_INC = r'\+\+'

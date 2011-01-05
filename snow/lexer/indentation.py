@@ -2,6 +2,7 @@ from ply import lex
 import re
 from lexer.quoted_strings import create_strings
 from lexer.error import raise_indentation_error
+from lexer.tokens.standard import INDENTATION_TRIGGERS
 
 SHOW_TOKENS = False
 
@@ -50,40 +51,60 @@ MUST_INDENT = 2
 def annotate_indentation_state(lexer, token_stream):
     lexer.at_line_start = at_line_start = True
     indent = NO_INDENT
-    saw_colon = False
+    indent_expected = False
+    prev_was_newline = False
     for token in token_stream:
         if SHOW_TOKENS:
             print "Got token:", token
         token.at_line_start = at_line_start
-
-        if token.type == "COLON":
+        # If token if one of those who triggers an indentation we expect an
+        # indentation after next newline (omitting whitespace though).
+        if token.type in INDENTATION_TRIGGERS:
+            indent_expected = True
             at_line_start = False
+            # If we are already expecting indentation and the last token was a
+            # newline this token should also indent.
+            token.must_indent = (prev_was_newline and
+                                 indent in (MAY_INDENT, MUST_INDENT))
             indent = MAY_INDENT
+            prev_was_newline = False
+        
+        # A colon cancels expected indentation.
+        elif token.type == 'COLON':
+            indent_expected = False
             token.must_indent = False
-            
+            at_line_start = False
+            prev_was_newline = False
+        
+        # New line can trigger a need for indentation if it is expected.
         elif token.type == "NEWLINE":
+            prev_was_newline = True
             at_line_start = True
             if indent == MAY_INDENT:
                 indent = MUST_INDENT
             token.must_indent = False
 
+        # Whitespace does not change indent_expected.
         elif token.type == "WS":
             assert token.at_line_start == True
             at_line_start = True
             token.must_indent = False
-
+        
+        # Normal token.
         else:
-            # A real token; only indent after COLON NEWLINE
             if indent == MUST_INDENT:
                 token.must_indent = True
+                indent_expected = False
             else:
                 token.must_indent = False
             at_line_start = False
-            indent = NO_INDENT
+            # Dont reset indent if we are waiting for an indent.
+            if not indent_expected:
+                indent = NO_INDENT
+            prev_was_newline = False
 
         yield token
         lexer.at_line_start = at_line_start
-
 
 # Track the indentation level and emit the right INDENT / DEDENT events.
 def synthesize_indentation_tokens(token_stream):

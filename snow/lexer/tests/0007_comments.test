@@ -1,5 +1,5 @@
 # Yo
-if a > 3:
+if a > 3
     # I comment
         So it its
         and this
@@ -17,7 +17,6 @@ IF: if
 NAME: a
 GREATER: >
 NUMBER: 3
-COLON: :
 NEWLINE: \n
 INDENT: None
 COMMENT: # I comment
