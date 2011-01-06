@@ -7,9 +7,8 @@ now_snow_again()
     html 
         to 
             the 
-                end
+end
 ----
-
 NAME: i_am_snow
 LPAR: (
 RPAR: )
@@ -20,5 +19,5 @@ NAME: now_snow_again
 LPAR: (
 RPAR: )
 NEWLINE: \n
-INLINE_HTML:  and \n    html \n        to \n            the \n                end
+INLINE_HTML:  and \n    html \n        to \n            the \nend
 ENDMARKER: None
