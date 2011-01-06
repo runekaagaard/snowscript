@@ -4,7 +4,7 @@ from sys import exit as e
 from pprint import pprint as p
 
 # List of all Snow tokens.
-tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE', 'CATCH', 'CLASS', 'CLONE', 'DECLARE', 'DEFAULT', 'DO', 'ELSE', 'EXTENDS', 'FINAL', 'FOR', 'IF', 'IMPLEMENTS', 'INTERFACE', 'NAMESPACE', 'NEW', 'OR', 'SWITCH', 'THROW', 'TRY', 'USE', 'WHILE', 'XOR', 'GLO', 'PRI', 'PRO', 'PUB', 'STA', 'CON', 'WHEN', 'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD', 'BAND', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 'EXIT', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 'REQUIRE_ONCE', 'PRINT', 'UNSET', 'INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL', 'CONCAT_EQUAL', 'MOD_EQUAL', 'SL_EQUAL', 'SR_EQUAL', 'AND_EQUAL', 'OR_EQUAL', 'XOR_EQUAL', 'SL', 'SR', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER', 'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR', 'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 'INSIDE_COMMENT', 'GLOBAL', 'BEGIN_HTML', 'INSIDE_HTML', 'BEGIN_SNOW']
+tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE', 'CATCH', 'CLASS', 'CLONE', 'DECLARE', 'DEFAULT', 'DO', 'ELSE', 'EXTENDS', 'FINAL', 'FOR', 'IF', 'IMPLEMENTS', 'INTERFACE', 'NAMESPACE', 'NEW', 'OR', 'SWITCH', 'THROW', 'TRY', 'USE', 'WHILE', 'XOR', 'GLO', 'PRI', 'PRO', 'PUB', 'STA', 'CON', 'WHEN', 'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD', 'BAND', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 'EXIT', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 'REQUIRE_ONCE', 'PRINT', 'UNSET', 'INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL', 'CONCAT_EQUAL', 'MOD_EQUAL', 'SL_EQUAL', 'SR_EQUAL', 'AND_EQUAL', 'OR_EQUAL', 'XOR_EQUAL', 'SL', 'SR', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER', 'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR', 'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 'INSIDE_COMMENT', 'GLOBAL', 'INLINE_HTML']
 
 # Dict of all reserved keywords.
 RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE', 'when': 'WHEN', 'abstract': 'ABSTRACT', 'pri': 'PRI', 'box': 'BOX', 'pro': 'PRO', 'echo': 'ECHO', 'catch': 'CATCH', 'bright': 'BRIGHT', 'exit': 'EXIT', 'in': 'IN', 'if': 'IF', 'fallthru': 'FALLTHRU', 'use': 'USE', 'end': 'END', 'for': 'FOR', 'downto': 'DOWNTO', 'namespace': 'NAMESPACE', 'while': 'WHILE', 'isset': 'ISSET', 'next': 'NEXT', 'to': 'TO', 'extends': 'EXTENDS', 'implements': 'IMPLEMENTS', 'print': 'PRINT', 'new': 'NEW', 'include': 'INCLUDE', 'final': 'FINAL', 'empty': 'EMPTY', 'require_once': 'REQUIRE_ONCE', 'do': 'DO', 'clone': 'CLONE', 'pub': 'PUB', 'else': 'ELSE', 'band': 'BAND', 'interface': 'INTERFACE', 'xor': 'XOR', 'class': 'CLASS', 'fn': 'FN', 'mod': 'MOD', 'case': 'CASE', 'throw': 'THROW', '_and_': '_AND_', 'sta': 'STA', 'glo': 'GLO', 'default': 'DEFAULT', 'bxor': 'BXOR', 'require': 'REQUIRE', 'list': 'LIST', 'or': 'OR', 'try': 'TRY', 'switch': 'SWITCH', 'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 'declare': 'DECLARE', 'unset': 'UNSET', 'con': 'CON', 'pass': 'PASS'}
@@ -66,23 +66,14 @@ t_RBRACE = r'\}'
 t_LSQB = r'\['
 t_RSQB = r'\]'
 
-def t_BEGIN_HTML(t):
-    r"%>"
-    t.lexer.begin('HTML')
+def t_INLINE_HTML(t):
+    r"(?sm)%>(?:.*<%|.*$)"
+    # Strip leading and trailing %> / <%
+    t.value = t.value[2:]
+    if t.value[-2:] == '<%':
+        t.value = t.value[:-2]
     return t
 
-def t_HTML_BEGIN_SNOW(t):
-    r"<%"
-    t.lexer.begin('INITIAL')
-    return t
-
-def t_HTML_INSIDE_HTML(t):
-    r"(?sm).*?(?=<%)"
-    return t
-    
-def t_HTML_error(t):
-    raise_syntax_error("invalid syntax", t)
-    
 NEXT_LINE = re.compile(r'\n([ ]*)(.*)') 
 def t_COMMENT(t):
     r"[ ]*\043[^\n]*"  # \043 is '#' ; otherwise PLY thinks it's an re comment
@@ -127,7 +118,6 @@ def t_COMMENT_INSIDE_COMMENT(t):
     # Empty lines are still comments, so we wont switch state back to INITIAL.
     if t.value.strip() == '':
         return t
-        
     # Looks a head and changes the state back to INITIAL if the next line is not
     # indented further than the first comment line.
     lexer = t.lexer.clone()

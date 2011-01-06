@@ -1,22 +1,24 @@
-echo "i am snow" %>
-I am html
-still < %
-echo html
-<%
-now_snow()
-%> YO YO YO <%
+i_am_snow()
+%> I am html
+   still html 
+     <%
+now_snow_again()
+%> and 
+    html 
+        to 
+            the 
+                end
 ----
-ECHO: echo
-STRING: i.am.snow
-BEGIN_HTML: %>
-INSIDE_HTML: \nI am html\nstill < %\necho html\n
-BEGIN_SNOW: <%
-NEWLINE: \n
-NAME: now_snow
+
+NAME: i_am_snow
 LPAR: (
 RPAR: )
 NEWLINE: \n
-BEGIN_HTML: %>
-INSIDE_HTML:  YO YO YO 
-BEGIN_SNOW: <%
+INLINE_HTML:  I am html\n   still html \n     
+NEWLINE: \n
+NAME: now_snow_again
+LPAR: (
+RPAR: )
+NEWLINE: \n
+INLINE_HTML:  and \n    html \n        to \n            the \n                end
 ENDMARKER: None
