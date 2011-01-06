@@ -117,8 +117,18 @@ def t_start_single_quoted_q2_string(t):
     #print "single_q2", repr(t.value)
     return t
 
+def t_SINGLEQ2_BRACKET_BEGIN_IN_STRING(t):
+    r'\{'
+    t.lexer.push_state('BRACKETINSTRING')
+    return t    
+
+def t_BRACKETINSTRING_BRACKET_END_IN_STRING(t):
+    r'\}'
+    t.lexer.pop_state()
+    return t
+
 def t_SINGLEQ2_simple(t):
-    r'[^"\\]+'
+    r'[^"\\\{]+'
     t.type = "STRING_CONTINUE"
     return t
 

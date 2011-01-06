@@ -32,7 +32,7 @@ states = (
     ("TRIPLEQ1", "exclusive"),
     ("TRIPLEQ2", "exclusive"),
     ("COMMENT", "exclusive"),
-    # ("HTML", "exclusive"),
+    ("BRACKETINSTRING", 'inclusive'),
 )
 
 class SnowLexer(object):
@@ -58,10 +58,11 @@ class SnowLexer(object):
         self.lexer.filename = filename
         self.lexer.line_offsets = get_line_offsets(data)
         self.token_stream = make_token_stream(self.lexer, add_endmarker=True)
+        #for t in self.token_stream: print t
 
     def token(self):
         try:
-            return self.token_stream.next()
+            t = self.token_stream.next()
         except StopIteration:
             return None
 

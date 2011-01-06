@@ -16,6 +16,8 @@ def _parse_quoted_string(start_tok, string_toks):
 
 def create_strings(lexer, token_stream):
     for tok in token_stream:
+        yield tok
+        continue
         if not tok.type.startswith("STRING_START_"):
             yield tok
             continue
@@ -27,13 +29,15 @@ def create_strings(lexer, token_stream):
             if tok.type == "STRING_END":
                 break
             else:
-                assert tok.type == "STRING_CONTINUE", tok.type
+                #assert tok.type in ("STRING_CONTINUE"
+                #    , 'BRACKET_BEGIN_IN_STRING', 'BRACKET_END_IN_STRING'), tok.type
                 string_toks.append(tok)
         else:
             # Reached end of input without string termination
             # This reports the start of the line causing the problem.
             # Python reports the end.  I like mine better.
-            raise_syntax_error(error_message[start_tok.type], start_tok)
+            #raise_syntax_error(error_message[start_tok.type], start_tok)
+            pass
         # Reached the end of the string
         if "SINGLE" in start_tok.type:
             # The compiler module uses the end of the single quoted
