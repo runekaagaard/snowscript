@@ -122,11 +122,18 @@ def t_SINGLEQ2_BRACKET_BEGIN_IN_STRING(t):
     t.lexer.push_state('BRACKETINSTRING')
     return t    
 
+def t_BRACKETINSTRING_META_STRING_IN_STRING_Q2(t):
+    r'\\"([^"]+)\\"'
+    t.value = t.lexer.lexmatch.group(2)
+    return t
+    
 def t_BRACKETINSTRING_BRACKET_END_IN_STRING(t):
     r'\}'
     t.lexer.pop_state()
     return t
 
+
+    
 def t_SINGLEQ2_simple(t):
     r'[^"\\\{]+'
     t.type = "STRING_CONTINUE"

@@ -4,46 +4,43 @@ error_message = {
     "STRING_START_TRIPLE": "EOF while scanning triple-quoted string",
     "STRING_START_SINGLE": "EOL while scanning single-quoted string",
 }
-
-def _parse_quoted_string(start_tok, string_toks):
-    """Pythonic strings like r"" are not supported in Snow."""
-    s = "".join(tok.value for tok in string_toks)
-    quote_type = start_tok.value.lower()
-    if quote_type == "":
-        return s.decode("string_escape")
-    else:
-        raise AssertionError("Unknown string quote type: %r" % (quote_type,))
-
+    
 def create_strings(lexer, token_stream):
+    def collected_strings(start_tok, string_toks):
+        start_tok.type = "STRING"
+        start_tok.value = "".join(tok.value for tok in string_toks).decode("string_escape")
+        return start_tok
+        
     for tok in token_stream:
-        yield tok
-        continue
-        if not tok.type.startswith("STRING_START_"):
+        if not tok.type in ('STRING_START_SINGLE',):
             yield tok
             continue
+            
         # This is a string start; process until string end
         start_tok = tok
         string_toks = []
+        state = 'string'
         for tok in token_stream:
-            #print " Merge string", tok
+            print tok
             if tok.type == "STRING_END":
+                if string_toks:
+                    yield collected_strings(start_tok, string_toks)
+                    string_toks = []
                 break
-            else:
-                #assert tok.type in ("STRING_CONTINUE"
-                #    , 'BRACKET_BEGIN_IN_STRING', 'BRACKET_END_IN_STRING'), tok.type
+            elif state == 'snow' or tok.type == "BRACKET_BEGIN_IN_STRING":
+                state = 'snow'
+                if string_toks:
+                    yield collected_strings(start_tok, string_toks)
+                    string_toks = []
+                if (tok.type.startswith('STRING_') or 
+                tok.type == 'META_STRING_IN_STRING_Q2'):
+                    tok.type = 'STRING'
+                yield tok
+            elif state == 'string' or tok.type == "BRACKET_END_IN_STRING":
+                state == 'string'
                 string_toks.append(tok)
+            else:
+                raise_syntax_error('TODO: Write this message.')
         else:
-            # Reached end of input without string termination
-            # This reports the start of the line causing the problem.
-            # Python reports the end.  I like mine better.
-            #raise_syntax_error(error_message[start_tok.type], start_tok)
-            pass
-        # Reached the end of the string
-        if "SINGLE" in start_tok.type:
-            # The compiler module uses the end of the single quoted
-            # string to determine the strings line number.  I prefer
-            # the start of the string.
-            start_tok.lineno = tok.lineno
-        start_tok.type = "STRING"
-        start_tok.value = _parse_quoted_string(start_tok, string_toks)
-        yield start_tok
+            # Reached end of input without string or "}" termination
+            raise_syntax_error(error_message[start_tok.type], start_tok)
