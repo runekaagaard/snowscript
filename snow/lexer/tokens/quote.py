@@ -49,6 +49,7 @@ def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
 
 def t_SNOWINDOUBLEQUOTEDSTRING_SNOW_END(t): 
         r"}"
+        # Pop state back to INDOUBLEQUOTEDSTRING.
         t.lexer.pop_state()
         
 def t_INDOUBLEQUOTEDSTRING_error(t):
