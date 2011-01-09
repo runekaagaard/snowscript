@@ -53,8 +53,6 @@ def annotate_indentation_state(lexer, token_stream):
     indent_expected = False
     prev_was_newline = False
     for token in token_stream:
-        if SHOW_TOKENS:
-            print "Got token:", token
         token.at_line_start = at_line_start
         # If token if one of those who triggers an indentation we expect an
         # indentation after next newline (omitting whitespace though).
@@ -112,15 +110,7 @@ def synthesize_indentation_tokens(token_stream):
     token = None
     depth = 0
     prev_was_ws = False
-    for token in token_stream:
-##        if 1:
-##            print "Process", token,
-##            if token.at_line_start:
-##                print "at_line_start",
-##            if token.must_indent:
-##               print "must_indent",
-##            print
-                
+    for token in token_stream:                
         # WS only occurs at the start of the line
         # There may be WS followed by NEWLINE so
         # only track the depth here.  Don't indent/dedent
@@ -175,9 +165,6 @@ def synthesize_indentation_tokens(token_stream):
                     levels.pop()
 
         yield token
-
-    ### Finished processing ###
-
     # Must dedent any remaining levels
     if len(levels) > 1:
         assert token is not None
@@ -198,7 +185,6 @@ _add_endmarker = add_endmarker
 
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
-    #token_stream = create_strings(lexer, token_stream)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(token_stream)
     if add_endmarker:
