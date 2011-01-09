@@ -1,0 +1,16 @@
+'' 
+'foo'
+' foo '
+'fo \ \{ \' x'
+'multi
+line
+s'
+----
+STRING: foo
+NEWLINE: \n
+STRING: .foo.
+NEWLINE: \n
+STRING: fo.\.\{.'.x
+NEWLINE: \n
+STRING: multi\nline\ns
+ENDMARKER: None

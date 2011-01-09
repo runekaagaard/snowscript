@@ -1,38 +1,28 @@
-mystring = "I am {$A_CONSTANT} with {a_string} and {obj.method(\"foo\")} and {obj::static_method(\"bar\")} and a {func_tion(\"baz\")}"
+mystring = "I am {$A_CONSTANT} with {a_string} and {obj.method("foo")} and {obj::static_method("bar")} and a {func_tion("baz")}"
 ----
 NAME: mystring
 EQUAL: =
-STRING: I.am.
-BRACKET_BEGIN_IN_STRING: {
+STRING_WITH_CONCAT: I am 
 GLOBAL: $A_CONSTANT
-BRACKET_END_IN_STRING: }
-STRING: .with.
-BRACKET_BEGIN_IN_STRING: {
+STRING_WITH_CONCAT:  with 
 NAME: a_string
-BRACKET_END_IN_STRING: }
-STRING: .and.
-BRACKET_BEGIN_IN_STRING: {
+STRING_WITH_CONCAT:  and 
 NAME: obj
 DOT: .
 NAME: method
 LPAR: (
 STRING: foo
 RPAR: )
-BRACKET_END_IN_STRING: }
-STRING: .and.
-BRACKET_BEGIN_IN_STRING: {
+STRING_WITH_CONCAT:  and 
 NAME: obj
 DOUBLE_COLON: ::
 NAME: static_method
 LPAR: (
 STRING: bar
 RPAR: )
-BRACKET_END_IN_STRING: }
-STRING: .and.a.
-BRACKET_BEGIN_IN_STRING: {
+STRING_WITH_CONCAT:  and a 
 NAME: func_tion
 LPAR: (
 STRING: baz
 RPAR: )
-BRACKET_END_IN_STRING: }
 ENDMARKER: None

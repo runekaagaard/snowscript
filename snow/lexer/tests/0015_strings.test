@@ -1,13 +1,11 @@
-a = "foo {bar(\"ufel\")} sup"
+a = "foo {bar("ufel")} sup"
 ----
 NAME: a
 EQUAL: =
-STRING: foo.
-BRACKET_BEGIN_IN_STRING: {
+STRING_WITH_CONCAT: foo 
 NAME: bar
 LPAR: (
 STRING: ufel
 RPAR: )
-BRACKET_END_IN_STRING: }
 STRING: .sup
 ENDMARKER: None

@@ -3,8 +3,6 @@ import re
 from lexer.error import raise_indentation_error
 from lexer.tokens.standard import INDENTATION_TRIGGERS
 
-SHOW_TOKENS = False
-
 def _new_token(type, lineno):
     tok = lex.LexToken()
     tok.type = type

@@ -15,7 +15,6 @@ def lex_snow(code):
     lexer.input(code, '')
     tokens_as_string = ''
     for t in lexer:
-        print t
         if type(t.value) == type(tuple()):
             value = t.value[1]
         else:
@@ -40,8 +39,13 @@ os.system('rm -f lexer/tests/*.out')
 # Run test 'suite'
 failure = succes = 0
 for file in glob('lexer/tests/' + glob_string):
+    print colored("Running test: %s" % file, 'cyan')
     code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
     tokens_actual = lex_snow(code)
+    try:
+        tokens_actual = lex_snow(code)
+    except Exception as e:
+        tokens_actual = "%s: %s (%s)" % (e.__class__, e.message, e.args)
     if tokens_expected != tokens_actual:
         failure += 1
         print colored("Failing test: %s" % file, 'red')

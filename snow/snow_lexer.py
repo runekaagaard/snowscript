@@ -11,7 +11,7 @@ from lexer.tokens.standard import *
 from lexer.tokens.whitespace import *
 from lexer.tokens.number import *
 from lexer.tokens.brackets import *
-from lexer.tokens.quote import *
+from lexer.tokens.strings import *
 from lexer.indentation import get_line_offsets, make_token_stream
 from lexer.error import raise_syntax_error, raise_indentation_error
 import sys
@@ -27,14 +27,12 @@ tokens = tuple(tokens) + ("NEWLINE", "NUMBER", "NAME", "WS",
 # The different states the lexer can operate in. Token names in non-initial
 # states are written as "t_[STATE]_TOKENNAME]".
 states = (
-    #("SINGLEQ1", "exclusive"),
-    #("SINGLEQ2", "exclusive"),
-    #("TRIPLEQ1", "exclusive"),
-    #("TRIPLEQ2", "exclusive"),
     ("COMMENT", "exclusive"),
     ('INDOUBLEQUOTEDSTRING', 'exclusive'),
+    ('INSINGLEQUOTEDSTRING', 'exclusive'),
+    ('INTRIPPLEDOUBLEQUOTEDSTRING', 'exclusive'),
+    ('INTRIPPLESINGLEQUOTEDSTRING', 'exclusive'),
     ('SNOWINDOUBLEQUOTEDSTRING', 'inclusive'),
-    #("BRACKETINSTRING", 'inclusive'),
 )
 
 class SnowLexer(object):
@@ -44,7 +42,7 @@ class SnowLexer(object):
     Extends the default PLY lexer by adding rules for indentation and other
     whitespace stuff.
     """
-    def __init__(self, lexer = None):
+    def __init__(self, lexer=None):
         if lexer is None:
             lexer = lex.lex().clone()
         self.lexer = lexer
