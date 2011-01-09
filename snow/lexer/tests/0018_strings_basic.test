@@ -1,0 +1,23 @@
+"" 
+"foo"
+" foo "
+"fo \ \{ \""
+"foo {bar("baz")}"
+"multi
+line
+s"
+----
+STRING: foo
+NEWLINE: \n
+STRING: .foo.
+NEWLINE: \n
+STRING: fo.\.{."
+NEWLINE: \n
+STRING_WITH_CONCAT: foo 
+NAME: bar
+LPAR: (
+STRING: baz
+RPAR: )
+NEWLINE: \n
+STRING: multi\nline\ns
+ENDMARKER: None
