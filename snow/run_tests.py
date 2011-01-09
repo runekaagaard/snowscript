@@ -15,6 +15,7 @@ def lex_snow(code):
     lexer.input(code, '')
     tokens_as_string = ''
     for t in lexer:
+        print t
         if type(t.value) == type(tuple()):
             value = t.value[1]
         else:

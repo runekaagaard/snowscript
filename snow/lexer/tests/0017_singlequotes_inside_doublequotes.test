@@ -1,14 +1,2 @@
-a = "foo 'sup' {bar('ufel')} sup"
+a = "aaa 'bbb' {foo(bar)} ddd"
 ----
-NAME: a
-EQUAL: =
-STRING: foo.'sup'.
-BRACKET_BEGIN_IN_STRING: {
-NAME: bar
-LPAR: (
-STRING: ufel
-RPAR: )
-BRACKET_END_IN_STRING: }
-STRING_CONTINUE:  sup
-STRING_END: "
-ENDMARKER: None

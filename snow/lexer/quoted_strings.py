@@ -9,9 +9,10 @@ def create_strings(lexer, token_stream):
     def collected_strings(start_tok, string_toks):
         start_tok.type = "STRING"
         start_tok.value = "".join(tok.value for tok in string_toks).decode("string_escape")
-        return start_tok
+        return start_tok if start_tok.value else None
         
     for tok in token_stream:
+        print tok
         if not tok.type in ('STRING_START_SINGLE',):
             yield tok
             continue

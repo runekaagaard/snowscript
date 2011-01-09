@@ -199,7 +199,7 @@ _add_endmarker = add_endmarker
 
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
-    token_stream = create_strings(lexer, token_stream)
+    #token_stream = create_strings(lexer, token_stream)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(token_stream)
     if add_endmarker:

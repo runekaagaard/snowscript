@@ -1,156 +1,56 @@
 from lexer.error import raise_syntax_error
+from sys import exit as e
 
-# This is a q1: '
-# This is a q2: "
-# These are single quoted strings:  'this' "and" r"that"
-# These are triple quoted strings:  """one""" '''two''' U'''three'''
-
-error_message = {
-    "STRING_START_TRIPLE": "EOF while scanning triple-quoted string",
-    "STRING_START_SINGLE": "EOL while scanning single-quoted string",
-}
-
-# Handle "\" escapes
-def t_SINGLEQ1_SINGLEQ2_TRIPLEQ1_TRIPLEQ2_escaped(t):
-    r"\\(.|\n)"
-    t.type = "STRING_CONTINUE"
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-##### Triple Q1
-
-def t_start_triple_quoted_q1_string(t):
-    r"'''"
-    t.lexer.push_state("TRIPLEQ1")
-    t.type = "STRING_START_TRIPLE"
-    if "r" in t.value or "R" in t.value:
-        t.lexer.is_raw = True
-    t.value = t.value.split("'", 1)[0]
-    return t
-
-def t_TRIPLEQ1_simple(t):
-    r"[^'\\]+"
-    t.type = "STRING_CONTINUE"
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-def t_TRIPLEQ1_q1_but_not_triple(t):
-    r"'(?!'')"
-    t.type = "STRING_CONTINUE"
-    return t
-
-def t_TRIPLEQ1_end(t):
-    r"'''"
-    t.type = "STRING_END"
-    t.lexer.pop_state()
-    t.lexer.is_raw = False
-    return t
-
-
-def t_start_triple_quoted_q2_string(t):
-    r'"""'
-    t.lexer.push_state("TRIPLEQ2")
-    t.type = "STRING_START_TRIPLE"
-    if "r" in t.value or "R" in t.value:
-        t.lexer.is_raw = True
-    t.value = t.value.split('"', 1)[0]
-    return t
-
-def t_TRIPLEQ2_simple(t):
-    r'[^"\\]+'
-    t.type = "STRING_CONTINUE"
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-def t_TRIPLEQ2_q2_but_not_triple(t):
-    r'"(?!"")'
-    t.type = "STRING_CONTINUE"
-    return t
-
-def t_TRIPLEQ2_end(t):
-    r'"""'
-    t.type = "STRING_END"
-    t.lexer.pop_state()
-    t.lexer.is_raw = False
-    return t
-
-t_TRIPLEQ1_ignore = ""  # supress PLY warning
-t_TRIPLEQ2_ignore = ""  # supress PLY warning
-
-def t_TRIPLEQ1_error(t):
-    raise_syntax_error()
-
-def t_TRIPLEQ2_error(t):
-    raise_syntax_error()
-
-##### Single quoted strings
-
-def t_start_single_quoted_q1_string(t):
-    r"'"
-    t.lexer.push_state("SINGLEQ1")
-    t.type = "STRING_START_SINGLE"
-    if "r" in t.value or "R" in t.value:
-        t.lexer.is_raw = True
-    t.value = t.value.split("'", 1)[0]
-    #print "single_q1", t.value
-    return t
-
-def t_SINGLEQ1_simple(t):
-    r"[^'\\]+"
-    t.type = "STRING_CONTINUE"
-    return t
-
-def t_SINGLEQ1_end(t):
-    r"'"
-    t.type = "STRING_END"
-    t.lexer.pop_state()
-    t.lexer.is_raw = False
-    return t
-
-def t_start_single_quoted_q2_string(t):
-    r'"'
-    t.lexer.push_state("SINGLEQ2")
-    t.type = "STRING_START_SINGLE"
-    if "r" in t.value or "R" in t.value:
-        t.lexer.is_raw = True
-    t.value = t.value.split('"', 1)[0]
-    #print "single_q2", repr(t.value)
-    return t
-
-def t_SINGLEQ2_BRACKET_BEGIN_IN_STRING(t):
-    r'\{'
-    t.lexer.push_state('BRACKETINSTRING')
-    return t    
-
-def t_BRACKETINSTRING_META_STRING_IN_STRING_Q2(t):
-    r'\\"([^"]+)\\"'
-    t.value = t.lexer.lexmatch.group(2)
+def add_to_string(t, value):
+    """Adds a value to the lexers single_doublequoted_string variable.""" 
+    try: t.lexer.single_doublequoted_string += value
+    except AttributeError: t.lexer.single_doublequoted_string = value
+    
+def get_string_token(t):
+    """Returns a string token with the value of the lexers 
+    single_doublequoted_string variable which is then reset to ''."""
+    try: t.value = t.lexer.single_doublequoted_string
+    except AttributeError: t.value = ''
+    t.type = 'STRING'
+    t.lexer.single_doublequoted_string = ''
     return t
     
-def t_BRACKETINSTRING_BRACKET_END_IN_STRING(t):
-    r'\}'
-    t.lexer.pop_state()
-    return t
-
-
-    
-def t_SINGLEQ2_simple(t):
-    r'[^"\\\{]+'
-    t.type = "STRING_CONTINUE"
-    return t
-
-def t_SINGLEQ2_end(t):
+def t_STRING_BEGIN(t):
     r'"'
-    t.type = "STRING_END"
-    t.lexer.pop_state()
-    t.lexer.is_raw = False
-    return t
+    t.lexer.single_doublequoted_string = ''
+    t.lexer.push_state('INDOUBLEQUOTEDSTRING')
 
-t_SINGLEQ1_ignore = ""  # supress PLY warning
-t_SINGLEQ2_ignore = ""  # supress PLY warning
+def t_INDOUBLEQUOTEDSTRING_ESCAPE(t):
+    r'(\\")|(\\{)|(\\)'
+    # Matches an escaped " or { or a single \ as these should count as a normal 
+    # string char. 
+    add_to_string(t, t.value[1] if len(t.value) > 1 else t.value[0])
+    
+def t_INDOUBLEQUOTEDSTRING_STRING(t): 
+        r'[^{"\\]+'
+        # All that are normal string chars.
+        add_to_string(t, t.value)
+ 
+def t_INDOUBLEQUOTEDSTRING_STRING_END(t): 
+        r'"'
+        # Pop state back to initial. Return collected strings if any.
+        t.lexer.pop_state()
+        if t.lexer.single_doublequoted_string:
+            return get_string_token(t)
+        
+def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t): 
+        r"{"
+        # Going into Snow mode. Return collected strings if any.
+        t.lexer.push_state('SNOWINDOUBLEQUOTEDSTRING')
+        if t.lexer.single_doublequoted_string:
+            t = get_string_token(t)
+            t.type = 'STRING_WITH_CONCAT'
+            return t
 
-def t_SINGLEQ1_error(t):
-    raise_syntax_error("EOF while scanning single quoted string", t)
-
-def t_SINGLEQ2_error(t):
-    raise_syntax_error("EOF while scanning single quoted string", t)
+def t_SNOWINDOUBLEQUOTEDSTRING_SNOW_END(t): 
+        r"}"
+        t.lexer.pop_state()
+        
+def t_INDOUBLEQUOTEDSTRING_error(t):
+    print t
+    raise_syntax_error("invalid syntax", t)
