@@ -15,6 +15,4 @@ for i in ints: wrong(i)
 if "i {am("what {foo('you')}" | want) }"
     echo "i know"
     
-    
-    
 ----

@@ -15,6 +15,7 @@ def lex_snow(code):
     lexer = SnowLexer()
     lexer.input(code, '')
     code_lines = code.split("\n")
+    max_code_lines = len(str(len(code_lines)))
     last_printed_pos = 0
     tokens_as_string = ''
     indent = 0
@@ -29,8 +30,8 @@ def lex_snow(code):
             indent -= 1
         elif t.type == 'NEWLINE':
             indention = " " * indent * 4
-            linenob = colored(str(t.lexer.lineno) + '', 'white', 'on_grey') + ' '
-            lineno = colored(str(t.lexer.lineno) + '', 'yellow', 'on_grey') + ' '
+            linenob = colored(str(t.lexer.lineno).rjust(max_code_lines, '0') + '', 'white', 'on_grey') + ' '
+            lineno = colored(str(t.lexer.lineno).rjust(max_code_lines, '0') + '', 'yellow', 'on_grey') + ' '
             if not has_newline: tokens_as_string += "\n"
             tokens_as_string += lineno
             tokens_as_string += colored(indention + code[last_printed_pos:t.lexpos].strip(), 'yellow')
@@ -41,8 +42,8 @@ def lex_snow(code):
             has_newline = True
         elif t.type == 'ENDMARKER':
             nl = "" if has_newline else "\n"
-            linenob = colored(str(t.lineno+1) + '', 'white', 'on_grey') + ' '
-            lineno = colored(str(t.lineno+1) + '', 'yellow', 'on_grey') + ' '
+            linenob = colored(str(t.lineno+1).rjust(max_code_lines, '0') + '', 'white', 'on_grey') + ' '
+            lineno = colored(str(t.lineno+1).rjust(max_code_lines, '0') + '', 'yellow', 'on_grey') + ' '
             tokens_as_string += "\n" + lineno
             tokens_as_string += colored(code[last_printed_pos:], 'yellow') + "\n"
             tokens_as_string += linenob + str(next_line)
@@ -62,7 +63,7 @@ def lex_snow(code):
                 prefix = ''
             indention = (" " if has_newline else "") * indent * 4
             has_newline = False
-            token = t.value.upper() if is_special else "%s{'%s'}" % (t.type, t.value)
+            token = t.value.upper() if is_special else "%s<%s>" % (t.type, t.value)
             next_line += "%s%s%s" % (
                 prefix, indention, token
             )
