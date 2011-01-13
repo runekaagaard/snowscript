@@ -62,7 +62,7 @@ def lex_snow(code):
                 prefix = ''
             indention = (" " if has_newline else "") * indent * 4
             has_newline = False
-            token = t.value if is_special else "%s{'%s'}" % (t.type, t.value)
+            token = t.value.upper() if is_special else "%s{'%s'}" % (t.type, t.value)
             next_line += "%s%s%s" % (
                 prefix, indention, token
             )
