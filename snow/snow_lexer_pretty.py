@@ -28,12 +28,14 @@ def lex_snow(code):
         elif t.type == 'DEDENT':
             indent -= 1
         elif t.type == 'NEWLINE':
+            indention = " " * indent * 4
             linenob = colored(str(t.lexer.lineno) + '', 'white', 'on_grey') + ' '
             lineno = colored(str(t.lexer.lineno) + '', 'yellow', 'on_grey') + ' '
-            tokens_as_string += t.value
+            if not has_newline: tokens_as_string += "\n"
             tokens_as_string += lineno
-            tokens_as_string += colored(code[last_printed_pos:t.lexpos], 'yellow') + "\n"
-            tokens_as_string += linenob + next_line
+            tokens_as_string += colored(indention + code[last_printed_pos:t.lexpos].strip(), 'yellow')
+            if not has_newline: tokens_as_string += "\n"
+            tokens_as_string += linenob + indention + next_line.strip()
             next_line = ''
             last_printed_pos = t.lexpos + 1
             has_newline = True
