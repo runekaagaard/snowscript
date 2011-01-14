@@ -63,7 +63,9 @@ def lex_snow(code):
                 prefix = ''
             indention = (" " if has_newline else "") * indent * 4
             has_newline = False
-            token = t.value.upper() if is_special else "%s<%s>" % (t.type, t.value)
+            normal_value = t.value.upper()
+            if len(normal_value) == 1: normal_value = colored(normal_value, 'blue')
+            token = normal_value if is_special else "%s%s" % (t.type,  colored('<%s>' % t.value, 'green'))
             next_line += "%s%s%s" % (
                 prefix, indention, token
             )
