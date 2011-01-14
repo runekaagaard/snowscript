@@ -45,8 +45,8 @@ def lex_snow(code):
             linenob = colored(str(t.lineno+1).rjust(max_code_lines, '0') + '', 'white', 'on_grey') + ' '
             lineno = colored(str(t.lineno+1).rjust(max_code_lines, '0') + '', 'yellow', 'on_grey') + ' '
             tokens_as_string += "\n" + lineno
-            tokens_as_string += colored(code[last_printed_pos:], 'yellow') + "\n"
-            tokens_as_string += linenob + str(next_line)
+            tokens_as_string += colored(code[last_printed_pos:].strip(), 'yellow') + "\n"
+            tokens_as_string += linenob + str(next_line).strip()
             tokens_as_string += "%s%s" % (nl, t.type)            
             next_line = ''
         else:
