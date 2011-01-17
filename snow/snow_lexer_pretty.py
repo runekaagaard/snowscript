@@ -50,7 +50,9 @@ def lex_snow(code):
             tokens_as_string += "%s%s" % (nl, t.type)            
             next_line = ''
         else:
-            is_special = t.type in tokens and t.type not in ('STRING_WITH_CONCAT', )
+            t.value = str(t.value)
+            is_special = t.type in tokens and t.type not in ('STRING_WITH_CONCAT', 'COMMENT', 'INSIDE_COMMENT')
+            print t
             prefix = " " if not has_newline and not is_first_token else ""
             if no_prefix_next_time:
                 prefix = ''
@@ -87,3 +89,4 @@ for file in glob('lexer/tests/' + glob_string):
     print colored("Prettylexing file: %s" % file, 'cyan')
     code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
     print lex_snow(code)
+    print
