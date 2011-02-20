@@ -3,7 +3,7 @@ mystring = "I am {$A_CONSTANT} with {a_string} and {obj.method("foo")} and {obj:
 NAME: mystring
 EQUAL: =
 STRING_WITH_CONCAT: I am 
-GLOBAL: $A_CONSTANT
+CONST: A_CONSTANT
 STRING_WITH_CONCAT:  with 
 NAME: a_string
 STRING_WITH_CONCAT:  and 
