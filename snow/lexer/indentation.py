@@ -102,13 +102,14 @@ def annotate_indentation_state(lexer, token_stream):
         lexer.at_line_start = at_line_start
 
 # Track the indentation level and emit the right INDENT / DEDENT events.
-def synthesize_indentation_tokens(token_stream):
+def synthesize_indentation_tokens(lexer, token_stream):
     # A stack of indentation levels; will never pop item 0
     levels = [0]
     token = None
     depth = 0
     prev_was_ws = False
-    for token in token_stream:                
+    for token in token_stream:           
+        token.lexer = lexer     
         # WS only occurs at the start of the line
         # There may be WS followed by NEWLINE so
         # only track the depth here.  Don't indent/dedent
@@ -184,7 +185,7 @@ _add_endmarker = add_endmarker
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
-    token_stream = synthesize_indentation_tokens(token_stream)
+    token_stream = synthesize_indentation_tokens(lexer, token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream
