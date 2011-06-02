@@ -52,7 +52,7 @@ def lex_snow(code):
         else:
             t.value = str(t.value)
             is_special = t.type in tokens and t.type not in ('STRING_WITH_CONCAT', 'COMMENT', 'INSIDE_COMMENT')
-            print t
+            #print t
             prefix = " " if not has_newline and not is_first_token else ""
             if no_prefix_next_time:
                 prefix = ''
@@ -74,6 +74,26 @@ def lex_snow(code):
         is_first_token = False
     return tokens_as_string.strip()
 
+def pretty_lex(code):
+    lexer = SnowLexer()
+    lexer.input(code, '')
+    lexpos = 0
+    newcode = ''
+    tokens = []
+    print code
+    for t in lexer:
+        if t.lexpos is not None:
+            newlexpos = t.lexpos+1
+            newcode += code[lexpos:newlexpos]
+            t.code = code[lexpos:newlexpos]
+            lexpos = newlexpos
+            tokens.append(t)
+    newcode += code[lexpos:]
+    if code != newcode:
+        raise Exception("Reconstruction of code error.")
+    for t in tokens:
+        print t, t.code.replace("\n", r"\n")
+        #for line in unified_diff(code, newcode): print line
 # Parse args
 glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 
@@ -88,5 +108,10 @@ failure = succes = 0
 for file in glob('lexer/tests/' + glob_string):
     print colored("Prettylexing file: %s" % file, 'cyan')
     code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
-    print lex_snow(code)
-    print
+    #print code
+    #print lex_snow(code)
+    pretty_lex(code)
+    #sys.exit()
+    #wef
+    #print lex_snow(code)
+    #print

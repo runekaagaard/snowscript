@@ -8,7 +8,7 @@ def _new_token(type, lineno):
     tok.type = type
     tok.value = None
     tok.lineno = lineno
-    tok.lexpos = -100
+    tok.lexpos = None
     return tok
 
 # Synthesize a DEDENT tag.
