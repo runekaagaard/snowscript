@@ -79,21 +79,43 @@ def pretty_lex(code):
     lexer.input(code, '')
     lexpos = 0
     newcode = ''
-    tokens = []
-    print code
-    for t in lexer:
-        if t.lexpos is not None:
+    tokens = [t for t in lexer if t.lexpos != -1]
+    #print code
+    #print tokens
+    #for t in tokens: print t
+    i = 0
+    for t in tokens:
+        try:
+            nextlexpos = tokens[i+1].lexpos
+        except IndexError:
+            nextlexpos = len(code) 
+        
+        if t.lexpos != -1:
             newlexpos = t.lexpos+1
             newcode += code[lexpos:newlexpos]
-            t.code = code[lexpos:newlexpos]
+            t.code = code[t.lexpos:nextlexpos]
             lexpos = newlexpos
-            tokens.append(t)
+        else:
+            t.code = ''
+        i += 1
+            #tokens.append(t)
     newcode += code[lexpos:]
     if code != newcode:
         raise Exception("Reconstruction of code error.")
-    for t in tokens:
-        print t, t.code.replace("\n", r"\n")
-        #for line in unified_diff(code, newcode): print line
+    #print tokens
+    codefromtokens = "".join(t.code for t in tokens)
+    if code != codefromtokens:
+        print "\n".join(l for l in unified_diff(code.split("\n"), codefromtokens.split("\n")))
+        print "### Before ###"
+        print
+        print code
+        print "### After ###"
+        print codefromtokens
+        print
+        #raise Exception("Reconstruction of code error.")
+    #for t in tokens:
+        #print t, t.code.replace("\n", r"\n")
+        #
 # Parse args
 glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 
