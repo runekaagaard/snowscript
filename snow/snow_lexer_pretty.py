@@ -80,34 +80,27 @@ def pretty_lex(code):
     lexpos = 0
     newcode = ''
     tokens = [t for t in lexer if t.lexpos != -1]
-    #print code
-    #print tokens
-    #for t in tokens: print t
     i = 0
     for t in tokens:
+        print t
         try:
             nextlexpos = tokens[i+1].lexpos
         except IndexError:
-            nextlexpos = len(code) 
-        
-        if t.lexpos != -1:
-            newlexpos = t.lexpos+1
-            newcode += code[lexpos:newlexpos]
-            t.code = code[t.lexpos:nextlexpos]
-            lexpos = newlexpos
-        else:
-            t.code = ''
+            nextlexpos = len(code)         
+        newlexpos = t.lexpos+1
+        newcode += code[lexpos:newlexpos]
+        t.code = code[t.lexpos:nextlexpos]
+        lexpos = newlexpos
         i += 1
             #tokens.append(t)
     newcode += code[lexpos:]
-    if code != newcode:
-        raise Exception("Reconstruction of code error.")
+    #if code != newcode:
+    #    raise Exception("Reconstruction of code error.")
     #print tokens
     codefromtokens = "".join(t.code for t in tokens)
     if code != codefromtokens:
         print "\n".join(l for l in unified_diff(code.split("\n"), codefromtokens.split("\n")))
         print "### Before ###"
-        print
         print code
         print "### After ###"
         print codefromtokens

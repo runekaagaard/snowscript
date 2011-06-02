@@ -19,6 +19,8 @@ def get_string_token(t):
 
 def t_TRIPPLE_DOUBLEQUOTED_STRING_BEGIN(t):
     r'"""'
+#    print t
+    t.lexer.tdq_t_before_str = t
     t.lexer.doublequoted_string = ''
     t.lexer.push_state('INTRIPPLEDOUBLEQUOTEDSTRING')
 
@@ -35,6 +37,9 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_STRING(t):
  
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_STRING_END(t): 
         r'"""'
+        # Set lexer pos and linenumber to what it was when the string began.
+        t.lexpos = t.lexer.tdq_t_before_str.lexpos
+        t.lineno = t.lexer.tdq_t_before_str.lineno
         # Pop state back to initial. Return collected strings if any.
         t.lexer.pop_state()
         if t.lexer.doublequoted_string:
@@ -67,6 +72,7 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_error(t):
 ## Single doublequoted string    
 def t_DOUBLEQUOTED_STRING_BEGIN(t):
     r'"'
+    t.lexer.dq_t_before_str = t
     t.lexer.doublequoted_string = ''
     t.lexer.push_state('INDOUBLEQUOTEDSTRING')
 
@@ -83,6 +89,8 @@ def t_INDOUBLEQUOTEDSTRING_STRING(t):
  
 def t_INDOUBLEQUOTEDSTRING_STRING_END(t): 
         r'"'
+        t.lexpos = t.lexer.dq_t_before_str.lexpos
+        t.lineno = t.lexer.dq_t_before_str.lineno
         # Pop state back to initial. Return collected strings if any.
         t.lexer.pop_state()
         if t.lexer.doublequoted_string:
@@ -90,6 +98,7 @@ def t_INDOUBLEQUOTEDSTRING_STRING_END(t):
         
 def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t): 
         r"{"
+        t.lexer.dq_t_before_str.lineno = t
         # Going into Snow mode. Return collected strings if any.
         t.lexer.push_state('SNOWINDOUBLEQUOTEDSTRING')
         if t.lexer.doublequoted_string:
@@ -99,6 +108,8 @@ def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
 
 def t_SNOWINDOUBLEQUOTEDSTRING_SNOW_END(t): 
         r"}"
+        t.lexpos = t.lexer.dq_t_before_str.lexpos
+        t.lineno = t.lexer.dq_t_before_str.lineno
         # Pop state back to INDOUBLEQUOTEDSTRING.
         t.lexer.pop_state()
         
@@ -110,6 +121,7 @@ def t_INDOUBLEQUOTEDSTRING_error(t):
 
 def t_TRIPPLE_SINGLEQUOTED_STRING_BEGIN(t):
     r"'''"
+    t.lexer.tsq_t_before_str = t
     t.lexer.doublequoted_string = ''
     t.lexer.push_state('INTRIPPLESINGLEQUOTEDSTRING')
 
@@ -126,6 +138,9 @@ def t_INTRIPPLESINGLEQUOTEDSTRING_STRING(t):
  
 def t_INTRIPPLESINGLEQUOTEDSTRING_STRING_END(t): 
         r"'''"
+        # Set lexer pos and linenumber to what it was when the string began.
+        t.lexpos = t.lexer.tsq_t_before_str.lexpos
+        t.lineno = t.lexer.tsq_t_before_str.lineno
         # Pop state back to initial. Return collected strings if any.
         t.lexer.pop_state()
         if t.lexer.doublequoted_string:
@@ -138,13 +153,13 @@ def t_INTRIPPLESINGLEQUOTEDSTRING_SINGLEQUOTE(t):
     add_to_string(t, t.value)
         
 def t_INTRIPPLESINGLEQUOTEDSTRING_error(t):
-    print t
     raise_syntax_error("invalid syntax", t)
     
 ## Single singlequoted string    
 
 def t_SINGLEQUOTED_STRING_BEGIN(t):
     r"'"
+    t.lexer.sq_t_before_str = t
     t.lexer.doublequoted_string = ''
     t.lexer.push_state('INSINGLEQUOTEDSTRING')
 
@@ -161,6 +176,9 @@ def t_INSINGLEQUOTEDSTRING_STRING(t):
  
 def t_INSINGLEQUOTEDSTRING_STRING_END(t): 
         r"'"
+        # Set lexer pos and linenumber to what it was when the string began.
+        t.lexpos = t.lexer.sq_t_before_str.lexpos
+        t.lineno = t.lexer.sq_t_before_str.lineno
         # Pop state back to initial. Return collected strings if any.
         t.lexer.pop_state()
         if t.lexer.doublequoted_string:
