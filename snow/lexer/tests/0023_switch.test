@@ -3,3 +3,25 @@ x = switch foo
         <-- "yo"
     case 'bar': echo "sup"
 ----
+NAME: x
+EQUAL: =
+SWITCH: switch
+NAME: foo
+NEWLINE: \n
+INDENT: None
+CASE: case
+STRING: foo
+NEWLINE: \n
+INDENT: None
+INNER_RETURN: <--
+STRING: yo
+NEWLINE: \n
+DEDENT: None
+CASE: case
+STRING: bar
+COLON: :
+ECHO: echo
+STRING: sup
+DEDENT: None
+ENDMARKER: None
+
