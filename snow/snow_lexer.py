@@ -32,7 +32,7 @@ states = (
     ('INSINGLEQUOTEDSTRING', 'exclusive'),
     ('INTRIPPLEDOUBLEQUOTEDSTRING', 'exclusive'),
     ('INTRIPPLESINGLEQUOTEDSTRING', 'exclusive'),
-    ('SNOWINDOUBLEQUOTEDSTRING', 'inclusive'),
+    ('SNOWINANYDOUBLEQUOTEDSTRING', 'inclusive'),
 )
 
 class SnowLexer(object):
