@@ -48,7 +48,7 @@ class SnowLexer(object):
         self.lexer = lexer
         self.lexer.paren_count = 0
         self.lexer.is_raw = False
-        self.lexer.after_concat = False
+        self.lexer.string_been_concat = False
         self.lexer.filename = None
         self.token_stream = None
         self.lexer.after_concat = False
