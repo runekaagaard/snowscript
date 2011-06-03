@@ -2,33 +2,48 @@ from lexer.error import raise_syntax_error
 from sys import exit as e
 
 def add_to_string(t, value):
-    """Adds a value to the lexers doublequoted_string variable."""
-    try: t.lexer.doublequoted_string += value
-    except AttributeError: t.lexer.doublequoted_string = value
+    """Adds a value to the lexers string_content variable."""
+    try: t.lexer.string_content += value
+    except AttributeError: t.lexer.string_content = value
     
 def get_string_token(t):
     """Returns a string token with the value of the lexers 
-    doublequoted_string variable which is then reset to ''."""
+    string_content variable which is then reset to ''."""
     #print t.lexer.current_state()
     #if t.lexer.current_state() == 'SNOWINANYDOUBLEQUOTEDSTRING' and t.value == '':
     #    print "NNNOOOOOT"
-    #    t.lexer.doublequoted_string = ''
+    #    t.lexer.string_content = ''
     #    return
-    if t.lexer.doublequoted_string == '':
-        print t.lexer.current_state()
-        return
-    try: t.value = t.lexer.doublequoted_string
+    #if t.lexer.string_content == '':
+    #    print t.lexer.current_state()
+    #    return
+    #print t.value, t.lexer.current_state()
+    
+    if t.lexer.string_content == '' and t.lexer.current_state() == 'SNOWINANYDOUBLEQUOTEDSTRING':
+        if t.lexer.string_content != '':
+            t.lexer.string_is_part_of_concat = True
+            return
+            print "YEAH"
+    if t.lexer.current_state() == 'INITIAL':
+        try:
+            if t.lexer.string_is_part_of_concat:
+                t.lexer.string_is_part_of_concat == False
+                if t.value == '':
+                    return
+        except AttributeError:
+            t.lexer.string_is_part_of_concat = False
+    try: t.value = t.lexer.string_content
     except AttributeError: t.value = ''
     t.type = 'STRING'
-    t.lexer.doublequoted_string = ''
+    t.lexer.string_content = ''
     return t
 
 ## Tripple doublequoted string
 
-def t_TRIPPLE_DOUBLEQUOTED_STRING_BEGIN(t):
+def t_TRIPPLE_string_content_BEGIN(t):
     r'"""'
     t.lexer.tdq_t_before_str = t
-    t.lexer.doublequoted_string = ''
+    t.lexer.string_content = ''
     t.lexer.push_state('INTRIPPLEDOUBLEQUOTEDSTRING')
 
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_ESCAPE(t):
@@ -71,10 +86,10 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_error(t):
     raise_syntax_error("invalid syntax", t)
     
 ## Single doublequoted string    
-def t_DOUBLEQUOTED_STRING_BEGIN(t):
+def t_string_content_BEGIN(t):
     r'"'
     t.lexer.dq_t_before_str = t
-    t.lexer.doublequoted_string = ''
+    t.lexer.string_content = ''
     t.lexer.push_state('INDOUBLEQUOTEDSTRING')
 
 def t_INDOUBLEQUOTEDSTRING_ESCAPE(t):
@@ -123,7 +138,7 @@ def t_INDOUBLEQUOTEDSTRING_error(t):
 def t_TRIPPLE_SINGLEQUOTED_STRING_BEGIN(t):
     r"'''"
     t.lexer.tsq_t_before_str = t
-    t.lexer.doublequoted_string = ''
+    t.lexer.string_content = ''
     t.lexer.push_state('INTRIPPLESINGLEQUOTEDSTRING')
 
 def t_INTRIPPLESINGLEQUOTEDSTRING_ESCAPE(t):
@@ -160,7 +175,7 @@ def t_INTRIPPLESINGLEQUOTEDSTRING_error(t):
 def t_SINGLEQUOTED_STRING_BEGIN(t):
     r"'"
     t.lexer.sq_t_before_str = t
-    t.lexer.doublequoted_string = ''
+    t.lexer.string_content = ''
     t.lexer.push_state('INSINGLEQUOTEDSTRING')
 
 def t_INSINGLEQUOTEDSTRING_ESCAPE(t):

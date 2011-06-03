@@ -29,4 +29,5 @@ ECHO: echo
 STRING: x
 NEWLINE: \n
 ECHO: echo
+STRING: 
 ENDMARKER: None
