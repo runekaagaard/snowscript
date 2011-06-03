@@ -98,9 +98,6 @@ def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
 
 def t_SNOWINANYDOUBLEQUOTEDSTRING_SNOW_END(t): 
         r"}"
-        # TODO: This get called both for single and tripple double quoted
-        # snow strings. Is that good?
-        t.lexer.prev_token = t
         t.lexer.prev_token = t
         # Pop state back to INDOUBLEQUOTEDSTRING.
         t.lexer.pop_state()
