@@ -48,13 +48,16 @@ class SnowLexer(object):
         self.lexer = lexer
         self.lexer.paren_count = 0
         self.lexer.is_raw = False
+        self.lexer.after_concat = False
         self.lexer.filename = None
         self.token_stream = None
+        self.lexer.after_concat = False
 
     def input(self, data, filename="<string>", add_endmarker=True):
         self.lexer.input(data)
         self.lexer.paren_count = 0
         self.lexer.is_raw = False
+        self.lexer.after_concat = False
         self.lexer.filename = filename
         self.lexer.line_offsets = get_line_offsets(data)
         self.token_stream = make_token_stream(self.lexer, add_endmarker=True)

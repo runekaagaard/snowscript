@@ -2,7 +2,6 @@ call_me("")
 call_you("""""")
 call_us('')
 call_her('''''')
-echo "{"x"}"
 echo ""
 ----
 NAME: call_me
@@ -24,9 +23,6 @@ NAME: call_her
 LPAR: (
 STRING: 
 RPAR: )
-NEWLINE: \n
-ECHO: echo
-STRING: x
 NEWLINE: \n
 ECHO: echo
 STRING: 
