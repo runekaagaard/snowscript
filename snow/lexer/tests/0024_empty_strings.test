@@ -1,17 +1,28 @@
+call_me("")
+call_you("""""")
+call_us('')
+call_her('''''')
+echo "{"x"}"
+echo ""
+----
 NAME: call_me
 LPAR: (
+STRING: 
 RPAR: )
 NEWLINE: \n
 NAME: call_you
 LPAR: (
+STRING: 
 RPAR: )
 NEWLINE: \n
 NAME: call_us
 LPAR: (
+STRING: 
 RPAR: )
 NEWLINE: \n
 NAME: call_her
 LPAR: (
+STRING: 
 RPAR: )
 NEWLINE: \n
 ECHO: echo
