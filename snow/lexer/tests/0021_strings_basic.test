@@ -6,7 +6,7 @@
 line
 s'''
 ----
-STRING: .
+STRING: 
 NEWLINE: \n
 STRING: foo
 NEWLINE: \n
