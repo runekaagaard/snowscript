@@ -82,7 +82,7 @@ def pretty_lex(code):
     tokens = [t for t in lexer if t.lexpos != -1]
     i = 0
     for t in tokens:
-        print t
+        #print t
         try:
             nextlexpos = tokens[i+1].lexpos
         except IndexError:

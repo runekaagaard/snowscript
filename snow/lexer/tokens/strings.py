@@ -62,6 +62,8 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
 
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_SNOW_END(t): 
         r"}"
+        print t
+        t.lexer.tdq_t_before_str = t
         # Pop state back to INDOUBLEQUOTEDSTRING.
         t.lexer.pop_state()
         
@@ -98,7 +100,6 @@ def t_INDOUBLEQUOTEDSTRING_STRING_END(t):
         
 def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t): 
         r"{"
-        t.lexer.dq_t_before_str.lineno = t
         # Going into Snow mode. Return collected strings if any.
         t.lexer.push_state('SNOWINDOUBLEQUOTEDSTRING')
         if t.lexer.doublequoted_string:
@@ -108,8 +109,10 @@ def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
 
 def t_SNOWINDOUBLEQUOTEDSTRING_SNOW_END(t): 
         r"}"
-        t.lexpos = t.lexer.dq_t_before_str.lexpos
-        t.lineno = t.lexer.dq_t_before_str.lineno
+        # TODO: This get called both for single and tripple double quoted
+        # snow strings. Is that good?
+        t.lexer.dq_t_before_str = t
+        t.lexer.tdq_t_before_str = t
         # Pop state back to INDOUBLEQUOTEDSTRING.
         t.lexer.pop_state()
         
