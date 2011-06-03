@@ -5,6 +5,11 @@ def add_to_string(t, value):
     t.lexer.string_content += value
 
 def set_been_concat(t, type):
+    """
+    Set the string_been_concat global which is used to decide if we want to
+    allow empty strings to return token. In general we want to do that, but not
+    if the string comes after a STRING_WITH_CONCAT type.
+    """
     if type == 'STRING_WITH_CONCAT':
         t.lexer.string_been_concat = True
     elif t.lexer.current_state() == 'INITIAL':
