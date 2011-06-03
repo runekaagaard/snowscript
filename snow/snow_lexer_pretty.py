@@ -98,6 +98,7 @@ def pretty_lex(code):
     #    raise Exception("Reconstruction of code error.")
     #print tokens
     codefromtokens = "".join(t.code for t in tokens)
+    print codefromtokens
     if code != codefromtokens:
         print "\n".join(l for l in unified_diff(code.split("\n"), codefromtokens.split("\n")))
         print "### Before ###"
