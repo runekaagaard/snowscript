@@ -2,7 +2,7 @@ from glob import glob
 from snow_lexer import SnowLexer
 from difflib import unified_diff
 from termcolor import colored
-from lexer.tokens.standard import tokens
+from lexer.tokens.standard import tokens, SYMBOLIC
 import sys
 import os
 import string
@@ -10,77 +10,13 @@ import string
 # Debug
 from sys import exit as e
 
-def lex_snow(code):
-    """
-    Prettylexes given snow code and returns colorized string.
-    """
-    lexer = SnowLexer()
-    lexer.input(code, '')
-    code_lines = code.split("\n")
-    max_code_lines = len(str(len(code_lines)))
-    last_printed_pos = 0
-    tokens_as_string = ''
-    indent = 0
-    has_newline = False
-    no_prefix_next_time = False
-    next_line = ''
-    is_first_token = True
-    for t in lexer:
-        if t.type == 'INDENT':
-            indent += 1
-        elif t.type == 'DEDENT':
-            indent -= 1
-        elif t.type == 'NEWLINE':
-            indention = " " * indent * 4
-            linenob = colored(str(t.lexer.lineno).rjust(max_code_lines, '0') + '', 'white', 'on_grey') + ' '
-            lineno = colored(str(t.lexer.lineno).rjust(max_code_lines, '0') + '', 'yellow', 'on_grey') + ' '
-            if not has_newline: tokens_as_string += "\n"
-            tokens_as_string += lineno
-            tokens_as_string += colored(indention + code[last_printed_pos:t.lexpos].strip(), 'yellow')
-            if not has_newline: tokens_as_string += "\n"
-            tokens_as_string += linenob + indention + next_line.strip()
-            next_line = ''
-            last_printed_pos = t.lexpos + 1
-            has_newline = True
-        elif t.type == 'ENDMARKER':
-            nl = "" if has_newline else "\n"
-            linenob = colored(str(t.lineno+1).rjust(max_code_lines, '0') + '', 'white', 'on_grey') + ' '
-            lineno = colored(str(t.lineno+1).rjust(max_code_lines, '0') + '', 'yellow', 'on_grey') + ' '
-            tokens_as_string += "\n" + lineno
-            tokens_as_string += colored(code[last_printed_pos:].strip(), 'yellow') + "\n"
-            tokens_as_string += linenob + str(next_line).strip()
-            tokens_as_string += "%s%s" % (nl, t.type)            
-            next_line = ''
-        else:
-            t.value = str(t.value)
-            is_special = t.type in tokens and t.type not in ('STRING_WITH_CONCAT', 'COMMENT', 'INSIDE_COMMENT')
-            #print t
-            prefix = " " if not has_newline and not is_first_token else ""
-            if no_prefix_next_time:
-                prefix = ''
-                no_prefix_next_time = False
-            if t.value in "({[" and len(t.value) == 1:
-                no_prefix_next_time = True
-            if t.value in "({[)}]" and len(t.value) == 1:
-                prefix = ''
-            if t.value == ':':
-                prefix = ''
-            indention = (" " if has_newline else "") * indent * 4
-            has_newline = False
-            normal_value = t.value.upper()
-            if len(normal_value) == 1: normal_value = colored(normal_value, 'blue')
-            token = normal_value if is_special else "%s%s" % (t.type,  colored('<%s>' % t.value, 'green'))
-            next_line += "%s%s%s" % (
-                prefix, indention, token
-            )
-        is_first_token = False
-    return tokens_as_string.strip()
-
 def pretty_lex(code):
     def get_tokens(code):
         lexer = SnowLexer()
         lexer.input(code, '')
-        return [t for t in lexer if t.lexpos != -1]
+        tokens = [t for t in lexer]
+        tokens_with_code = [t for t in tokens if t.lexpos != -1]
+        return tokens, tokens_with_code
     
     def add_code_to_tokens(tokens):
         i = lexpos = 0
@@ -103,23 +39,49 @@ def pretty_lex(code):
         if type(t.value) == type(tuple()):
             return t.value[0]
         else:
-            return t.value
-        
-    tokens = get_tokens(code)
-    add_code_to_tokens(tokens)
-    check_code_on_tokens(tokens)
+            if 'STRING' not in t.type and t.value == t.type.lower():
+                return None
+            else:
+                return t.value
+            
+    def get_indent(indention):
+        return " " * (indention * 4)
     
-    print_value = ('NEWLINE')
+    tokens, tokens_with_code = get_tokens(code)
+    add_code_to_tokens(tokens_with_code)
+    check_code_on_tokens(tokens_with_code)
     
+    indention = 0
+    i = 0
+    res = ""
     for t in tokens:
-        if t.type in print_value:
-            print t.value,
-        elif len(t.value) < 2 and t.value not in string.letters + '_' and t.type not in ('STRING', 'STRING_WITH_CONCAT'):
-            print colored(t.value, 'blue'),
+        try: t_next = tokens[i+1]
+        except IndexError: t_next = None
+        if t.type == 'ENDMARKER':
+            continue
+        elif t.type == 'NEWLINE':
+            if t_next.type not in ('INDENT', 'DEDENT'):
+                res += t.value + get_indent(indention)  
+            else:
+                res += t.value
+        elif t.type == 'INDENT':
+            indention += 1
+            res += get_indent(indention)
+        elif t.type == 'DEDENT':
+            indention -= 1
+            res += get_indent(indention)
+        elif t.type in SYMBOLIC:
+            res += colored(t.value, 'blue') + " "
         else:
-            print "%s<%s>" % (t.type, colored(get_value(t), 'green')),
-    print
-    print
+            value = get_value(t)
+            if value is not None:
+                res += "%s<%s>" % (t.type, colored(value, 'green')) + " "
+            else:
+                res += t.type + " "
+        i += 1
+    
+    return res
+    
 # Parse args
 glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 
@@ -134,15 +96,6 @@ failure = succes = 0
 for file in glob('lexer/tests/' + glob_string):
     print colored("Prettylexing file: %s" % file, 'cyan')
     code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
-    #print code
-    #print lex_snow(code)
-    #pretty_lex(code)
     print code
     print "--------------"
-    pretty_lex(code)
-    #print lex_snow(code)
-    
-    #sys.exit()
-    #wef
-    #print lex_snow(code)
-    #print
+    print pretty_lex(code)

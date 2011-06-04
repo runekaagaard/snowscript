@@ -14,6 +14,15 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE', 'when'
 INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'DEFAULT',
     'FN', 'CLASS', 'CON', 'PUB', 'PRO', 'PRI', 'STA', 'WHILE')
 
+SYMBOLIC = ('INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 
+            'IS_NOT_EQUAL', 't_IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 
+            'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL', 
+            'CONCAT_EQUAL', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER', 
+            'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR', 
+            'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT', 
+            'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR', 'RPAR', 
+            'LBRACE', 'RBRACE', 'LSQB', 'RSQB',)
+
 ## Token definitions ##
 
 t_INC = r'\+\+'
