@@ -115,17 +115,18 @@ def t_COMMENT(t):
     # the state. Then the t_COMMENT_INSIDE_COMMENT token uses the value set in
     # t.lexer.comment_indent to collect all lines that are indented deeper than
     # this one.
+    #
+    # However, we collects the content of the COMMENT state from a clone of the
+    # lexer and returns one master token.
     if next_line_indents_in(t):
         cloned_lexer = t.lexer.clone()
-        cloned_lexer.is_a_clone = True
         cloned_lexer.begin('COMMENT')
-        t.lexer.begin('COMMENT')
+        t.lexer.begin('COMMENT') # Make sure real lexer follows suit.
         for cloned_t in cloned_lexer:
+            t.lexer.next() # Increment real lexer to keep it alligned.
             t.value += cloned_t.value
             if cloned_t.lexer.current_state() == 'INITIAL':
-                IN_DUMMY_STATE = True
                 return t
-    
     return t
 
 def t_COMMENT_error(t):
@@ -135,8 +136,7 @@ def t_COMMENT_INSIDE_COMMENT(t):
     r"\n([ ]*).*"
     # Empty lines are still comments, so we wont switch state back to INITIAL.
     if t.value.strip() == '':
-        if t.lexer.is_a_clone:
-            return t
+        return t
     # Looks a head and changes the state back to INITIAL if the next line is not
     # indented further than the first comment line.
     lexer = t.lexer.clone()
@@ -145,8 +145,7 @@ def t_COMMENT_INSIDE_COMMENT(t):
         next_line_indent = len(next.lexer.lexmatch.group(2))
         if next_line_indent <= t.lexer.comment_indent:
             t.lexer.begin('INITIAL')
-    if t.lexer.is_a_clone:
-        return t
+    return t
 
 def t_CONST(t):
     r"\$[a-zA-Z_][a-zA-Z0-9_]*"

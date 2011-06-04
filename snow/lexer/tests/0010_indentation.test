@@ -18,11 +18,9 @@ IN: in
 LSQB: [
 NAME: a
 COMMA: ,
-COMMENT: # Comment
-INSIDE_COMMENT: \n      too
+COMMENT: # Comment\n      too
 NAME: b
-COMMENT: # Comment
-INSIDE_COMMENT: \n        Comment
+COMMENT: # Comment\n        Comment
 RSQB: ]
 COLON: :
 NEWLINE: \n

@@ -19,13 +19,7 @@ GREATER: >
 NUMBER: 3
 NEWLINE: \n
 INDENT: None
-COMMENT: # I comment
-INSIDE_COMMENT: \n        So it its
-INSIDE_COMMENT: \n        and this
-INSIDE_COMMENT: \n        
-INSIDE_COMMENT: \n  
-INSIDE_COMMENT: \n      and this
-INSIDE_COMMENT: \n      # and this
+COMMENT: # I comment\n        So it its\n        and this\n        \n  \n      and this\n      # and this
 NEWLINE: \n
 NAME: comment_no_more
 LPAR: (

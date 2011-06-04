@@ -12,8 +12,7 @@ NAME: call_funct
 LPAR: (
 NAME: b
 NAME: c
-COMMENT: # Comment
-INSIDE_COMMENT: \n     To
+COMMENT: # Comment\n     To
 NAME: d
 LPAR: (
 NAME: wassup
