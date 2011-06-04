@@ -10,6 +10,7 @@ if a > 3
     comment_no_more()
     ###
 ###
+ too
 ----
 COMMENT: # Yo
 NEWLINE: \n
@@ -28,5 +29,5 @@ NEWLINE: \n
 COMMENT: ###
 NEWLINE: \n
 DEDENT: None
-COMMENT: ###
+COMMENT: ###\n too
 ENDMARKER: None
