@@ -61,6 +61,7 @@ class SnowLexer(object):
         self.lexer.paren_count = 0
         self.lexer.is_raw = False
         self.lexer.string_been_concat = False
+        self.lexer.is_a_clone = False
         
     def token(self):
         try:

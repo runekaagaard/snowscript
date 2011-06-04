@@ -84,7 +84,7 @@ def t_INLINE_HTML(t):
         t.value = t.value[:-2]
     return t
 
-NEXT_LINE = re.compile(r'\n([ ]*)(.*)') 
+NEXT_LINE = re.compile(r'\n([ ]*)(.*)')
 def t_COMMENT(t):
     r"[ ]*\043[^\n]*"  # \043 is '#' ; otherwise PLY thinks it's an re comment
     def next_line_indents_in(t):
@@ -97,7 +97,7 @@ def t_COMMENT(t):
     def comment_indent(t):
         """
         Traverses back until it reaches a new line or start of file and sets
-        the variable t.lexer.comment.indent that tells how far the current
+        the variable t.lexer.comment_indent that tells how far the current
         line is indented.
         """
         pos = t.lexpos
@@ -116,7 +116,15 @@ def t_COMMENT(t):
     # t.lexer.comment_indent to collect all lines that are indented deeper than
     # this one.
     if next_line_indents_in(t):
+        cloned_lexer = t.lexer.clone()
+        cloned_lexer.is_a_clone = True
+        cloned_lexer.begin('COMMENT')
         t.lexer.begin('COMMENT')
+        for cloned_t in cloned_lexer:
+            t.value += cloned_t.value
+            if cloned_t.lexer.current_state() == 'INITIAL':
+                IN_DUMMY_STATE = True
+                return t
     
     return t
 
@@ -127,7 +135,8 @@ def t_COMMENT_INSIDE_COMMENT(t):
     r"\n([ ]*).*"
     # Empty lines are still comments, so we wont switch state back to INITIAL.
     if t.value.strip() == '':
-        return t
+        if t.lexer.is_a_clone:
+            return t
     # Looks a head and changes the state back to INITIAL if the next line is not
     # indented further than the first comment line.
     lexer = t.lexer.clone()
@@ -136,7 +145,8 @@ def t_COMMENT_INSIDE_COMMENT(t):
         next_line_indent = len(next.lexer.lexmatch.group(2))
         if next_line_indent <= t.lexer.comment_indent:
             t.lexer.begin('INITIAL')
-    return t
+    if t.lexer.is_a_clone:
+        return t
 
 def t_CONST(t):
     r"\$[a-zA-Z_][a-zA-Z0-9_]*"
