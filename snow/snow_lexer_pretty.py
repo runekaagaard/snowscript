@@ -5,6 +5,8 @@ from termcolor import colored
 from lexer.tokens.standard import tokens
 import sys
 import os
+import string
+
 # Debug
 from sys import exit as e
 
@@ -75,41 +77,49 @@ def lex_snow(code):
     return tokens_as_string.strip()
 
 def pretty_lex(code):
-    lexer = SnowLexer()
-    lexer.input(code, '')
-    lexpos = 0
-    newcode = ''
-    tokens = [t for t in lexer if t.lexpos != -1]
-    i = 0
+    def get_tokens(code):
+        lexer = SnowLexer()
+        lexer.input(code, '')
+        return [t for t in lexer if t.lexpos != -1]
+    
+    def add_code_to_tokens(tokens):
+        i = lexpos = 0
+        for t in tokens:
+            try:
+                nextlexpos = tokens[i+1].lexpos
+            except IndexError:
+                nextlexpos = len(code)         
+            t.code = code[t.lexpos:nextlexpos]
+            lexpos = t.lexpos+1
+            i += 1
+        
+    def check_code_on_tokens(tokens):
+        codefromtokens = "".join(t.code for t in tokens)
+        if code != codefromtokens:
+            print "\n".join(l for l in unified_diff(code.split("\n"), 
+                                                    codefromtokens.split("\n")))
+    
+    def get_value(t):
+        if type(t.value) == type(tuple()):
+            return t.value[0]
+        else:
+            return t.value
+        
+    tokens = get_tokens(code)
+    add_code_to_tokens(tokens)
+    check_code_on_tokens(tokens)
+    
+    print_value = ('NEWLINE')
+    
     for t in tokens:
-        #print t
-        try:
-            nextlexpos = tokens[i+1].lexpos
-        except IndexError:
-            nextlexpos = len(code)         
-        newlexpos = t.lexpos+1
-        newcode += code[lexpos:newlexpos]
-        t.code = code[t.lexpos:nextlexpos]
-        lexpos = newlexpos
-        i += 1
-            #tokens.append(t)
-    newcode += code[lexpos:]
-    #if code != newcode:
-    #    raise Exception("Reconstruction of code error.")
-    #print tokens
-    codefromtokens = "".join(t.code for t in tokens)
-    print codefromtokens
-    if code != codefromtokens:
-        print "\n".join(l for l in unified_diff(code.split("\n"), codefromtokens.split("\n")))
-        print "### Before ###"
-        print code
-        print "### After ###"
-        print codefromtokens
-        print
-        #raise Exception("Reconstruction of code error.")
-    #for t in tokens:
-        #print t, t.code.replace("\n", r"\n")
-        #
+        if t.type in print_value:
+            print t.value,
+        elif len(t.value) < 2 and t.value not in string.letters + '_' and t.type not in ('STRING', 'STRING_WITH_CONCAT'):
+            print colored(t.value, 'blue'),
+        else:
+            print "%s<%s>" % (t.type, colored(get_value(t), 'green')),
+    print
+    print
 # Parse args
 glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 
@@ -126,7 +136,12 @@ for file in glob('lexer/tests/' + glob_string):
     code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
     #print code
     #print lex_snow(code)
+    #pretty_lex(code)
+    print code
+    print "--------------"
     pretty_lex(code)
+    #print lex_snow(code)
+    
     #sys.exit()
     #wef
     #print lex_snow(code)
