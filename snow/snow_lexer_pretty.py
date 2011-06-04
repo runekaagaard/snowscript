@@ -79,7 +79,7 @@ def pretty_lex(code):
             else:
                 res += t.type + " "
         i += 1
-    
+        
     return res
     
 # Parse args
