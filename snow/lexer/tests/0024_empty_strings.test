@@ -4,26 +4,8 @@ call_us('')
 call_her('''''')
 echo ""
 ----
-NAME: call_me
-LPAR: (
-STRING: 
-RPAR: )
-NEWLINE: \n
-NAME: call_you
-LPAR: (
-STRING: 
-RPAR: )
-NEWLINE: \n
-NAME: call_us
-LPAR: (
-STRING: 
-RPAR: )
-NEWLINE: \n
-NAME: call_her
-LPAR: (
-STRING: 
-RPAR: )
-NEWLINE: \n
-ECHO: echo
-STRING: 
-ENDMARKER: None
+NAME<call_me> ( STRING<> ) 
+NAME<call_you> ( STRING<> ) 
+NAME<call_us> ( STRING<> ) 
+NAME<call_her> ( STRING<> ) 
+ECHO STRING<>

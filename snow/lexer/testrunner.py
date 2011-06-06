@@ -65,8 +65,8 @@ def run(accept=False, *files):
                                             stats['failed']), 'white', 'on_red')
     
     def accept_tests(files):
-        corrected_content = ''
         for f in files:
+            corrected_content = ''
             content = open(f).read()
             sections = content.split('++++')
             i = 0
@@ -77,8 +77,9 @@ def run(accept=False, *files):
                 tokens_actual = prettyprint(code).strip()
                 corrected_content += "%s\n----\n%s" % (code, tokens_actual)
                 i += 1
-                
-                open(f, 'w').write(corrected_content)
+            
+            open(f, 'w').write(corrected_content)
+            print colored("Accepted %s" % f, 'green')
     
     matched_files = get_matched_files(files)
     run_tests(matched_files) if not accept else accept_tests(matched_files)

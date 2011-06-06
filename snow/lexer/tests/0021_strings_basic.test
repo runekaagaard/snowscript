@@ -6,13 +6,10 @@
 line
 s'''
 ----
-STRING: 
-NEWLINE: \n
-STRING: foo
-NEWLINE: \n
-STRING: .foo.
-NEWLINE: \n
-STRING: fo.\.\{.'.x
-NEWLINE: \n
-STRING: multi\nline\ns
-ENDMARKER: None
+STRING<> 
+STRING<foo> 
+STRING< foo > 
+STRING<fo \ \{ ' x> 
+STRING<multi
+line
+s>

@@ -7,19 +7,11 @@
 line
 s"""
 ----
-STRING: 
-NEWLINE: \n
-STRING: foo
-NEWLINE: \n
-STRING: .foo.
-NEWLINE: \n
-STRING: fo.\.{."
-NEWLINE: \n
-STRING_WITH_CONCAT: foo 
-NAME: bar
-LPAR: (
-STRING: baz
-RPAR: )
-NEWLINE: \n
-STRING: multi\nline\ns
-ENDMARKER: None
+STRING<> 
+STRING<foo> 
+STRING< foo > 
+STRING<fo \ { "> 
+STRING_WITH_CONCAT<foo > NAME<bar> ( STRING<baz> ) 
+STRING<multi
+line
+s>

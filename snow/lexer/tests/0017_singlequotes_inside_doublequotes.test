@@ -1,11 +1,3 @@
 a = "aaa 'bbb' {foo(bar)} ddd"
 ----
-NAME: a
-EQUAL: =
-STRING_WITH_CONCAT: aaa 'bbb' 
-NAME: foo
-LPAR: (
-NAME: bar
-RPAR: )
-STRING: .ddd
-ENDMARKER: None
+NAME<a> = STRING_WITH_CONCAT<aaa 'bbb' > NAME<foo> ( NAME<bar> ) STRING< ddd>

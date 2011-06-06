@@ -2,24 +2,6 @@ a = 32
 b = {c}()
 d = echo {b} + 32
 ----
-NAME: a
-EQUAL: =
-NUMBER: 32
-NEWLINE: \n
-NAME: b
-EQUAL: =
-LBRACE: {
-NAME: c
-RBRACE: }
-LPAR: (
-RPAR: )
-NEWLINE: \n
-NAME: d
-EQUAL: =
-ECHO: echo
-LBRACE: {
-NAME: b
-RBRACE: }
-PLUS: +
-NUMBER: 32
-ENDMARKER: None
+NAME<a> = NUMBER<32> 
+NAME<b> = { NAME<c> } ( ) 
+NAME<d> = ECHO { NAME<b> } + NUMBER<32>

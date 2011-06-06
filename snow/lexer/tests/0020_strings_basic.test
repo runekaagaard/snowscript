@@ -5,11 +5,9 @@
 line
 s'
 ----
-STRING: foo
-NEWLINE: \n
-STRING: .foo.
-NEWLINE: \n
-STRING: fo.\.\{.'.x
-NEWLINE: \n
-STRING: multi\nline\ns
-ENDMARKER: None
+STRING<foo> 
+STRING< foo > 
+STRING<fo \ \{ ' x> 
+STRING<multi
+line
+s>

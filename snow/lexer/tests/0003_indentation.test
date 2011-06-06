@@ -3,21 +3,7 @@ fn foo()
     fn bar()
         pass
 ----
-FN: fn
-NAME: foo
-LPAR: (
-RPAR: )
-NEWLINE: \n
-INDENT: None
-PASS: pass
-NEWLINE: \n
-FN: fn
-NAME: bar
-LPAR: (
-RPAR: )
-NEWLINE: \n
-INDENT: None
-PASS: pass
-DEDENT: None
-DEDENT: None
-ENDMARKER: None
+FN NAME<foo> ( ) 
+    PASS 
+    FN NAME<bar> ( ) 
+        PASS

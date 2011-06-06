@@ -3,11 +3,7 @@
 '''""''""'''
 """''""''"""
 ----
-STRING: "
-NEWLINE: \n
-STRING: '
-NEWLINE: \n
-STRING: ""''""
-NEWLINE: \n
-STRING: ''""''
-ENDMARKER: None
+STRING<"> 
+STRING<'> 
+STRING<""''""> 
+STRING<''""''>

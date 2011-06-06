@@ -1,10 +1,5 @@
 $my_global3 = 52
 echo $also3_global___
 ----
-CONST: my_global3
-EQUAL: =
-NUMBER: 52
-NEWLINE: \n
-ECHO: echo
-CONST: also3_global___
-ENDMARKER: None
+CONST<my_global3> = NUMBER<52> 
+ECHO CONST<also3_global___>

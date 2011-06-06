@@ -4,26 +4,8 @@ if a == b
    while true
        break
 ----
-IF: if
-NAME: a
-IS_EQUAL: ==
-NAME: b
-NEWLINE: \n
-INDENT: None
-ECHO: echo
-NAME: b
-NEWLINE: \n
-FN: fn
-NAME: c
-COLON: :
-INNER_RETURN: <--
-NUMBER: 42
-NEWLINE: \n
-WHILE: while
-NAME: true
-NEWLINE: \n
-INDENT: None
-NAME: break
-DEDENT: None
-DEDENT: None
-ENDMARKER: None
+IF NAME<a> == NAME<b> 
+    ECHO NAME<b> 
+    FN NAME<c> : <-- NUMBER<42> 
+    WHILE NAME<true> 
+        NAME<break>

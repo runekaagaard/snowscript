@@ -7,11 +7,11 @@ x'''
    2
 x"""
 ----
-STRING: single1
-NEWLINE: \n
-STRING: single2
-NEWLINE: \n
-STRING: multi\n...1\nx
-NEWLINE: \n
-STRING: multi\n...2\nx
-ENDMARKER: None
+STRING<single1> 
+STRING<single2> 
+STRING<multi
+   1
+x> 
+STRING<multi
+   2
+x>

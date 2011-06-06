@@ -12,22 +12,16 @@ if a > 3
 ###
  too
 ----
-COMMENT: # Yo
-NEWLINE: \n
-IF: if
-NAME: a
-GREATER: >
-NUMBER: 3
-NEWLINE: \n
-INDENT: None
-COMMENT: # I comment\n        So it its\n        and this\n        \n  \n      and this\n      # and this
-NEWLINE: \n
-NAME: comment_no_more
-LPAR: (
-RPAR: )
-NEWLINE: \n
-COMMENT: ###
-NEWLINE: \n
-DEDENT: None
-COMMENT: ###\n too
-ENDMARKER: None
+COMMENT<# Yo> 
+IF NAME<a> > NUMBER<3> 
+    COMMENT<# I comment
+        So it its
+        and this
+        
+  
+      and this
+      # and this> 
+    NAME<comment_no_more> ( ) 
+    COMMENT<###> 
+COMMENT<###
+ too>

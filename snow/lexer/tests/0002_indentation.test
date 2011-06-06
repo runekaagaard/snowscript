@@ -2,15 +2,6 @@ fn foo
     fn bar
         pass
 ----
-FN: fn
-NAME: foo
-NEWLINE: \n
-INDENT: None
-FN: fn
-NAME: bar
-NEWLINE: \n
-INDENT: None
-PASS: pass
-DEDENT: None
-DEDENT: None
-ENDMARKER: None
+FN NAME<foo> 
+    FN NAME<bar> 
+        PASS

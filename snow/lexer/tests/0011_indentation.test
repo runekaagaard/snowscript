@@ -7,18 +7,5 @@ fn call_funct(
   a > 3
 )
 ----
-FN: fn
-NAME: call_funct
-LPAR: (
-NAME: b
-NAME: c
-COMMENT: # Comment\n     To
-NAME: d
-LPAR: (
-NAME: wassup
-RPAR: )
-NAME: a
-GREATER: >
-NUMBER: 3
-RPAR: )
-ENDMARKER: None
+FN NAME<call_funct> ( NAME<b> NAME<c> COMMENT<# Comment
+     To> NAME<d> ( NAME<wassup> ) NAME<a> > NUMBER<3> )

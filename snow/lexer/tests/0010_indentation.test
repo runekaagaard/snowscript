@@ -8,25 +8,8 @@ fn myfunc
     ]:
         print yo
 ----
-FN: fn
-NAME: myfunc
-NEWLINE: \n
-INDENT: None
-FOR: for
-NAME: i
-IN: in
-LSQB: [
-NAME: a
-COMMA: ,
-COMMENT: # Comment\n      too
-NAME: b
-COMMENT: # Comment\n        Comment
-RSQB: ]
-COLON: :
-NEWLINE: \n
-INDENT: None
-PRINT: print
-NAME: yo
-DEDENT: None
-DEDENT: None
-ENDMARKER: None
+FN NAME<myfunc> 
+    FOR NAME<i> IN [ NAME<a> , COMMENT<# Comment
+      too> NAME<b> COMMENT<# Comment
+        Comment> ] : 
+        PRINT NAME<yo>
