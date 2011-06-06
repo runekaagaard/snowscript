@@ -1,0 +1,23 @@
+if a == b
+   echo b
+   fn c: <-- 42
+   while true
+       break
+----
+IF NAME<a> == NAME<b> 
+    ECHO NAME<b> 
+    FN NAME<c> : <-- NUMBER<42> 
+    WHILE NAME<true> 
+        NAME<break>
+        
+++++
+
+x = switch foo
+    case 'foo'
+        <-- "yo"
+    case 'bar': echo "sup"
+----
+NAME<x> = SWITCH NAME<foo> 
+    CASE STRING<foo> 
+        <-- STRING<yo> 
+    CASE STRING<bar> : ECHO STRING<sup>

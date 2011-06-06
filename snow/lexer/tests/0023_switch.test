@@ -1,9 +1,0 @@
-x = switch foo
-    case 'foo'
-        <-- "yo"
-    case 'bar': echo "sup"
-----
-NAME<x> = SWITCH NAME<foo> 
-    CASE STRING<foo> 
-        <-- STRING<yo> 
-    CASE STRING<bar> : ECHO STRING<sup>
