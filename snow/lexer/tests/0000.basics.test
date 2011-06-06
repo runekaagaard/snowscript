@@ -1,0 +1,7 @@
+a = 4
+----
+NAME<a> = NUMBER<4>
+++++
+b = 2 * 3 + 4 - 12 / 13
+----
+NAME<b> = NUMBER<2> * NUMBER<3> + NUMBER<4> - NUMBER<12> / NUMBER<13>

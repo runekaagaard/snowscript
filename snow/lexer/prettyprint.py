@@ -5,14 +5,20 @@ from difflib import unified_diff
 from termcolor import colored
 
 import string
-from lexer.tokens.standard import tokens, SYMBOLIC
+from standard import tokens, SYMBOLIC
 
-from snow_lexer import SnowLexer
+from lexer import SnowLexer
 
 # Debug
 from sys import exit as e
 
-def pretty_lex(code):
+def prettyprint(code, with_colors=False):
+    def nocolor(s, *args, **kwargs):
+        return s
+    
+    if not with_colors:
+        colored = nocolor
+        
     def get_tokens(code):
         lexer = SnowLexer()
         lexer.input(code, '')
@@ -83,7 +89,8 @@ def pretty_lex(code):
         i += 1
         
     return res
-    
+
+"""    
 # Parse args
 glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 
@@ -101,3 +108,4 @@ for file in glob('lexer/tests/' + glob_string):
     print code
     print "--------------"
     print pretty_lex(code)
+"""

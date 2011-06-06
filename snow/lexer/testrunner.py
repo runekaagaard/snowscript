@@ -1,32 +1,56 @@
+#!/usr/bin/env python
+
+from argh import *
+import argparse
 from glob import glob
-from lexer.lexer import SnowLexer
+from lexer import SnowLexer
 from difflib import unified_diff
 from termcolor import colored
 import sys
 import os
-# Debug
-from sys import exit as e
+import plac
+from prettyprint import prettyprint
 
-def lex_snow(code):
-    """
-    Lexes given Snow code and returns a string representing lexed tokens.
-    """
-    lexer = SnowLexer()
-    lexer.input(code, '')
-    tokens_as_string = ''
-    for t in lexer:
-        if type(t.value) == type(tuple()):
-            value = t.value[1]
-        else:
-            value = t.value
-        if value:
-            value = value.replace('\n', r'\n')
-        if t.type == 'STRING':
-            value = value.replace(' ', '.')
-        value = ": " + str(value)
-        tokens_as_string += "%s%s\n" % (t.type, value)
-    return tokens_as_string.strip()
-
+@plac.annotations(
+    accept=('Accept matched tests as working', 'flag', 'a'),
+    files=('file1, file2, ... fileN'),
+)
+def run(accept=False, *files):
+    """Runs the tests."""
+    
+    def get_matched_files(files):
+        matched_files = []
+        for f in files:
+            matched_files.extend(glob(f))
+        return matched_files
+    
+    def test_file(f):
+        content = open(f).read()
+        sections = content.split('++++')
+        for section in sections:
+            section = section.strip()
+            snowcode, tokens = [s.strip() for s in section.split('----')]
+            result = prettyprint(snowcode)
+            print [tokens.strip()]
+            print ",,,,,,,,,"
+            print [result]
+        #print sections
+        sections = 32
+        
+    matched_files = get_matched_files(files)
+    for f in matched_files:
+        test_file(f)
+    
+if __name__ == '__main__':
+    import plac; plac.call(run)
+"""
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Runs lexer tests.')
+    parser.add_argument('run')
+    
+    args = parser.parse_args()
+    print args.accumulate(args)"""
+"""
 # Parse args
 glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 
@@ -34,11 +58,11 @@ glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
 # Delete old .out files.
-os.system('rm -f lexer/tests/*.out')
+os.system('rm -f tests/*.out')
 
 # Run test 'suite'
 failure = succes = 0
-for file in glob('lexer/tests/' + glob_string):
+for file in glob('tests/' + glob_string):
     print colored("Running test: %s" % file, 'cyan')
     code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
     tokens_actual = lex_snow(code)
@@ -61,4 +85,4 @@ for file in glob('lexer/tests/' + glob_string):
         
 msg = "%d total :: %d good :: %d bad" % (failure + succes, succes, failure)
 print colored(msg, 'white', 'on_red' if failure else 'on_green')
-
+"""
