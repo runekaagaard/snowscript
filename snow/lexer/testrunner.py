@@ -61,8 +61,8 @@ def run(accept=False, *files):
             print colored('All %d tests passed' % stats['total'], 'white', 
                           'on_green')
         else:
-            print colored('%d test(s) out of %d failed' % (stats['total'], 
-                                            stats['failed']), 'white', 'on_red')
+            print colored('%d test(s) out of %d failed' % (stats['failed'], 
+                                            stats['total']), 'white', 'on_red')
     
     def accept_tests(files):
         for f in files:
