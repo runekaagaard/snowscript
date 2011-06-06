@@ -89,23 +89,3 @@ def prettyprint(code, with_colors=False):
         i += 1
         
     return res
-
-"""    
-# Parse args
-glob_string = '*.test' if len(sys.argv) < 2 else sys.argv[1]
-
-# Set dir
-os.chdir(os.path.abspath(os.path.dirname(__file__)))
-
-# Delete old .out files.
-os.system('rm -f lexer/tests/*.out')
-
-# Run test 'suite'
-failure = succes = 0
-for file in glob('lexer/tests/' + glob_string):
-    print colored("Prettylexing file: %s" % file, 'cyan')
-    code, tokens_expected = [_.strip() for _ in open(file).read().split('----')]
-    print code
-    print "--------------"
-    print pretty_lex(code)
-"""
