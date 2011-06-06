@@ -1,9 +1,0 @@
-fn foo()
-    pass
-    fn bar()
-        pass
-----
-FN NAME<foo> ( ) 
-    PASS 
-    FN NAME<bar> ( ) 
-        PASS

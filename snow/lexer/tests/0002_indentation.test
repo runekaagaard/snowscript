@@ -5,3 +5,65 @@ fn foo
 FN NAME<foo> 
     FN NAME<bar> 
         PASS
+
+++++
+
+fn foo()
+    pass
+    fn bar()
+        pass
+----
+FN NAME<foo> ( ) 
+    PASS 
+    FN NAME<bar> ( ) 
+        PASS
+        
+++++
+
+for i in is
+    print i
+    fn foo
+        <-- 42
+    fn bar: <-- get_bar()
+    yo()
+echo bar
+----
+FOR NAME<i> IN NAME<is> 
+    PRINT NAME<i> 
+    FN NAME<foo> 
+        <-- NUMBER<42> 
+    FN NAME<bar> : <-- NAME<get_bar> ( ) 
+    NAME<yo> ( ) 
+ECHO NAME<bar>
+
+++++
+
+fn myfunc
+    for i in [a,
+    # Comment
+      too
+    b
+    # Comment
+        Comment
+    ]:
+        print yo
+----
+FN NAME<myfunc> 
+    FOR NAME<i> IN [ NAME<a> , COMMENT<# Comment
+      too> NAME<b> COMMENT<# Comment
+        Comment> ] : 
+        PRINT NAME<yo>
+        
+++++
+
+fn call_funct(
+    b
+     c
+    # Comment
+     To
+   d(wassup)
+  a > 3
+)
+----
+FN NAME<call_funct> ( NAME<b> NAME<c> COMMENT<# Comment
+     To> NAME<d> ( NAME<wassup> ) NAME<a> > NUMBER<3> )
