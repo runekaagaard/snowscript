@@ -1,3 +1,0 @@
-a = "foo {bar("ufel")} sup"
-----
-NAME<a> = STRING_WITH_CONCAT<foo > NAME<bar> ( STRING<ufel> ) STRING< sup>
