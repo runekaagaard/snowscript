@@ -147,3 +147,9 @@ NAME<call_you> ( STRING<> )
 NAME<call_us> ( STRING<> ) 
 NAME<call_her> ( STRING<> ) 
 ECHO STRING<>
+
+++++
+
+a = "aaa 'bbb' {foo(bar)} ddd"
+----
+NAME<a> = STRING_WITH_CONCAT<aaa 'bbb' > NAME<foo> ( NAME<bar> ) STRING< ddd>

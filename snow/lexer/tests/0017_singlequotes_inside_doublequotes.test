@@ -1,3 +1,0 @@
-a = "aaa 'bbb' {foo(bar)} ddd"
-----
-NAME<a> = STRING_WITH_CONCAT<aaa 'bbb' > NAME<foo> ( NAME<bar> ) STRING< ddd>
