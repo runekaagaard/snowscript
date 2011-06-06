@@ -1,4 +1,4 @@
-from lexer.error import raise_syntax_error
+from error import raise_syntax_error
 
 def add_to_string(t, value):
     """Adds a value to the lexers string_content variable.""" 

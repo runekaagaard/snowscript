@@ -1,5 +1,5 @@
 from glob import glob
-from snow_lexer import SnowLexer
+from lexer.lexer import SnowLexer
 from difflib import unified_diff
 from termcolor import colored
 import sys

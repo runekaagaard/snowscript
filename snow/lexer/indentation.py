@@ -1,7 +1,7 @@
 from ply import lex
 import re
-from lexer.error import raise_indentation_error
-from lexer.tokens.standard import INDENTATION_TRIGGERS
+from error import raise_indentation_error
+from standard import INDENTATION_TRIGGERS
 
 def _new_token(type, lineno):
     tok = lex.LexToken()

@@ -7,13 +7,13 @@ PLY tokenizer for the Snow language.
 import re
 import tokenize
 from ply import lex
-from lexer.tokens.standard import *
-from lexer.tokens.whitespace import *
-from lexer.tokens.number import *
-from lexer.tokens.brackets import *
-from lexer.tokens.strings import *
-from lexer.indentation import get_line_offsets, make_token_stream
-from lexer.error import raise_syntax_error, raise_indentation_error
+from standard import *
+from whitespace import *
+from number import *
+from brackets import *
+from strings import *
+from indentation import get_line_offsets, make_token_stream
+from error import raise_syntax_error, raise_indentation_error
 import sys
 # Debugging, should go away.
 from sys import exit as e
