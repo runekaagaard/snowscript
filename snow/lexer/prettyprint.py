@@ -89,3 +89,14 @@ def prettyprint(code, with_colors=False):
         i += 1
         
     return res
+    
+if __name__ == '__main__':
+    matched_files = []
+    for f in sys.argv[1:]:
+        matched_files.extend(glob(f))
+    for f in matched_files:
+        print "Prettylexing: %s: \n" % file
+        print prettyprint(open(f).read()).strip()
+        print
+        
+    
