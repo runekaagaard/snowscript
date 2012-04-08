@@ -1,1 +1,3 @@
 libs/PHP-Parser
+*.pyc
+run-tests.log

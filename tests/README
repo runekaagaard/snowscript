@@ -1,0 +1,3 @@
+Run tests with:
+
+    pear run-tests -r
