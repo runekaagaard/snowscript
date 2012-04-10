@@ -1,26 +1,46 @@
 --TEST--
-Testing math.
+Testing Hello World example.
 --FILE--
 <?php
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
-$code = <<<CODE
-10 + 20
-10 - 20
-10 * 20
-10 / 20
-
-CODE;
-
-$lexer = new Snowscript_Lexer($code);
-$parser = new PHPParser_Parser;
-$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
-
-$stmts = $parser->parse($lexer);
-echo "<?php\n" . $prettyPrinter->prettyPrint($stmts) . "\n";
+snowscript_to_php('
+bnot a
++a
+-a
+a band b
+a bor b
+a bxor b
+a % b
+a / b
+a - b
+a mod b
+a * b
+a + b
+a bleft b
+a bright b
+a * b * c
+a * (b * c)
+a + b * c
+(a + b) * c
+', 0);
 --EXPECT--
 <?php
-10 + 20;
-10 - 20;
-10 * 20;
-10 / 20;
+~$a;
++$a;
+-$a;
+$a & $b;
+$a | $b;
+$a ^ $b;
+$a . $b;
+$a / $b;
+$a - $b;
+$a % $b;
+$a * $b;
+$a + $b;
+$a << $b;
+$a >> $b;
+($a * $b) * $c;
+$a * ($b * $c);
+$a + $b * $c;
+($a + $b) * $c;

@@ -3,8 +3,9 @@
 require dirname(__FILE__) . '/../libs/PHP-Parser/lib/bootstrap.php';
 require dirname(__FILE__) . '/../src/php/bootstrap.php';
 
-function snowscript_to_php($code) {
+function snowscript_to_php($code, $debug=false) {
 	$lexer = new Snowscript_Lexer($code . "\n");
+	if ($debug) var_dump($lexer->tokens);
 	$parser = new PHPParser_Parser;
 	$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
 	$stmts = $parser->parse($lexer);

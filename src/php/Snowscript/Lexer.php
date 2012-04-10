@@ -23,6 +23,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 	// Use the value of the token names key.
 	public $translated_tokens = array(
 		'T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}',
+		'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%',
+		'T_BNOT' => '~', 'T_BOR' => '|',
 	);
 	// Don't do anything with these.
 	public $ignored_tokens = array(
@@ -30,7 +32,9 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 	);
 	// Change the type of the token.
 	public $token_types_map = array(
-		'T_NUMBER' => 'LNUMBER', 'T_NAME' => 'T_VARIABLE',
+		'T_NUMBER' => 'LNUMBER', 'T_NAME' => 'T_VARIABLE', 
+		'T_PHP_STRING' => 'T_STRING',
+		'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
 	);
 
 	function alter_token_type($t) {
@@ -77,7 +81,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		$py_file = dirname(__FILE__) . '/../../python/snow/lexer/json-lex.py';
 		$python_tokens = json_decode(`python $py_file lex-to-json.py $tmp_file`,
 		                             true);
-		$php_tokens = array(array(368, '<?php', 1));
+		$php_tokens = array(array(368, '<?php ', 1));
 		foreach($python_tokens as $t) {
 			$php_token = $this->translate_token($t);
 			if ($php_token !== null) $php_tokens []= $php_token;
