@@ -3,6 +3,7 @@
 // TODO: This is WIP code, just making a couple of tests pass.
 
 class Snowscript_Lexer extends PHPParser_Lexer {
+	public $tokens;
 	function __construct($code) {
 		$tmp_file = "/tmp/.snowcode";
 		file_put_contents($tmp_file, $code);
@@ -10,11 +11,14 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		$this->tokens = $this->get_tokens($tmp_file);
 		unlink($tmp_file);
 	}
+	public $transform_token_value = array(
+		'T_VARIABLE' => '$%s',
+	);
 
 	// Use the actual code value of these.
 	public $literal_tokens = array(
-		'T_PLUS'=>1, 'T_NAME'=>1, 'T_GREATER'=>1, 'T_LPAR'=>1, 'T_RPAR'=>1,
-		'T_MINUS'=>1, 'T_STAR'=>1, 'T_SLASH'=>1, 
+		'T_PLUS'=>1, 'T_GREATER'=>1, 'T_LPAR'=>1, 'T_RPAR'=>1,
+		'T_MINUS'=>1, 'T_STAR'=>1, 'T_SLASH'=>1, 'T_EQUAL'=>1,
 	);
 	// Use the value of the token names key.
 	public $translated_tokens = array(
@@ -26,26 +30,29 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 	);
 	// Change the type of the token.
 	public $token_types_map = array(
-		'NUMBER' => 'LNUMBER',
+		'T_NUMBER' => 'LNUMBER', 'T_NAME' => 'T_VARIABLE',
 	);
 
 	function alter_token_type($t) {
 		$type = $t['type'];
+		$type = 'T_' . $type;
 		if (isset($this->token_types_map[$type])) 
 			$type = $this->token_types_map[$type];
-		$type = 'T_' . $type;
 		return $type;
 	}
 
-	function alter_token_value($t) {
+	function alter_token_value($t, $altered_type) {
 		$value = $t['value'];
+		if (isset($this->transform_token_value[$altered_type]))
+			$value = sprintf($this->transform_token_value[$altered_type], 
+				             $value);
 		if ($t['type'] == 'STRING') $value = '"' . $t['value'] . '"';
 		return $value;
 	}
 
 	function translate_token($t) {
 		$type = $this->alter_token_type($t);
-		$value = $this->alter_token_value($t);
+		$value = $this->alter_token_value($t, $type);
 		if (!empty(self::$named_tokenmap[$type])) {
 			$token_number = self::$named_tokenmap[$type];
 			return array(

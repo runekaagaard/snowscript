@@ -1,3 +1,4 @@
 To install libraries, cd to this directory and run:
 
     git clone https://github.com/nikic/PHP-Parser.git
+    git clone https://github.com/moriyoshi/kmyacc-forked.git
