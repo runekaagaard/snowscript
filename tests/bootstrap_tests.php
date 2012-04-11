@@ -21,3 +21,7 @@ function prettyprint_tokens($tokens) {
 		else
 			echo $t . "\n";
 }
+
+function pp_php($code) {
+	prettyprint_tokens(token_get_all("<?php " . $code));
+}

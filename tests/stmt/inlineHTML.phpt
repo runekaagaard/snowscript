@@ -1,0 +1,22 @@
+--TEST--
+Inline HTML
+--FILE--
+<?php
+a;
+?>
+B
+<?php
+c;
+?>
+<?php
+d;
+--EXPECT--
+<?php
+$a;
+?>
+B
+<?php
+$c;
+?>
+<?php
+$d;

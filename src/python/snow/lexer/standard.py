@@ -4,15 +4,53 @@ from sys import exit as e
 from pprint import pprint as p
 
 # List of all Snow tokens.
-tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE', 'CATCH', 'CLASS', 'CLONE', 'DECLARE', 'DEFAULT', 'DO', 'ELSE', 'EXTENDS', 'FINAL', 'FOR', 'IF', 'IMPLEMENTS', 'INTERFACE', 'NAMESPACE', 'NEW', 'OR', 'SWITCH', 'THROW', 'TRY', 'USE', 'WHILE', 'XOR', 'GLO', 'PRI', 'PRO', 'PUB', 'STA', 'CON', 'WHEN', 'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD', 'BAND', 'BOR', 'BNOT', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 'EXIT', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 'REQUIRE_ONCE', 'PRINT', 'UNSET', 'INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL', 'CONCAT_EQUAL', 'MOD_EQUAL', 'SL_EQUAL', 'SR_EQUAL', 'AND_EQUAL', 'OR_EQUAL', 'XOR_EQUAL', 'SL', 'SR', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER', 'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR', 'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 'STRING_WITH_CONCAT',
+tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE', 
+          'CATCH', 'CLASS', 'CLONE', 'DECLARE', 'DEFAULT', 'DO', 'ELSE', 
+          'EXTENDS', 'FINAL', 'FOR', 'IF', 'IMPLEMENTS', 'INTERFACE', 
+          'NAMESPACE', 'NEW', 'OR', 'SWITCH', 'THROW', 'TRY', 'USE', 
+          'WHILE', 'XOR', 'GLO', 'PRI', 'PRO', 'PUB', 'STA', 'CON', 'WHEN', 
+          'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD_EQUAL', 
+          'MOD', 'BAND', 
+          'BOR', 'BNOT', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 
+          'EXIT', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 
+          'REQUIRE_ONCE', 'PRINT', 'UNSET', 'INC', 'DEC', 'IS_IDENTICAL', 
+          'IS_NOT_IDENTICAL', 'IS_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 
+          'IS_GREATER_OR_EQUAL', 'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 
+          'DIV_EQUAL', 'CONCAT_EQUAL', 'SL_EQUAL', 'SR_EQUAL', 
+          'AND_EQUAL', 'OR_EQUAL', 'XOR_EQUAL', 'SL', 'SR', 'POW', 'RETURN', 
+          'INNER_RETURN', 'RECEIVER', 'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 
+          'PLUS', 'MINUS', 'STAR', 'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 
+          'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 
+          'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 
+          'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
+          'STRING_WITH_CONCAT',
 ]
 
 # Dict of all reserved keywords.
-RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE', 'when': 'WHEN', 'abstract': 'ABSTRACT', 'pri': 'PRI', 'box': 'BOX', 'pro': 'PRO', 'echo': 'ECHO', 'catch': 'CATCH', 'bright': 'BRIGHT', 'bnot': 'BNOT', 'exit': 'EXIT', 'in': 'IN', 'if': 'IF', 'fallthru': 'FALLTHRU', 'use': 'USE', 'end': 'END', 'for': 'FOR', 'downto': 'DOWNTO', 'namespace': 'NAMESPACE', 'while': 'WHILE', 'isset': 'ISSET', 'next': 'NEXT', 'to': 'TO', 'extends': 'EXTENDS', 'implements': 'IMPLEMENTS', 'print': 'PRINT', 'new': 'NEW', 'include': 'INCLUDE', 'final': 'FINAL', 'empty': 'EMPTY', 'require_once': 'REQUIRE_ONCE', 'do': 'DO', 'clone': 'CLONE', 'pub': 'PUB', 'else': 'ELSE', 'band': 'BAND', 'bor': 'BOR', 'interface': 'INTERFACE', 'xor': 'XOR', 'class': 'CLASS', 'fn': 'FN', 'mod': 'MOD', 'case': 'CASE', 'throw': 'THROW', '_and_': '_AND_', 'sta': 'STA', 'glo': 'GLO', 'default': 'DEFAULT', 'bxor': 'BXOR', 'require': 'REQUIRE', 'list': 'LIST', 'or': 'OR', 'try': 'TRY', 'switch': 'SWITCH', 'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 'declare': 'DECLARE', 'unset': 'UNSET', 'con': 'CON', 'pass': 'PASS'}
+RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE', 
+            'when': 'WHEN', 'abstract': 'ABSTRACT', 'pri': 'PRI', 'box': 'BOX', 
+            'pro': 'PRO', 'echo': 'ECHO', 'catch': 'CATCH', 'bright': 'BRIGHT', 
+            'bnot': 'BNOT', 'exit': 'EXIT', 'in': 'IN', 'if': 'IF', 'fallthru': 
+            'FALLTHRU', 'use': 'USE', 'end': 'END', 'for': 'FOR', 
+            'downto': 'DOWNTO', 'namespace': 'NAMESPACE', 'while': 'WHILE', 
+            'isset': 'ISSET', 'next': 'NEXT', 'to': 'TO', 'extends': 'EXTENDS', 
+            'implements': 'IMPLEMENTS', 'print': 'PRINT', 'new': 'NEW', 
+            'include': 'INCLUDE', 'final': 'FINAL', 'empty': 'EMPTY', 
+            'require_once': 'REQUIRE_ONCE', 'do': 'DO', 'clone': 'CLONE', 
+            'pub': 'PUB', 'else': 'ELSE', 'band': 'BAND', 'bor': 'BOR', 
+            'interface': 'INTERFACE', 'xor': 'XOR', 'class': 'CLASS', 
+            'fn': 'FN', 'case': 'CASE', 'throw': 'THROW', 
+            '_and_': '_AND_', 'sta': 'STA', 'glo': 'GLO', 
+            'default': 'DEFAULT', 'bxor': 'BXOR', 'require': 'REQUIRE', 
+            'list': 'LIST', 'or': 'OR', 'try': 'TRY', 'switch': 'SWITCH', 
+            'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 
+            'declare': 'DECLARE', 'unset': 'UNSET', 'con': 'CON', 
+            'pass': 'PASS'}
 
 # Forces indentation.
-INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'DEFAULT',
-    'FN', 'CLASS', 'CON', 'PUB', 'PRO', 'PRI', 'STA', 'WHILE')
+INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 
+                        'DEFAULT', 'FN', 'CLASS', 'CON', 'PUB', 'PRO', 'PRI', 
+                        'STA', 'WHILE')
 
 SYMBOLIC = ('INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 
             'IS_NOT_EQUAL', 't_IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 
@@ -21,7 +59,7 @@ SYMBOLIC = ('INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL',
             'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR', 
             'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT', 
             'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR', 'RPAR', 
-            'LBRACE', 'RBRACE', 'LSQB', 'RSQB',)
+            'LBRACE', 'RBRACE', 'LSQB', 'RSQB')
 
 ## Token definitions ##
 
@@ -37,15 +75,7 @@ t_PLUS_EQUAL = r'\+\='
 t_MINUS_EQUAL = r'\-\='
 t_MUL_EQUAL = r'\*\='
 t_DIV_EQUAL = r'\/\='
-t_CONCAT_EQUAL = r'\|\='
-t_MOD_EQUAL = r'mod\='
-t_SL_EQUAL = r'bleft\='
-t_SR_EQUAL = r'bright\='
-t_AND_EQUAL = r'band\='
-t_OR_EQUAL = r'bor\='
-t_XOR_EQUAL = r'bxor\='
-t_SL = r'bleft'
-t_SR = r'bright'
+t_CONCAT_EQUAL = r'\%\='
 t_POW = r'\*\*'
 t_RETURN = r'\<\-'
 t_INNER_RETURN = r'\<\-\-'
@@ -147,11 +177,34 @@ def t_COMMENT_INSIDE_COMMENT(t):
             t.lexer.begin('INITIAL')
     return t
 
-def t_CONST(t):
-    r"\$[a-zA-Z_][a-zA-Z0-9_]*"
-    t.value = t.value[1:]
-    return t
-    
+def t_MOD_EQUAL(t): 
+    r'mod\='; t.type = RESERVED.get(t.value, "MOD_EQUAL"); return t
+
+def t_MOD(t): 
+    r'mod'; t.type = RESERVED.get(t.value, "MOD"); return t
+
+def t_SL_EQUAL(t): 
+    r'bleft\='; t.type = RESERVED.get(t.value, "SL_EQUAL"); return t
+
+def t_SR_EQUAL(t): 
+    r'bright\='; t.type = RESERVED.get(t.value, "SR_EQUAL"); return t
+
+def t_AND_EQUAL(t): 
+    r'band\='; t.type = RESERVED.get(t.value, "AND_EQUAL"); return t
+
+def t_OR_EQUAL(t): 
+    r'bor\='; t.type = RESERVED.get(t.value, "OR_EQUAL"); return t
+
+def t_XOR_EQUAL(t): 
+    r'bxor\='; t.type = RESERVED.get(t.value, "XOR_EQUAL"); return t
+
+def t_SL(t): 
+    r'bleft\='; t.type = RESERVED.get(t.value, "SL"); return t
+
+def t_SR(t): 
+    r'bright\='; t.type = RESERVED.get(t.value, "SR"); return t
+
+
 def t_NAME(t):
     r"[a-zA-Z_][a-zA-Z0-9_]*"
     t.type = RESERVED.get(t.value, "NAME")

@@ -5,7 +5,7 @@ from difflib import unified_diff
 from termcolor import colored
 
 import string
-from standard import tokens, SYMBOLIC
+from standard import tokens
 
 from lexer import SnowLexer
 

@@ -1,5 +1,5 @@
 --TEST--
-Testing Hello World example.
+Math operators
 --FILE--
 <?php
 require dirname(__FILE__) . '/../bootstrap_tests.php';

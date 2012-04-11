@@ -19,6 +19,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 	public $literal_tokens = array(
 		'T_PLUS'=>1, 'T_GREATER'=>1, 'T_LPAR'=>1, 'T_RPAR'=>1,
 		'T_MINUS'=>1, 'T_STAR'=>1, 'T_SLASH'=>1, 'T_EQUAL'=>1,
+		'T_AMPER'=>1, 'T_COMMA'=>1,
 	);
 	// Use the value of the token names key.
 	public $translated_tokens = array(
@@ -79,8 +80,10 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 
 	function get_tokens($tmp_file) {
 		$py_file = dirname(__FILE__) . '/../../python/snow/lexer/json-lex.py';
-		$python_tokens = json_decode(`python $py_file lex-to-json.py $tmp_file`,
+		$python_tokens = json_decode(`python $py_file $tmp_file`,
 		                             true);
+		//var_dump($python_tokens); die;
+		                            
 		$php_tokens = array(array(368, '<?php ', 1));
 		foreach($python_tokens as $t) {
 			$php_token = $this->translate_token($t);
