@@ -4,23 +4,16 @@ Array definitions
 <?php
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
-snowscript_to_php('
-array()
-array(\'a\')
-array(\'a\', )
-array(\'a\', \'b\')
-array(\'a\', &b, \'c\' => \'d\', \'e\' => &f)
+#pp_php("array('a' => 'b');");die;
+snowscript_to_php("
 []
 [1, 2, 3]
-[\'a\' => \'b\']
-', 0);
+['a': 'b']
+['a', &b, 'c': 'd', 'e': &f]
+", 0);
 --EXPECT--
 <?php
 array();
-array('a');
-array('a', );
-array('a', 'b');
+array(1, 2, 3);
+array('a' => 'b');
 array('a', &$b, 'c' => 'd', 'e' => &$f);
-[];
-[1, 2, 3];
-['a' => 'b'];

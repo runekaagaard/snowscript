@@ -19,13 +19,13 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 	public $literal_tokens = array(
 		'T_PLUS'=>1, 'T_GREATER'=>1, 'T_LPAR'=>1, 'T_RPAR'=>1,
 		'T_MINUS'=>1, 'T_STAR'=>1, 'T_SLASH'=>1, 'T_EQUAL'=>1,
-		'T_AMPER'=>1, 'T_COMMA'=>1,
+		'T_AMPER'=>1, 'T_COMMA'=>1, 'T_LSQB'=>1, 'T_RSQB'=>1,
 	);
 	// Use the value of the token names key.
 	public $translated_tokens = array(
 		'T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}',
 		'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%',
-		'T_BNOT' => '~', 'T_BOR' => '|',
+		'T_BNOT' => '~', 'T_BOR' => '|', 
 	);
 	// Don't do anything with these.
 	public $ignored_tokens = array(
@@ -33,15 +33,16 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 	);
 	// Change the type of the token.
 	public $token_types_map = array(
-		'T_NUMBER' => 'LNUMBER', 'T_NAME' => 'T_VARIABLE', 
+		'T_NUMBER' => 'T_LNUMBER', 'T_NAME' => 'T_VARIABLE', 
 		'T_PHP_STRING' => 'T_STRING',
 		'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
+		'T_COLON' => 'T_DOUBLE_ARROW',
 	);
 
 	function alter_token_type($t) {
 		$type = $t['type'];
 		$type = 'T_' . $type;
-		if (isset($this->token_types_map[$type])) 
+		if (isset($this->token_types_map[$type]))
 			$type = $this->token_types_map[$type];
 		return $type;
 	}
@@ -51,7 +52,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		if (isset($this->transform_token_value[$altered_type]))
 			$value = sprintf($this->transform_token_value[$altered_type], 
 				             $value);
-		if ($t['type'] == 'STRING') $value = '"' . $t['value'] . '"';
+		
+		#if ($altered_type == 'STRING') $value = '"' . $value . '"';
 		return $value;
 	}
 
@@ -73,7 +75,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 			return null;
 		} else {
 			echo "Unknown token:\n";
-			var_dump($t);
+			var_dump($t, $type, $value);
 			die;
 		}
 	}

@@ -5,7 +5,7 @@ require dirname(__FILE__) . '/../src/php/bootstrap.php';
 
 function snowscript_to_php($code, $debug=false) {
 	$lexer = new Snowscript_Lexer($code . "\n");
-	if ($debug) var_dump($lexer->tokens);
+	if ($debug) prettyprint_tokens($lexer->tokens);
 	$parser = new PHPParser_Parser;
 	$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
 	$stmts = $parser->parse($lexer);
