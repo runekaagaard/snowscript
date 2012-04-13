@@ -23,5 +23,5 @@ function prettyprint_tokens($tokens) {
 }
 
 function pp_php($code) {
-	prettyprint_tokens(token_get_all("<?php " . $code));
+	var_dump(token_get_all("<?php " . $code));
 }

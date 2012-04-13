@@ -19,7 +19,7 @@ def get_string_token(t, type='STRING'):
     """Returns a string token with the value of the lexers 
     string_content variable which is then reset to ''."""
     set_been_concat(t, type)
-    t.value = t.lexer.string_content
+    t.value = "'%s'" % t.lexer.string_content.replace("'", r"\'")
     t.lexer.string_content = ''
     t.type = type
     return t
@@ -168,7 +168,8 @@ def t_INSINGLEQUOTEDSTRING_error(t):
 ## Snow end
 
 def t_SNOWINANYDOUBLEQUOTEDSTRING_SNOW_END(t): 
-        r"}"
-        t.lexer.starting_string_token = t
-        # Pop state back to INDOUBLEQUOTEDSTRING.
-        t.lexer.pop_state()
+    r"}"
+    t.lexer.starting_string_token = t
+    # Pop state back to INDOUBLEQUOTEDSTRING.
+    t.lexer.pop_state()
+    return t

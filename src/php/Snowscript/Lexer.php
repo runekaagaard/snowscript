@@ -11,6 +11,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		$this->tokens = $this->get_tokens($tmp_file);
 		unlink($tmp_file);
 	}
+
 	public $transform_token_value = array(
 		'T_VARIABLE' => '$%s',
 	);
@@ -20,12 +21,13 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		'T_PLUS'=>1, 'T_GREATER'=>1, 'T_LPAR'=>1, 'T_RPAR'=>1,
 		'T_MINUS'=>1, 'T_STAR'=>1, 'T_SLASH'=>1, 'T_EQUAL'=>1,
 		'T_AMPER'=>1, 'T_COMMA'=>1, 'T_LSQB'=>1, 'T_RSQB'=>1,
+		'T_DOUBLE_COLON'=>1,
 	);
 	// Use the value of the token names key.
 	public $translated_tokens = array(
 		'T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}',
 		'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%',
-		'T_BNOT' => '~', 'T_BOR' => '|', 
+		'T_BNOT' => '~', 'T_BOR' => '|', 'T_DOT' => '->',
 	);
 	// Don't do anything with these.
 	public $ignored_tokens = array(
@@ -37,6 +39,10 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		'T_PHP_STRING' => 'T_STRING',
 		'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
 		'T_COLON' => 'T_DOUBLE_ARROW',
+	);
+	// Don't touch these.
+	public $token_callback = array(
+		'T_STRING_WITH_CONCAT'=>1,
 	);
 
 	function alter_token_type($t) {
@@ -52,8 +58,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		if (isset($this->transform_token_value[$altered_type]))
 			$value = sprintf($this->transform_token_value[$altered_type], 
 				             $value);
-		
-		#if ($altered_type == 'STRING') $value = '"' . $value . '"';
 		return $value;
 	}
 
@@ -62,17 +66,19 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		$value = $this->alter_token_value($t, $type);
 		if (!empty(self::$named_tokenmap[$type])) {
 			$token_number = self::$named_tokenmap[$type];
-			return array(
+			return array(array(
 				$token_number,
 				(is_array($value) ? $value[1] : $value),
 				2,
-			);
+			));
 		} elseif (!empty($this->literal_tokens[$type])) {
 			return $value;
 		} elseif (!empty($this->translated_tokens[$type])) {
 			return $this->translated_tokens[$type];
 		} elseif (!empty($this->ignored_tokens[$type])) {
 			return null;
+		} elseif (isset($this->token_callback[$type])) {
+			return $this->$type($t);
 		} else {
 			echo "Unknown token:\n";
 			var_dump($t, $type, $value);
@@ -84,13 +90,13 @@ class Snowscript_Lexer extends PHPParser_Lexer {
 		$py_file = dirname(__FILE__) . '/../../python/snow/lexer/json-lex.py';
 		$python_tokens = json_decode(`python $py_file $tmp_file`,
 		                             true);
-		//var_dump($python_tokens); die;
+		#var_dump($python_tokens); die;
 		                            
 		$php_tokens = array(array(368, '<?php ', 1));
-		foreach($python_tokens as $t) {
-			$php_token = $this->translate_token($t);
-			if ($php_token !== null) $php_tokens []= $php_token;
-		}
+		foreach($python_tokens as $t)
+			foreach ((array)$this->translate_token($t) as $php_token)
+				if ($php_token !== null) 
+					$php_tokens []= $php_token;
 		return $php_tokens;
 	}
 
@@ -101,7 +107,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     
     static $named_tokenmap = array();
     static function init_named_tokenmap() {
-
         // 256 is the minimum possible token number, as everything below
         // it is an ASCII value
         for ($i = 256; $i < 1000; ++$i) {
@@ -125,6 +130,28 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         self::$named_tokenmap = array_flip(array_map(function($x) {
         	return str_replace("PHPParser_Parser::", "", $x);
         }, self::$named_tokenmap));
+    }
+
+    function T_STRING_WITH_CONCAT($t) {
+    	return array(
+    		array(
+	    		self::$named_tokenmap['T_STRING'], 
+	    		$t['value'], 
+	    		2
+	    	),
+    		".",
+	    );
+    }
+
+    function T_STRING_WITH_CONCAT_END($t) {
+    	return array(
+    		".",
+    		array(
+	    		self::$named_tokenmap['T_STRING'], 
+	    		$t['value'], 
+	    		2
+	    	),
+	    );	
     }
 }
 Snowscript_Lexer::init_named_tokenmap();
