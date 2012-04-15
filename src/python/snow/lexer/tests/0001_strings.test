@@ -56,7 +56,7 @@ NAME<a> = STRING_WITH_CONCAT<foo > NAME<bar> ( STRING<ufel> ) STRING< sup>
 
 ++++
 
-mystring = "I am {$A_CONSTANT} with {a_string} and {obj.method("foo")} and {obj::static_method("bar")} and a {func_tion("baz")}"
+mystring = "I am {A_CONSTANT} with {a_string} and {obj.method("foo")} and {obj::static_method("bar")} and a {func_tion("baz")}"
 ----
 NAME<mystring> = STRING_WITH_CONCAT<I am > CONST<A_CONSTANT> STRING_WITH_CONCAT< with > NAME<a_string> STRING_WITH_CONCAT< and > NAME<obj> . NAME<method> ( STRING<foo> ) STRING_WITH_CONCAT< and > NAME<obj> :: NAME<static_method> ( STRING<bar> ) STRING_WITH_CONCAT< and a > NAME<func_tion> ( STRING<baz> )
 
@@ -151,5 +151,11 @@ ECHO STRING<>
 ++++
 
 a = "aaa 'bbb' {foo(bar)} ddd"
+"""{a}"""
+""" {a}"""
+"{c} "
+" {a}"
+"{a}"
+"{c} "
 ----
 NAME<a> = STRING_WITH_CONCAT<aaa 'bbb' > NAME<foo> ( NAME<bar> ) STRING< ddd>

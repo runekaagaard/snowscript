@@ -70,12 +70,6 @@ def prettyprint(code, with_colors=False):
                 if t.value == t.value.upper():
                     t.type = "PHP_STRING"
 
-            if t.type == 'SNOW_END':
-                if t_next.type in ('STRING', 'STRING_WITH_CONCAT'):
-                    t.type = "PERCENT"
-                    t.value = "%"
-                else:
-                    continue
         except IndexError:
             pass
 

@@ -182,10 +182,25 @@ def add_endmarker(token_stream):
     yield _new_token("ENDMARKER", lineno)
 _add_endmarker = add_endmarker
 
+def remove_empty_concats(token_stream):
+    for tok in token_stream:
+        if tok.type == "STRING_WITH_CONCAT" and tok.value == "":
+            continue
+
+        if tok.type == "PERCENT":
+            tok2 = token_stream.next()
+            if not(tok2.type == "STRING" and tok2.value == ""):
+                yield tok
+                yield tok2
+        else:
+            yield tok
+
+
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(lexer, token_stream)
+    token_stream = remove_empty_concats(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream

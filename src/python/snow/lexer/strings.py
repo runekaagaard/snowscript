@@ -3,23 +3,11 @@ from error import raise_syntax_error
 def add_to_string(t, value):
     """Adds a value to the lexers string_content variable.""" 
     t.lexer.string_content += value
-
-def set_been_concat(t, type):
-    """
-    Set the string_been_concat global which is used to decide if we want to
-    allow empty strings to return token. In general we want to do that, but not
-    if the string comes after a STRING_WITH_CONCAT type.
-    """
-    if type == 'STRING_WITH_CONCAT':
-        t.lexer.string_been_concat = True
-    elif t.lexer.current_state() == 'INITIAL':
-        t.lexer.string_been_concat = False
-        
+     
 def get_string_token(t, type='STRING'):
     """Returns a string token with the value of the lexers 
     string_content variable which is then reset to ''."""
-    set_been_concat(t, type)
-    t.value = "'%s'" % t.lexer.string_content.replace("'", r"\'")
+    t.value = t.lexer.string_content
     t.lexer.string_content = ''
     t.type = type
     return t
@@ -38,11 +26,8 @@ def string_begin(t, to_state):
 def string_end(t, from_state):
     t.lexpos = t.lexer.starting_string_token.lexpos
     t.lineno = t.lexer.starting_string_token.lineno
-    allow_empty = t.lexer.current_state() == from_state \
-                  and not t.lexer.string_been_concat
     t.lexer.pop_state()
-    if allow_empty or t.lexer.string_content:
-        return get_string_token(t)
+    return get_string_token(t)
 
 def add_escape(t):
     add_to_string(t, t.value[1] if len(t.value) > 1 else t.value[0])
@@ -83,7 +68,7 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_error(t):
     raise_syntax_error("invalid syntax", t)
     
 ## Single doublequoted string    
-def t_string_string_begin(t):
+def t_string_begin(t):
     r'"'
     string_begin(t, 'INDOUBLEQUOTEDSTRING')
 
@@ -172,4 +157,6 @@ def t_SNOWINANYDOUBLEQUOTEDSTRING_SNOW_END(t):
     t.lexer.starting_string_token = t
     # Pop state back to INDOUBLEQUOTEDSTRING.
     t.lexer.pop_state()
+    t.type = "PERCENT"
+    t.value = "%"
     return t

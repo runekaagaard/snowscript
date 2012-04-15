@@ -23,7 +23,7 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 
           'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
-          'STRING_WITH_CONCAT', 'STRING_WITH_CONCAT_END', 'SNOW_END'
+          'STRING_WITH_CONCAT', 
 ]
 
 # Dict of all reserved keywords.

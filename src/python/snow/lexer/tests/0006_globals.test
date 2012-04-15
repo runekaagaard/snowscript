@@ -1,5 +1,5 @@
-$my_global3 = 52
-echo $also3_global___
+my_global3 = 52
+echo also3_global___
 ----
 CONST<my_global3> = NUMBER<52> 
 ECHO CONST<also3_global___>
