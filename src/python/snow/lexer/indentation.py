@@ -182,25 +182,78 @@ def add_endmarker(token_stream):
     yield _new_token("ENDMARKER", lineno)
 _add_endmarker = add_endmarker
 
+# TODO: This is no longer a indentation file, but more like a token stream
+# filter. Refactor.
+# TODO: Make the whole StopIteration business prettier.
 def remove_empty_concats(token_stream):
-    for tok in token_stream:
-        if tok.type == "STRING_WITH_CONCAT" and tok.value == "":
+    for t in token_stream:
+        if t.type == "STRING_WITH_CONCAT" and t.value == "":
             continue
 
-        if tok.type == "PERCENT":
-            tok2 = token_stream.next()
-            if not(tok2.type == "STRING" and tok2.value == ""):
-                yield tok
-                yield tok2
+        if t.type == "PERCENT":
+            try:
+                t2 = token_stream.next()
+            except StopIteration as e:
+                yield t
+                raise StopIteration
+            if not(t2.type == "STRING" and t2.value == ""):
+                yield t
+                yield t2
         else:
-            yield tok
+            yield t
 
+def convert_to_php_strings(token_stream):
+    for t in token_stream:
+        if t.type == 'NAME':
+            try:
+                t2 = token_stream.next()
+            except StopIteration as e:
+                yield t
+                raise StopIteration
+            if t2.type == 'LPAR':
+                t.type = "PHP_STRING"
+            if t.value == t.value.upper():
+                t.type = "PHP_STRING"
+            yield t
+            yield t2
+        else:
+            yield t
+
+def nuke_newlines_around_indent(token_stream):
+    for t in token_stream:
+        if t.type == 'NEWLINE':
+            try:
+                t2 = token_stream.next()
+            except StopIteration as e:
+                yield t
+                raise StopIteration
+                
+            if t2.type == 'INDENT':
+                yield t2
+            else:
+                yield t
+                yield t2
+        elif t.type == 'INDENT':
+            try:
+                t2 = token_stream.next()
+            except StopIteration as e:
+                yield t
+                raise StopIteration
+            if t2.type == 'NEWLINE':
+                yield t
+            else:
+                yield t
+                yield t2
+        else:
+            yield t
 
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
+    token_stream = convert_to_php_strings(token_stream)
+    token_stream = nuke_newlines_around_indent(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream

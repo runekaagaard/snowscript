@@ -18,7 +18,7 @@ a = "foo {bar("ufel")} sup"
 "\n"
 '\n'
 EOT
-, 0);
+, 0;
 --EXPECT--
 <?php
 $mystring = (((('I am ' . A_CONSTANT) . ' with ') . $a_string) . ' and ') . func_tion('foo');

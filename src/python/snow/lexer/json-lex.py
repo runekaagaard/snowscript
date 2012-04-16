@@ -59,20 +59,6 @@ def prettyprint(code, with_colors=False):
     output = []
     i = 0
     for t in tokens:
-        try:
-            t_next = tokens[i+1]
-            if t.type == 'NEWLINE' and t_next.type == 'INDENT':
-                continue
-
-            if t.type == 'NAME':
-                if t_next.type == 'LPAR':
-                    t.type = "PHP_STRING"
-                if t.value == t.value.upper():
-                    t.type = "PHP_STRING"
-
-        except IndexError:
-            pass
-
         output.append({
             'type': t.type,
             'value': t.value,

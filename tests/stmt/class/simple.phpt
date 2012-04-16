@@ -2,7 +2,7 @@
 Class declaration
 --FILE--
 <?php
-require dirname(__FILE__) . '/../bootstrap_tests.php';
+require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
 class A extends B implements C, D {
