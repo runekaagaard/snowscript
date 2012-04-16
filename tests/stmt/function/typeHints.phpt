@@ -6,7 +6,7 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
 fn a(b, array c, callable e, E f)
-	<- 42
+    <- 42
 ', 0);
 --EXPECT--
 <?php
