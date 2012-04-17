@@ -2,42 +2,36 @@ fn foo
     fn bar
         pass
 ----
-FN NAME<foo> 
-    FN NAME<bar> 
+FN PHP_STRING<foo> 
+    FN PHP_STRING<bar> 
         PASS
-
 ++++
-
 fn foo()
     pass
     fn bar()
         pass
 ----
-FN NAME<foo> ( ) 
+FN PHP_STRING<foo> ( ) 
     PASS 
-    FN NAME<bar> ( ) 
+    FN PHP_STRING<bar> ( ) 
         PASS
-        
 ++++
-
 for i in is
     print i
     fn foo
-        <-- 42
-    fn bar: <-- get_bar()
+        <- 42
+    fn bar: <- get_bar()
     yo()
 echo bar
 ----
 FOR NAME<i> IN NAME<is> 
     PRINT NAME<i> 
-    FN NAME<foo> 
-        <-- NUMBER<42> 
-    FN NAME<bar> : <-- NAME<get_bar> ( ) 
-    NAME<yo> ( ) 
+    FN PHP_STRING<foo> 
+        <- NUMBER<42> 
+    FN PHP_STRING<bar> : <- PHP_STRING<get_bar> ( ) 
+    PHP_STRING<yo> ( ) 
 ECHO NAME<bar>
-
 ++++
-
 fn myfunc
     for i in [a,
     # Comment
@@ -48,14 +42,12 @@ fn myfunc
     ]:
         print yo
 ----
-FN NAME<myfunc> 
+FN PHP_STRING<myfunc> 
     FOR NAME<i> IN [ NAME<a> , COMMENT<# Comment
       too> NAME<b> COMMENT<# Comment
         Comment> ] : 
         PRINT NAME<yo>
-        
 ++++
-
 fn call_funct(
     b
      c
@@ -65,5 +57,5 @@ fn call_funct(
   a > 3
 )
 ----
-FN NAME<call_funct> ( NAME<b> NAME<c> COMMENT<# Comment
-     To> NAME<d> ( NAME<wassup> ) NAME<a> > NUMBER<3> )
+FN PHP_STRING<call_funct> ( NAME<b> NAME<c> COMMENT<# Comment
+     To> PHP_STRING<d> ( NAME<wassup> ) NAME<a> > NUMBER<3> )

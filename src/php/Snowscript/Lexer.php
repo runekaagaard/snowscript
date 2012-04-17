@@ -38,7 +38,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     );
     // Change the type of the token.
     public $token_types_map = array(
-        'T_NAME' => 'T_VARIABLE', 
+        'T_NAME' => 'T_VARIABLE',
         'T_PHP_STRING' => 'T_STRING',
         'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
         'T_COLON' => 'T_DOUBLE_ARROW', 
@@ -46,6 +46,9 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_FN' => 'T_FUNCTION',
         'T_DOUBLE_COLON' => 'T_PAAMAYIM_NEKUDOTAYIM',
         'T_CALLABLE' => 'T_STRING',
+        'T_TRUE' => 'T_STRING',
+        'T_FALSE' => 'T_STRING',
+        'T_ELIF' => 'T_ELSEIF',
      );
     public $token_callback = array(
         'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1,

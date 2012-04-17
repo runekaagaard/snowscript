@@ -74,7 +74,7 @@ def prettyprint(code, with_colors=False):
                 res += t.value
         elif t.type == 'INDENT':
             indention += 1
-            res += get_indent(indention)
+            res += "\n" + get_indent(indention)
         elif t.type == 'DEDENT':
             indention -= 1
             res += get_indent(indention)

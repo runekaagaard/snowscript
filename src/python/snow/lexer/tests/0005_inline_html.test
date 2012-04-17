@@ -9,11 +9,11 @@ now_snow_again()
             the 
 end
 ----
-NAME<i_am_snow> ( ) 
+PHP_STRING<i_am_snow> ( ) 
 INLINE_HTML< I am html
    still html 
      > 
-NAME<now_snow_again> ( ) 
+PHP_STRING<now_snow_again> ( ) 
 INLINE_HTML< and 
     html 
         to 

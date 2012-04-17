@@ -24,7 +24,7 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 
           'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
-          'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE',
+          'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE',
 ]
 
 # Dict of all reserved keywords.
@@ -46,7 +46,8 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'list': 'LIST', 'or': 'OR', 'try': 'TRY', 'switch': 'SWITCH', 
             'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 
             'declare': 'DECLARE', 'unset': 'UNSET', 'constant': 'CONSTANT', 
-            'pass': 'PASS', 'array': 'ARRAY', 'callable': 'CALLABLE'}
+            'pass': 'PASS', 'array': 'ARRAY', 'callable': 'CALLABLE',
+            'true': 'TRUE', 'false': 'FALSE', }
 
 # Forces indentation.
 INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 

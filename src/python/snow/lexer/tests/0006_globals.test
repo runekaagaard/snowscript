@@ -1,5 +1,5 @@
-my_global3 = 52
-echo also3_global___
+MYCONST = 52
+echo ALSO_CONST___
 ----
-CONST<my_global3> = NUMBER<52> 
-ECHO CONST<also3_global___>
+PHP_STRING<MYCONST> = NUMBER<52> 
+ECHO PHP_STRING<ALSO_CONST___>

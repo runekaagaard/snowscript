@@ -11,7 +11,7 @@ if (true)
 ', 0);
 --EXPECT--
 <?php
-if ($true) {
+if (true) {
     function A()
     {
         

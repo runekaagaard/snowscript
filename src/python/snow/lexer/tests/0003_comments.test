@@ -21,7 +21,7 @@ IF NAME<a> > NUMBER<3>
   
       and this
       # and this> 
-    NAME<comment_no_more> ( ) 
+    PHP_STRING<comment_no_more> ( ) 
     COMMENT<###> 
 COMMENT<###
  too>

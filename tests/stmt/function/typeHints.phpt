@@ -5,12 +5,12 @@ Type hints
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-fn a(b, array c, callable e, E f)
+fn afunc(boo, array cool, callable erland, Flix fuzzy)
     <- 42
 ', 0);
 --EXPECT--
 <?php
-function a($b, array $c, callable $e, E $f)
+function afunc($boo, array $cool, callable $erland, Flix $fuzzy)
 {
     return 42;
 }

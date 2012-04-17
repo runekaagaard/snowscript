@@ -202,23 +202,6 @@ def remove_empty_concats(token_stream):
         else:
             yield t
 
-def convert_to_php_strings(token_stream):
-    for t in token_stream:
-        if t.type == 'NAME':
-            try:
-                t2 = token_stream.next()
-            except StopIteration as e:
-                yield t
-                raise StopIteration
-            if t2.type == 'LPAR':
-                t.type = "PHP_STRING"
-            if t.value == t.value.upper():
-                t.type = "PHP_STRING"
-            yield t
-            yield t2
-        else:
-            yield t
-
 def nuke_newlines_around_indent(token_stream):
     for t in token_stream:
         if t.type == 'NEWLINE':
@@ -247,13 +230,43 @@ def nuke_newlines_around_indent(token_stream):
         else:
             yield t
 
+def decide_on_names(token_stream):
+    tokens = list(token_stream)
+    i = -1
+    for t0 in tokens:
+        i += 1
+        if t0.type != 'NAME':
+            continue
+
+        # Depends on the previous token.
+        if i != 0:
+            t_1 = tokens[i-1]
+            if t_1.type == 'FN':
+                t0.type = "PHP_STRING"
+                continue
+
+        # Depends on the next token.
+        try:
+            t1 = tokens[i+1]
+            if t1.type in ('LPAR', 'NAME'):
+                t0.type = "PHP_STRING"
+                continue
+        except IndexError: pass
+
+        # Depends on the same token.
+        if t0.value == t0.value.upper():
+            t0.type = 'PHP_STRING'
+            continue
+        
+    return tokens
+
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
-    token_stream = convert_to_php_strings(token_stream)
     token_stream = nuke_newlines_around_indent(token_stream)
+    token_stream = decide_on_names(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream
