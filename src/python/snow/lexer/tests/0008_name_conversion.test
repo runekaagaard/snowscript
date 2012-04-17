@@ -1,0 +1,5 @@
+fn foo(Boz baz): 
+	pass
+----
+FN PHP_STRING<foo> ( PHP_STRING<Boz> NAME<baz> ) : 
+    PASS
