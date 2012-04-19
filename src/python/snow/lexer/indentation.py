@@ -231,36 +231,23 @@ def nuke_newlines_around_indent(token_stream):
             yield t
 
 def decide_on_names(token_stream):
-    tokens = list(token_stream)
-    i = -1
-    for t0 in tokens:
-        i += 1
-        if t0.type != 'NAME':
-            continue
-
-        # Depends on the previous token.
-        if i != 0:
-            t_1 = tokens[i-1]
-            if t_1.type == 'FN':
-                t0.type = "PHP_STRING"
-                continue
-
-        # Depends on the next token.
+    tprev = None
+    for t0 in token_stream:
         try:
-            t1 = tokens[i+1]
-            # TODO: The NAME one should only trigger inside parameter lists.
-            if t1.type in ('LPAR', 'NAME'):
+            if t0.type == 'NAME' and t0.value == t0.value.upper():
+                t0.type = 'PHP_STRING'
+        # Sometimes value is a tupple. ???.
+        except AttributeError:
+            pass
+        if tprev:
+            if tprev.type == 'FN' and t0.type == 'NAME':
                 t0.type = "PHP_STRING"
-                continue
-        except IndexError: pass
-
-        # Depends on the same token.
-        if t0.value == t0.value.upper():
-            t0.type = 'PHP_STRING'
-            continue
+            # TODO: The NAME one should only trigger inside parameter lists.
+            if tprev.type == 'NAME' and t0.type in ('LPAR', 'NAME'):
+                tprev.type = "PHP_STRING"
+        tprev = t0
+        yield t0
         
-    return tokens
-
 def build_token(type, value, lineno):
     t = _new_token('LPAR', lineno)
     t.value = value

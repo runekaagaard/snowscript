@@ -24,7 +24,7 @@ IF ( ( NAME<a> > NUMBER<3> ) AND ( NAME<b> > NUMBER<3> ) )
 IF ( ( NAME<a> > NUMBER<3> AND NAME<b> > NUMBER<3> ) ) 
     PASS 
 IF ( NAME<a> > NUMBER<3> ) : PASS 
-IF ( [ NAME<a> ) : NAME<b> ] != NAME<c> : PASS 
+IF ( [ NAME<a> : NAME<b> ] != NAME<c> ) : PASS 
 WHILE ( NAME<a> > NUMBER<3> OR NAME<b> != NUMBER<5> ) 
     PASS 
 FOR ( NAME<a> IN NAME<as> ) : 
