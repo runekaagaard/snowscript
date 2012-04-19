@@ -1,7 +1,7 @@
 from ply import lex
 import re
 from error import raise_indentation_error
-from standard import INDENTATION_TRIGGERS
+from standard import INDENTATION_TRIGGERS, MISSING_PARENTHESIS
 
 def _new_token(type, lineno):
     tok = lex.LexToken()
@@ -248,6 +248,7 @@ def decide_on_names(token_stream):
         # Depends on the next token.
         try:
             t1 = tokens[i+1]
+            # TODO: The NAME one should only trigger inside parameter lists.
             if t1.type in ('LPAR', 'NAME'):
                 t0.type = "PHP_STRING"
                 continue
@@ -260,6 +261,33 @@ def decide_on_names(token_stream):
         
     return tokens
 
+def build_token(type, value, lineno):
+    t = _new_token('LPAR', lineno)
+    t.value = value
+    t.lineno = lineno
+    return t
+
+def add_missing_parenthesis(token_stream):
+    inside_expression = False
+    for t in token_stream:
+        if hasattr(t, 'lexer'):
+            bracket_level = t.lexer.bracket_level
+        else:
+            bracket_level = 0
+        if not inside_expression and t.type in MISSING_PARENTHESIS:
+            start_bracket_level = 0
+            inside_expression = True
+            yield t
+            yield build_token('LPAR', '(', t.lineno)
+            continue
+
+        if (inside_expression and t.type in ('INDENT', 'COLON') 
+            and bracket_level == start_bracket_level):
+            inside_expression = False
+            yield build_token('RPAR', ')', t.lineno)
+
+        yield t
+
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
@@ -267,6 +295,7 @@ def make_token_stream(lexer, add_endmarker = True):
     token_stream = remove_empty_concats(token_stream)
     token_stream = nuke_newlines_around_indent(token_stream)
     token_stream = decide_on_names(token_stream)
+    token_stream = add_missing_parenthesis(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream

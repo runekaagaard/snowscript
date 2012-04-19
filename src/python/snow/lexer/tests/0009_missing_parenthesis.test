@@ -1,0 +1,37 @@
+if a > 3
+	pass
+if (a > 3) and (b > 3)
+	pass
+if (a > 3 and b > 3)
+	pass
+if a > 3: pass
+if [a: b] != c: pass
+while a>3 or b != 5
+	pass
+for a in as:
+	pass
+if a > 3: pass
+elif b > 3:pass
+else
+	pass
+switch b:
+	case '42': pass
+----
+IF ( NAME<a> > NUMBER<3> ) 
+    PASS 
+IF ( ( NAME<a> > NUMBER<3> ) AND ( NAME<b> > NUMBER<3> ) ) 
+    PASS 
+IF ( ( NAME<a> > NUMBER<3> AND NAME<b> > NUMBER<3> ) ) 
+    PASS 
+IF ( NAME<a> > NUMBER<3> ) : PASS 
+IF ( [ NAME<a> ) : NAME<b> ] != NAME<c> : PASS 
+WHILE ( NAME<a> > NUMBER<3> OR NAME<b> != NUMBER<5> ) 
+    PASS 
+FOR ( NAME<a> IN NAME<as> ) : 
+    PASS 
+IF ( NAME<a> > NUMBER<3> ) : PASS 
+ELIF ( NAME<b> > NUMBER<3> ) : PASS 
+ELSE 
+    PASS 
+SWITCH ( NAME<b> ) : 
+    CASE STRING<42> : PASS

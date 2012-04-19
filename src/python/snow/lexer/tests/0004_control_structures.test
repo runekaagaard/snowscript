@@ -4,10 +4,10 @@ if a == b
    while true
        break
 ----
-IF NAME<a> == NAME<b> 
+IF ( NAME<a> == NAME<b> ) 
     ECHO NAME<b> 
     FN PHP_STRING<c> : <- NUMBER<42> 
-    WHILE TRUE 
+    WHILE ( TRUE ) 
         NAME<break>
 ++++
 x = switch foo
@@ -15,7 +15,7 @@ x = switch foo
         <- "yo"
     case 'bar': echo "sup"
 ----
-NAME<x> = SWITCH NAME<foo> 
+NAME<x> = SWITCH ( NAME<foo> ) 
     CASE STRING<foo> 
         <- STRING<yo> 
     CASE STRING<bar> : ECHO STRING<sup>

@@ -58,7 +58,7 @@ class SnowLexer(object):
         self.token_stream = make_token_stream(self.lexer, add_endmarker=True)
     
     def _reset(self):
-        self.lexer.paren_count = 0
+        self.lexer.bracket_level = 0
         self.lexer.is_raw = False
         self.lexer.string_been_concat = False
         

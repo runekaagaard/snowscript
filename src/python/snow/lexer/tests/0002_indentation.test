@@ -24,7 +24,7 @@ for i in is
     yo()
 echo bar
 ----
-FOR NAME<i> IN NAME<is> 
+FOR ( NAME<i> IN NAME<is> ) 
     PRINT NAME<i> 
     FN PHP_STRING<foo> 
         <- NUMBER<42> 
@@ -43,19 +43,19 @@ fn myfunc
         print yo
 ----
 FN PHP_STRING<myfunc> 
-    FOR NAME<i> IN [ NAME<a> , COMMENT<# Comment
+    FOR ( NAME<i> IN [ NAME<a> , COMMENT<# Comment
       too> NAME<b> COMMENT<# Comment
-        Comment> ] : 
+        Comment> ] ) : 
         PRINT NAME<yo>
 ++++
-fn call_funct(
-    b
-     c
+call_funct(
+    b,
+     c,
     # Comment
-     To
-   d(wassup)
+      To,
+   d(wassup),
   a > 3
 )
 ----
-FN PHP_STRING<call_funct> ( NAME<b> NAME<c> COMMENT<# Comment
-     To> PHP_STRING<d> ( NAME<wassup> ) NAME<a> > NUMBER<3> )
+PHP_STRING<call_funct> ( NAME<b> , NAME<c> , COMMENT<# Comment
+      To,> PHP_STRING<d> ( NAME<wassup> ) , NAME<a> > NUMBER<3> )

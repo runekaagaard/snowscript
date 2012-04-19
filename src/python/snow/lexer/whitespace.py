@@ -25,7 +25,7 @@ def t_WS(t):
         n = 8 - (pos % 8)
         value = value[:pos] + " "*n + value[pos+1:]
 
-    if t.lexer.at_line_start and t.lexer.paren_count == 0:
+    if t.lexer.at_line_start and t.lexer.bracket_level == 0:
         return t
 
 # string continuation - ignored beyond the tokenizer level
@@ -41,5 +41,5 @@ def t_newline(t):
     r"\n+"
     t.lexer.lineno += len(t.value)
     t.type = "NEWLINE"
-    if t.lexer.paren_count == 0:
+    if t.lexer.bracket_level == 0:
         return t

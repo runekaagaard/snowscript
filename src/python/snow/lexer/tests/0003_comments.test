@@ -13,7 +13,7 @@ if a > 3
  too
 ----
 COMMENT<# Yo> 
-IF NAME<a> > NUMBER<3> 
+IF ( NAME<a> > NUMBER<3> ) 
     COMMENT<# I comment
         So it its
         and this
