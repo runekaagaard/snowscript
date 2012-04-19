@@ -29,8 +29,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     public $translated_tokens = array(
         'T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}',
         'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%',
-        'T_BNOT' => '~', 'T_BOR' => '|', 'T_DOT' => '->', 'T_LBRACE' => '{',
-        'T_RBRACE' => '}',
+        'T_BNOT' => '~', 'T_BOR' => '|', 'T_LBRACE' => '{',
+        'T_RBRACE' => '}', 'T_LESS' => '<', 'T_NOT' => '!',
     );
     // Don't do anything with these.
     public $ignored_tokens = array(
@@ -49,6 +49,14 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_TRUE' => 'T_STRING',
         'T_FALSE' => 'T_STRING',
         'T_ELIF' => 'T_ELSEIF',
+        'T_ISA' => 'T_INSTANCEOF',
+        'T_DIE' => 'T_EXIT',
+        'T_OR' => 'T_BOOLEAN_OR',
+        'T_XOR' => 'T_LOGICAL_XOR',
+        'T_AND' => 'T_BOOLEAN_AND',
+        'T__OR_' => 'T_LOGICAL_OR',
+        'T__AND_' => 'T_LOGICAL_AND',
+        'T_DOT' => 'T_OBJECT_OPERATOR',
      );
     public $token_callback = array(
         'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1,

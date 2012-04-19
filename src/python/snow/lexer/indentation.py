@@ -232,6 +232,7 @@ def nuke_newlines_around_indent(token_stream):
 
 def decide_on_names(token_stream):
     tprev = None
+    tprev2 = None
     for t0 in token_stream:
         try:
             if t0.type == 'NAME' and t0.value == t0.value.upper():
@@ -245,6 +246,11 @@ def decide_on_names(token_stream):
             # TODO: The NAME one should only trigger inside parameter lists.
             if tprev.type == 'NAME' and t0.type in ('LPAR', 'NAME'):
                 tprev.type = "PHP_STRING"
+        if tprev2:
+            if tprev.type == 'DOT' and t0.type == 'NAME':
+                t0.type = 'PHP_STRING'
+        if tprev:
+            tprev2 = tprev
         tprev = t0
         yield t0
         

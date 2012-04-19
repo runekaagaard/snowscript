@@ -13,7 +13,7 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD_EQUAL', 
           'MOD', 'BAND', 
           'BOR', 'BNOT', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 
-          'EXIT', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 
+          'EXIT', 'DIE', 'INCLUDE', 'INCLUDE_ONCE', 'ISSET', 'LIST', 'REQUIRE', 
           'REQUIRE_ONCE', 'PRINT', 'UNSET', 'INC', 'DEC', 'IS_IDENTICAL', 
           'IS_NOT_IDENTICAL', 'IS_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 
           'IS_GREATER_OR_EQUAL', 'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 
@@ -24,14 +24,14 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 
           'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
-          'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE',
+          'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE', 'NOT',
 ]
 
 # Dict of all reserved keywords.
 RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE', 
             'when': 'WHEN', 'abstract': 'ABSTRACT', 'private': 'PRIVATE', 'box': 'BOX', 
             'protected': 'PROTECTED', 'echo': 'ECHO', 'catch': 'CATCH', 'bright': 'BRIGHT', 
-            'bnot': 'BNOT', 'exit': 'EXIT', 'in': 'IN', 'if': 'IF', 'fallthru': 
+            'bnot': 'BNOT', 'exit': 'EXIT', 'die': 'DIE', 'in': 'IN', 'if': 'IF', 'fallthru': 
             'FALLTHRU', 'use': 'USE', 'end': 'END', 'for': 'FOR', 
             'downto': 'DOWNTO', 'namespace': 'NAMESPACE', 'while': 'WHILE', 
             'isset': 'ISSET', 'next': 'NEXT', 'to': 'TO', 'extends': 'EXTENDS', 
@@ -47,7 +47,7 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 
             'declare': 'DECLARE', 'unset': 'UNSET', 'constant': 'CONSTANT', 
             'pass': 'PASS', 'array': 'ARRAY', 'callable': 'CALLABLE',
-            'true': 'TRUE', 'false': 'FALSE', }
+            'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', }
 
 # Forces indentation.
 INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 

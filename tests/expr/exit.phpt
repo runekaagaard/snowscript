@@ -14,9 +14,9 @@ die(\'Exit!\')
 ', 0);
 --EXPECT--
 <?php
-exit;
-exit();
-exit('Die!');
 die;
-die();
+die;
+die('Die!');
+die;
+die;
 die('Exit!');
