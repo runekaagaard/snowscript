@@ -24,7 +24,8 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'EQUAL', 'DOT', 'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 
           'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
-          'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE', 'NOT',
+          'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE', 'NOT', 'NULL',
+          'CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME',
 ]
 
 # Dict of all reserved keywords.
@@ -47,13 +48,16 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 
             'declare': 'DECLARE', 'unset': 'UNSET', 'constant': 'CONSTANT', 
             'pass': 'PASS', 'array': 'ARRAY', 'callable': 'CALLABLE',
-            'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', }
+            'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', 'null': 'NULL',
+            }
 
 # Forces indentation.
 INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 
                         'DEFAULT', 'FN', 'CLASS', 'CONSTANT', 'PUBLIC', 'PROTECTED', 
                         'PRIVATE', 
-                        'STATIC', 'WHILE')
+                        'WHILE',
+                        # 'STATIC',
+                        )
 
 MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE')
 
@@ -209,8 +213,15 @@ def t_SL(t):
 def t_SR(t): 
     r'bright\='; t.type = RESERVED.get(t.value, "SR"); return t
 
+def t_constant_or_class_name(t):
+    r"[A-Z_][a-zA-Z0-9_]*"
+    t.type = RESERVED.get(
+        t.value, 
+        "CONSTANT_NAME" if t.value == t.value.upper() else "CLASS_NAME"
+    )
+    return t
 
-def t_NAME(t):
+def t_VARIABLE_NAME(t):
     r"[a-zA-Z_][a-zA-Z0-9_]*"
     t.type = RESERVED.get(t.value, "NAME")
     return t

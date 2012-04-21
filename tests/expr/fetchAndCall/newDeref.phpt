@@ -2,17 +2,17 @@
 New expression dereferencing
 --FILE--
 <?php
-require dirname(__FILE__) . '/../bootstrap_tests.php';
+require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
-snowscript_to_php('
-(new A)->b
-(new A)->b()
-(new A)[\'b\']
-(new A)[\'b\'][\'c\']
-', 0);
+snowscript_to_php("
+(Ab()).b
+(Ab()).b()
+(Ab())['b']
+(Ab())['b']['c']
+", 0);
 --EXPECT--
 <?php
-(new A)->b;
-(new A)->b();
-(new A)['b'];
-(new A)['b']['c'];
+(new Ab())->b;
+(new Ab())->b();
+(new Ab())['b'];
+(new Ab())['b']['c'];

@@ -230,32 +230,41 @@ def nuke_newlines_around_indent(token_stream):
         else:
             yield t
 
-def decide_on_names(token_stream):
-    tprev = None
-    tprev2 = None
-    for t0 in token_stream:
-        try:
-            if t0.type == 'NAME' and t0.value == t0.value.upper():
-                t0.type = 'PHP_STRING'
-        # Sometimes value is a tupple. ???.
-        except AttributeError:
-            pass
-        if tprev:
-            if tprev.type == 'FN' and t0.type == 'NAME':
-                t0.type = "PHP_STRING"
-            # TODO: The NAME one should only trigger inside parameter lists.
-            if tprev.type == 'NAME' and t0.type in ('LPAR', 'NAME'):
-                tprev.type = "PHP_STRING"
-        if tprev2:
-            if tprev.type == 'DOT' and t0.type == 'NAME':
-                t0.type = 'PHP_STRING'
-        if tprev:
-            tprev2 = tprev
-        tprev = t0
-        yield t0
-        
-def build_token(type, value, lineno):
-    t = _new_token('LPAR', lineno)
+def insert_missing_new(token_stream):
+    for t in token_stream:
+        if t.type == 'CLASS_NAME':
+            t2 = token_stream.next()
+            if t2.type == 'LPAR':
+                yield build_token('NEW', 'new', t.lineno)
+            yield t
+            yield t2
+        else:
+            yield t
+
+def correct_class_accessor_names(token_stream):
+    for t in token_stream:
+        if t.type == 'DOT':
+            t2 = token_stream.next()
+            if t2.type == 'NAME':
+                t2.type = 'PHP_STRING'
+            yield t
+            yield t2
+        else:
+            yield t
+
+def correct_function_call(token_stream):
+    for t in token_stream:
+        if t.type == 'NAME':
+            t2 = token_stream.next()
+            if t2.type == 'LPAR':
+                t.type = 'PHP_STRING'
+            yield t
+            yield t2
+        else:
+            yield t
+
+def build_token(_type, value, lineno):
+    t = _new_token(_type, lineno)
     t.value = value
     t.lineno = lineno
     return t
@@ -275,7 +284,7 @@ def add_missing_parenthesis(token_stream):
             continue
 
         if (inside_expression and t.type in ('INDENT', 'COLON') 
-            and bracket_level == start_bracket_level):
+        and bracket_level == start_bracket_level):
             inside_expression = False
             yield build_token('RPAR', ')', t.lineno)
 
@@ -287,7 +296,9 @@ def make_token_stream(lexer, add_endmarker = True):
     token_stream = synthesize_indentation_tokens(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
     token_stream = nuke_newlines_around_indent(token_stream)
-    token_stream = decide_on_names(token_stream)
+    token_stream = insert_missing_new(token_stream)
+    token_stream = correct_class_accessor_names(token_stream)
+    token_stream = correct_function_call(token_stream)
     token_stream = add_missing_parenthesis(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)

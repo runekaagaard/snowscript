@@ -57,6 +57,9 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T__OR_' => 'T_LOGICAL_OR',
         'T__AND_' => 'T_LOGICAL_AND',
         'T_DOT' => 'T_OBJECT_OPERATOR',
+        'T_NULL' => 'T_STRING',
+        'T_CONSTANT_NAME' => 'T_STRING',
+        'T_CLASS_NAME' => 'T_STRING',
      );
     public $token_callback = array(
         'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1,
@@ -163,6 +166,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         self::$named_tokenmap = array_flip(array_map(function($x) {
             return str_replace("PHPParser_Parser::", "", $x);
         }, self::$named_tokenmap));
+
+
     }
 
     function T_STRING_WITH_CONCAT($t) {
