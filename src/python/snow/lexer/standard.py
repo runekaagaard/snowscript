@@ -218,10 +218,10 @@ def t_SR(t):
     r'bright\='; t.type = RESERVED.get(t.value, "SR"); return t
 
 def t_constant_or_class_name(t):
-    r"[A-Z_][a-zA-Z0-9_]*"
+    r"[A-Z][a-zA-Z0-9_]*"
     t.type = RESERVED.get(
         t.value, 
-        "CONSTANT_NAME" if t.value == t.value.upper() else "CLASS_NAME"
+        "CONSTANT_NAME" if t.value == t.value.upper() and len(t.value) > 1 else "CLASS_NAME"
     )
     return t
 
