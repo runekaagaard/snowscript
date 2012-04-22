@@ -5,8 +5,12 @@ Final class
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-final class A {}
+final class A
+	pass
 ', 0);
 --EXPECT--
 <?php
-final class A {}
+final class A
+{
+    
+}

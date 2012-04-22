@@ -26,7 +26,7 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
           'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE', 'NOT', 'NULL',
           'CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME', 'INT', 'BOOL', 
-          'FLOAT', 'OBJECT', 'STRINGTYPE'
+          'FLOAT', 'OBJECT', 'STRINGTYPE', 'TRAIT'
 ]
 
 # Dict of all reserved keywords.
@@ -52,11 +52,12 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', 'null': 'NULL',
             'int': 'INT', 'bool': 'BOOL',
             'float': 'FLOAT', 'object': 'OBJECT', 'str': 'STRINGTYPE',
+            'trait': 'TRAIT',
             }
 
 # Forces indentation.
 INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'WHILE',
-                        'DEFAULT', 'FN', 'CLASS', 
+                        'DEFAULT', 'FN', 'CLASS', 'INTERFACE', 'TRAIT',
                         # 'STATIC', 'PRIVATE', 'CONST', 'PUBLIC', 'PROTECTED',
                         )
 

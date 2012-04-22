@@ -5,12 +5,15 @@ Conditional class definition
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-if (true) {
-    class A {}
-}
+if true
+    class A
+    	pass
 ', 0);
 --EXPECT--
 <?php
 if (true) {
-    class A {}
+    class A
+    {
+        
+    }
 }
