@@ -9,7 +9,7 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'EXTENDS', 'FINAL', 'FOR', 'IF', 'IMPLEMENTS', 'INTERFACE', 
           'NAMESPACE', 'NEW', 'OR', 'SWITCH', 'THROW', 'TRY', 'USE', 
           'WHILE', 'XOR', 'GLOBAL', 'PRIVATE', 'PROTECTED', 'PUBLIC', 'STATIC', 
-          'CONSTANT', 'WHEN', 
+          'WHEN', 
           'FALLTHRU', 'IN', 'TO', 'DOWNTO', '_AND_', '_OR_', 'MOD_EQUAL', 
           'MOD', 'BAND', 
           'BOR', 'BNOT', 'BOX', 'BXOR', 'BLEFT', 'BRIGHT', 'ECHO', 'EMPTY', 
@@ -47,7 +47,7 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'default': 'DEFAULT', 'bxor': 'BXOR', 'require': 'REQUIRE', 
             'list': 'LIST', 'or': 'OR', 'try': 'TRY', 'switch': 'SWITCH', 
             'bleft': 'BLEFT', '_or_': '_OR_', 'isa': 'ISA', 
-            'declare': 'DECLARE', 'unset': 'UNSET', 'constant': 'CONSTANT', 
+            'declare': 'DECLARE', 'unset': 'UNSET', 'const': 'CONST', 
             'pass': 'PASS', 'array': 'ARRAY', 'callable': 'CALLABLE',
             'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', 'null': 'NULL',
             'int': 'INT', 'bool': 'BOOL',
@@ -55,11 +55,9 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             }
 
 # Forces indentation.
-INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 
-                        'DEFAULT', 'FN', 'CLASS', 'CONSTANT', 'PUBLIC', 'PROTECTED', 
-                        'PRIVATE', 
-                        'WHILE',
-                        # 'STATIC',
+INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'WHILE',
+                        'DEFAULT', 'FN', 'CLASS', 
+                        # 'STATIC', 'PRIVATE', 'CONST', 'PUBLIC', 'PROTECTED',
                         )
 
 CASTS = ('ARRAY', 'BOOL', 'DOUBLE', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', 'UNSET', 'REAL')

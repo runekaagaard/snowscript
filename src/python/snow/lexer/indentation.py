@@ -211,12 +211,12 @@ def nuke_newlines_around_indent(token_stream):
                 yield t
                 raise StopIteration
                 
-            if t2.type == 'INDENT':
+            if t2.type in ('INDENT', 'PASS'):
                 yield t2
             else:
                 yield t
                 yield t2
-        elif t.type == 'INDENT':
+        elif t.type in ('INDENT', 'PASS'):
             try:
                 t2 = token_stream.next()
             except StopIteration as e:
@@ -253,30 +253,13 @@ def correct_class_accessor_names(token_stream):
             yield t
 
 def correct_function_call(token_stream):
-    remove_at_level = None
-    #for t in token_stream:
-    #    print t
-    #    print t.lexer.bracket_level
-    #    yield t
-    #return
     for t in token_stream:
-        #print t.lexer.bracket_level
-        if t.type in CASTS:
-
+        if t.type == 'NAME':
             t2 = token_stream.next()
             if t2.type == 'LPAR':
-                remove_at_level = t2.lexer.bracket_level - 1
-                #print remove_at_level
-                #print "###########################"
-                #print remove_at_level
-                #print '%s_CAST' % t.type
-                yield build_token('%s_CAST' % t.type, '(int)', t.lineno)
-            else:
-                yield t
-                yield t2
-        elif t.type == 'RPAR' and t.lexer.bracket_level == remove_at_level:
-            #print "IJEIJFIEJF"
-            remove_at_level = None
+                t.type = 'PHP_STRING'
+            yield t
+            yield t2
         else:
             yield t
 
@@ -285,6 +268,23 @@ def build_token(_type, value, lineno):
     t.value = value
     t.lineno = lineno
     return t
+
+def casts_as_functioncalls(token_stream):
+    remove_at_level = None
+    for t in token_stream:
+        if t.type in CASTS:
+
+            t2 = token_stream.next()
+            if t2.type == 'LPAR':
+                remove_at_level = t2.lexer.bracket_level - 1
+                yield build_token('%s_CAST' % t.type, '(int)', t.lineno)
+            else:
+                yield t
+                yield t2
+        elif t.type == 'RPAR' and t.lexer.bracket_level == remove_at_level:
+            remove_at_level = None
+        else:
+            yield t
 
 def add_missing_parenthesis(token_stream):
     inside_expression = False
@@ -307,16 +307,20 @@ def add_missing_parenthesis(token_stream):
 
         yield t
 
-def casts_as_functioncalls(token_stream):
+def add_missing_parenthesis_after_functions(token_stream):
+    inside_expression = False
     for t in token_stream:
-        if t.type == 'NAME':
-            t2 = token_stream.next()
-            if t2.type == 'LPAR':
-                t.type = 'PHP_STRING'
-            yield t
-            yield t2
-        else:
-            yield t
+        yield t
+        if t.type == 'FN':    
+            t1 = token_stream.next()
+            yield t1
+            if t1.type == 'NAME':
+                t2 = token_stream.next()
+                if t2.type in ('INDENT', 'COLON'):
+                    # print build_token('LPAR', '(', t2.lineno)
+                    yield build_token('LPAR', '(', t2.lineno)
+                    yield build_token('RPAR', ')', t2.lineno)
+                yield t2
 
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
@@ -329,6 +333,7 @@ def make_token_stream(lexer, add_endmarker = True):
     token_stream = correct_function_call(token_stream)
     token_stream = casts_as_functioncalls(token_stream)
     token_stream = add_missing_parenthesis(token_stream)
+    token_stream = add_missing_parenthesis_after_functions(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream
