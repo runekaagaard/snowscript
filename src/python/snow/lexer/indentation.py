@@ -1,7 +1,7 @@
 from ply import lex
 import re
 from error import raise_indentation_error
-from standard import INDENTATION_TRIGGERS, MISSING_PARENTHESIS
+from standard import INDENTATION_TRIGGERS, MISSING_PARENTHESIS, CASTS
 
 def _new_token(type, lineno):
     tok = lex.LexToken()
@@ -253,13 +253,30 @@ def correct_class_accessor_names(token_stream):
             yield t
 
 def correct_function_call(token_stream):
+    remove_at_level = None
+    #for t in token_stream:
+    #    print t
+    #    print t.lexer.bracket_level
+    #    yield t
+    #return
     for t in token_stream:
-        if t.type == 'NAME':
+        #print t.lexer.bracket_level
+        if t.type in CASTS:
+
             t2 = token_stream.next()
             if t2.type == 'LPAR':
-                t.type = 'PHP_STRING'
-            yield t
-            yield t2
+                remove_at_level = t2.lexer.bracket_level - 1
+                #print remove_at_level
+                #print "###########################"
+                #print remove_at_level
+                #print '%s_CAST' % t.type
+                yield build_token('%s_CAST' % t.type, '(int)', t.lineno)
+            else:
+                yield t
+                yield t2
+        elif t.type == 'RPAR' and t.lexer.bracket_level == remove_at_level:
+            #print "IJEIJFIEJF"
+            remove_at_level = None
         else:
             yield t
 
@@ -290,6 +307,17 @@ def add_missing_parenthesis(token_stream):
 
         yield t
 
+def casts_as_functioncalls(token_stream):
+    for t in token_stream:
+        if t.type == 'NAME':
+            t2 = token_stream.next()
+            if t2.type == 'LPAR':
+                t.type = 'PHP_STRING'
+            yield t
+            yield t2
+        else:
+            yield t
+
 def make_token_stream(lexer, add_endmarker = True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
@@ -299,6 +327,7 @@ def make_token_stream(lexer, add_endmarker = True):
     token_stream = insert_missing_new(token_stream)
     token_stream = correct_class_accessor_names(token_stream)
     token_stream = correct_function_call(token_stream)
+    token_stream = casts_as_functioncalls(token_stream)
     token_stream = add_missing_parenthesis(token_stream)
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)

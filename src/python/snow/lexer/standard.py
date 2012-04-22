@@ -25,7 +25,8 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'LPAR', 'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'PASS', 'COMMENT', 
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
           'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE', 'NOT', 'NULL',
-          'CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME',
+          'CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME', 'INT', 'BOOL', 
+          'FLOAT', 'OBJECT', 'STRINGTYPE'
 ]
 
 # Dict of all reserved keywords.
@@ -49,6 +50,8 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'declare': 'DECLARE', 'unset': 'UNSET', 'constant': 'CONSTANT', 
             'pass': 'PASS', 'array': 'ARRAY', 'callable': 'CALLABLE',
             'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', 'null': 'NULL',
+            'int': 'INT', 'bool': 'BOOL',
+            'float': 'FLOAT', 'object': 'OBJECT', 'str': 'STRINGTYPE',
             }
 
 # Forces indentation.
@@ -58,6 +61,8 @@ INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE',
                         'WHILE',
                         # 'STATIC',
                         )
+
+CASTS = ('ARRAY', 'BOOL', 'DOUBLE', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', 'UNSET', 'REAL')
 
 MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE')
 

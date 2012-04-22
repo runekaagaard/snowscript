@@ -60,6 +60,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_NULL' => 'T_STRING',
         'T_CONSTANT_NAME' => 'T_STRING',
         'T_CLASS_NAME' => 'T_STRING',
+        'T_FLOAT_CAST' => 'T_DOUBLE_CAST',
+        'T_STRINGTYPE_CAST' => 'T_STRING_CAST',
      );
     public $token_callback = array(
         'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1,
