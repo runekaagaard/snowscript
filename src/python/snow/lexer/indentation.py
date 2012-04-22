@@ -3,21 +3,14 @@ import re
 from error import raise_indentation_error
 from standard import INDENTATION_TRIGGERS, MISSING_PARENTHESIS, CASTS
 
-def _new_token(type, lineno):
-    tok = lex.LexToken()
-    tok.type = type
-    tok.value = None
-    tok.lineno = lineno
-    tok.lexpos = -1
-    return tok
-
-# Synthesize a DEDENT tag.
-def DEDENT(lineno):
-    return _new_token("DEDENT", lineno)
-
-# Synthesize an INDENT tag.
-def INDENT(lineno):
-    return _new_token("INDENT", lineno)
+def build_token(_type, value, t):
+    t2 = lex.LexToken()
+    t2.type = _type
+    t2.value = value
+    t2.lineno = t.lineno
+    t2.lexpos = -1
+    t2.lexer = t.lexer
+    return t2
 
 # Error token.
 def t_error(t):
@@ -140,7 +133,7 @@ def synthesize_indentation_tokens(lexer, token_stream):
                 raise_indentation_error("expected an indented block", token)
 
             levels.append(depth)
-            yield INDENT(token.lineno)
+            yield build_token("INDENT", None, token)
 
         elif token.at_line_start:
             # Must be on the same level or one of the previous levels
@@ -160,7 +153,7 @@ def synthesize_indentation_tokens(lexer, token_stream):
                     raise_indentation_error("unindent does not match any outer " 
                                             "indentation level", token)
                 for _ in range(i+1, len(levels)):
-                    yield DEDENT(token.lineno)
+                    yield build_token("DEDENT", None, token)
                     levels.pop()
 
         yield token
@@ -168,7 +161,7 @@ def synthesize_indentation_tokens(lexer, token_stream):
     if len(levels) > 1:
         assert token is not None
         for _ in range(1, len(levels)):
-            yield DEDENT(token.lineno)
+            yield build_token("DEDENT", None, token)
     
 
 def add_endmarker(token_stream):
@@ -179,7 +172,7 @@ def add_endmarker(token_stream):
         lineno = tok.lineno
     else:
         lineno = 1
-    yield _new_token("ENDMARKER", lineno)
+    yield build_token("ENDMARKER", None, tok)
 _add_endmarker = add_endmarker
 
 # TODO: This is no longer a indentation file, but more like a token stream
@@ -235,7 +228,7 @@ def insert_missing_new(token_stream):
         if t.type == 'CLASS_NAME':
             t2 = token_stream.next()
             if t2.type == 'LPAR':
-                yield build_token('NEW', 'new', t.lineno)
+                yield build_token('NEW', 'new', t)
             yield t
             yield t2
         else:
@@ -254,30 +247,34 @@ def correct_class_accessor_names(token_stream):
 
 def correct_function_call(token_stream):
     for t in token_stream:
-        if t.type == 'NAME':
+        if t.type in ('NAME'):
+            yield t
             t2 = token_stream.next()
             if t2.type == 'LPAR':
                 t.type = 'PHP_STRING'
-            yield t
             yield t2
         else:
             yield t
 
-def build_token(_type, value, lineno):
-    t = _new_token(_type, lineno)
-    t.value = value
-    t.lineno = lineno
-    return t
+def correct_function_definition(token_stream):
+    for t in token_stream:
+        if t.type == 'FN':
+            yield t
+            t2 = token_stream.next()
+            if t2.type == 'NAME':
+                t2.type = 'PHP_STRING'
+            yield t2
+        else:
+            yield t
 
 def casts_as_functioncalls(token_stream):
     remove_at_level = None
     for t in token_stream:
         if t.type in CASTS:
-
             t2 = token_stream.next()
             if t2.type == 'LPAR':
                 remove_at_level = t2.lexer.bracket_level - 1
-                yield build_token('%s_CAST' % t.type, '(int)', t.lineno)
+                yield build_token('%s_CAST' % t.type, '(int)', t)
             else:
                 yield t
                 yield t2
@@ -297,13 +294,13 @@ def add_missing_parenthesis(token_stream):
             start_bracket_level = 0
             inside_expression = True
             yield t
-            yield build_token('LPAR', '(', t.lineno)
+            yield build_token('LPAR', '(', t)
             continue
 
         if (inside_expression and t.type in ('INDENT', 'COLON') 
         and bracket_level == start_bracket_level):
             inside_expression = False
-            yield build_token('RPAR', ')', t.lineno)
+            yield build_token('RPAR', ')', t)
 
         yield t
 
@@ -314,12 +311,11 @@ def add_missing_parenthesis_after_functions(token_stream):
         if t.type == 'FN':    
             t1 = token_stream.next()
             yield t1
-            if t1.type == 'NAME':
+            if t1.type == 'PHP_STRING':
                 t2 = token_stream.next()
                 if t2.type in ('INDENT', 'COLON'):
-                    # print build_token('LPAR', '(', t2.lineno)
-                    yield build_token('LPAR', '(', t2.lineno)
-                    yield build_token('RPAR', ')', t2.lineno)
+                    yield build_token('LPAR', '(', t2)
+                    yield build_token('RPAR', ')', t2)
                 yield t2
 
 def make_token_stream(lexer, add_endmarker = True):
@@ -331,6 +327,7 @@ def make_token_stream(lexer, add_endmarker = True):
     token_stream = insert_missing_new(token_stream)
     token_stream = correct_class_accessor_names(token_stream)
     token_stream = correct_function_call(token_stream)
+    token_stream = correct_function_definition(token_stream)
     token_stream = casts_as_functioncalls(token_stream)
     token_stream = add_missing_parenthesis(token_stream)
     token_stream = add_missing_parenthesis_after_functions(token_stream)

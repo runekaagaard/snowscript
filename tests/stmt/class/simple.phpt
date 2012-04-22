@@ -5,9 +5,23 @@ Class declaration
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
-fn foo
-    pass
-", 1);
+class A extends B implements C, D
+    const A = 'B', C = 'D'
+    public a = 'b', c = 'd'
+    protected e
+    private f
+
+    public fn a
+        pass
+    public static fn b
+        pass
+    public final fn c() 
+        pass
+    protected fn d()
+        pass
+    private fn e() 
+        pass
+", 0);
 --EXPECT--
 <?php
 class A extends B implements C, D
