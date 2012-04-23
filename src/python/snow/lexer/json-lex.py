@@ -1,8 +1,6 @@
 import sys
 import os
 from glob import glob
-from difflib import unified_diff
-from termcolor import colored
 
 import string
 from standard import tokens
