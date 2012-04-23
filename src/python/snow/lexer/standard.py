@@ -61,7 +61,7 @@ INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'WHILE',
                         # 'STATIC', 'PRIVATE', 'CONST', 'PUBLIC', 'PROTECTED',
                         )
 
-CASTS = ('ARRAY', 'BOOL', 'DOUBLE', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', 'UNSET', 'REAL')
+CASTS = ('ARRAY', 'BOOL', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE',)
 
 MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH')
 

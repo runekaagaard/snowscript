@@ -11,7 +11,6 @@ float(a)
 int(a)
 object(a)
 str(a)
-unset(a)
 ', 0);
 --EXPECT--
 <?php
@@ -21,4 +20,3 @@ unset(a)
 (int) $a;
 (object) $a;
 (string) $a;
-(unset) $a;
