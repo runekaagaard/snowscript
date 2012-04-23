@@ -26,7 +26,7 @@ tokens = ['ELIF', 'END', 'ISA', 'FN', 'NEXT', 'ABSTRACT', 'AND', 'CASE',
           'INSIDE_COMMENT', 'CONST', 'INLINE_HTML', 'ESCAPE', 
           'STRING_WITH_CONCAT', 'ARRAY', 'CALLABLE', 'TRUE', 'FALSE', 'NOT', 'NULL',
           'CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME', 'INT', 'BOOL', 
-          'FLOAT', 'OBJECT', 'STRINGTYPE', 'TRAIT'
+          'FLOAT', 'OBJECT', 'STRINGTYPE', 'TRAIT', 'BREAK',
 ]
 
 # Dict of all reserved keywords.
@@ -52,18 +52,18 @@ RESERVED = {'and': 'AND', 'elif': 'ELIF', 'include_once': 'INCLUDE_ONCE',
             'true': 'TRUE', 'false': 'FALSE', 'not': 'NOT', 'null': 'NULL',
             'int': 'INT', 'bool': 'BOOL',
             'float': 'FLOAT', 'object': 'OBJECT', 'str': 'STRINGTYPE',
-            'trait': 'TRAIT',
+            'trait': 'TRAIT', 'break': 'BREAK',
             }
 
 # Forces indentation.
 INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'WHILE',
-                        'DEFAULT', 'FN', 'CLASS', 'INTERFACE', 'TRAIT',
+                        'DEFAULT', 'FN', 'CLASS', 'INTERFACE', 'TRAIT', 'TRY', 'CATCH'
                         # 'STATIC', 'PRIVATE', 'CONST', 'PUBLIC', 'PROTECTED',
                         )
 
 CASTS = ('ARRAY', 'BOOL', 'DOUBLE', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', 'UNSET', 'REAL')
 
-MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE')
+MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH')
 
 SYMBOLIC = ('INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL', 
             'IS_NOT_EQUAL', 't_IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL', 
@@ -125,6 +125,7 @@ def t_INLINE_HTML(t):
     t.value = t.value[2:]
     if t.value[-2:] == '<%':
         t.value = t.value[:-2]
+    #t.value = t.value.strip()
     return t
 
 NEXT_LINE = re.compile(r'\n([ ]*)(.*)')

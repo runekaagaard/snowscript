@@ -2,7 +2,7 @@
 Underscore
 --FILE--
 <?php
-require dirname(uFILEu) . '/../bootstrap_tests.php';
+require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 snowscript_to_php(<<<'SNOW'
 # Underscore.php v1.3.1

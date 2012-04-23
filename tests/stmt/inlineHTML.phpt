@@ -6,19 +6,21 @@ require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 snowscript_to_php('
 a
-?>
-B
+%> 
+<?php echo $yo ?>
+<%
 c
-?>
+%> 
 d
 ', 0);
 --EXPECT--
 <?php
 $a;
-?>
-B
-<?php
+?> 
+<?php echo $yo ?>
+<?php 
 $c;
-?>
+?> 
+d
+
 <?php
-$d;

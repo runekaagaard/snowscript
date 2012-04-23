@@ -5,14 +5,19 @@ Try/catch
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 snowscript_to_php('
-try {
-} catch (A b) {
-} catch (B c) {
-}
+try
+	pass
+catch A b
+	pass
+catch B c
+	pass
 ', 0);
 --EXPECT--
 <?php
 try {
+    
 } catch (A $b) {
+    
 } catch (B $c) {
+    
 }

@@ -5,16 +5,23 @@ If/Elseif/Else
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 snowscript_to_php('
-if (a)
+if a
 	pass
-elif (b)
+elif b
 	pass
-elif (c)
+elif c
 	pass
-', 1);
+else
+	pass
+', 0);
 --EXPECT--
 <?php
-if      ($a) {}
-elseif  ($b) {}
-elseif  ($c) {}
-else         {}
+if ($a) {
+    
+} elseif ($b) {
+    
+} elseif ($c) {
+    
+} else {
+    
+}
