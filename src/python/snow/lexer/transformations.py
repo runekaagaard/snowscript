@@ -4,7 +4,7 @@ This file holds a series of transformations of the lexer tokens.
 
 from ply import lex
 import re
-from error import raise_indentation_error
+from error import raise_indentation_error, raise_syntax_error
 from tokens import INDENTATION_TRIGGERS, MISSING_PARENTHESIS, CASTS
 
 
@@ -17,8 +17,9 @@ def build_token(_type, value, t):
     t2.lexer = t.lexer
     return t2
 
-# Error token.
+
 def t_error(t):
+    "Error token."
     raise_syntax_error("invalid syntax", t)
 
 ##### Keep track of indentation state
@@ -42,8 +43,9 @@ NO_INDENT = 0
 MAY_INDENT = 1
 MUST_INDENT = 2
 
-# only care about whitespace at the start of a line
+
 def annotate_indentation_state(lexer, token_stream):
+    # only care about whitespace at the start of a line.
     lexer.at_line_start = at_line_start = True
     indent = NO_INDENT
     indent_expected = False
@@ -61,14 +63,14 @@ def annotate_indentation_state(lexer, token_stream):
                                  indent in (MAY_INDENT, MUST_INDENT))
             indent = MAY_INDENT
             prev_was_newline = False
-        
+
         # A colon cancels expected indentation.
         elif token.type == 'COLON':
             indent_expected = False
             token.must_indent = False
             at_line_start = False
             prev_was_newline = False
-        
+
         # New line can trigger a need for indentation if it is expected.
         elif token.type == "NEWLINE":
             prev_was_newline = True
@@ -82,7 +84,7 @@ def annotate_indentation_state(lexer, token_stream):
             assert token.at_line_start == True
             at_line_start = True
             token.must_indent = False
-        
+
         # Normal token.
         else:
             if indent == MUST_INDENT:
@@ -98,6 +100,7 @@ def annotate_indentation_state(lexer, token_stream):
 
         yield token
         lexer.at_line_start = at_line_start
+
 
 def synthesize_indentation_tokens(lexer, token_stream):
     """Track the indentation level and emit the right INDENT / DEDENT events."""
@@ -155,9 +158,9 @@ def synthesize_indentation_tokens(lexer, token_stream):
                 except ValueError:
                     # I report the error position at the start of the
                     # token.  Python reports it at the end.  I prefer mine.
-                    raise_indentation_error("unindent does not match any outer " 
+                    raise_indentation_error("unindent does not match any outer "
                                             "indentation level", token)
-                for _ in range(i+1, len(levels)):
+                for _ in range(i + 1, len(levels)):
                     yield build_token("DEDENT", None, token)
                     levels.pop()
 
@@ -175,9 +178,7 @@ def add_endmarker(token_stream):
     yield build_token("ENDMARKER", None, t)
 _add_endmarker = add_endmarker
 
-# TODO: This is no longer a indentation file, but more like a token stream
-# filter. Refactor.
-# TODO: Make the whole StopIteration business prettier.
+
 def remove_empty_concats(token_stream):
     for t in token_stream:
         if t.type == "STRING_WITH_CONCAT" and t.value == "":
@@ -344,6 +345,8 @@ def make_token_stream(lexer, add_endmarker=True):
     return token_stream
 
 _newline_pattern = re.compile(r"\n")
+
+
 def get_line_offsets(text):
     offsets = [0]
     for m in _newline_pattern.finditer(text):

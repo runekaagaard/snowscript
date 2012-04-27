@@ -4,4 +4,3 @@ run-tests.log
 *.diff
 *.out
 *.exp
-*.log
