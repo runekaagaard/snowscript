@@ -41,7 +41,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_NAME' => 'T_VARIABLE',
         'T_PHP_STRING' => 'T_STRING',
         'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
-        'T_COLON' => 'T_DOUBLE_ARROW', 
+        'T_COLON' => 'T_DOUBLE_ARROW',
         'T_STRING' => 'T_CONSTANT_ENCAPSED_STRING',
         'T_FN' => 'T_FUNCTION',
         'T_DOUBLE_COLON' => 'T_PAAMAYIM_NEKUDOTAYIM',
@@ -79,7 +79,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     function alter_token_value($t, $altered_type) {
         $value = $t['value'];
         if (isset($this->transform_token_value[$altered_type]))
-            $value = sprintf($this->transform_token_value[$altered_type], 
+            $value = sprintf($this->transform_token_value[$altered_type],
                              $value);
         return $value;
     }
@@ -110,7 +110,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     }
 
     function get_tokens($tmp_file) {
-        $py_file = dirname(__FILE__) . '/../../python/snow/lexer/json-lex.py';
+        $py_file = dirname(__FILE__) . '/../../python/snow/lexer/lex-to-json.py';
         $json = `python $py_file $tmp_file`;
         $python_tokens = json_decode($json, true);
         if (!$python_tokens) {
@@ -143,7 +143,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
      * Verbatim copy of initTokenMap from PHP-Parser's PHPParser_Lexer, only
      * using the token name as key, instead of the token number.
      */
-    
+
     static $named_tokenmap = array();
     static function init_named_tokenmap() {
         // 256 is the minimum possible token number, as everything below
@@ -176,8 +176,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     function T_STRING_WITH_CONCAT($t) {
         return array(
             array(
-                T_CONSTANT_ENCAPSED_STRING, 
-                "'" . $t['value'] . "'", 
+                T_CONSTANT_ENCAPSED_STRING,
+                "'" . $t['value'] . "'",
                 2
             ),
             ".",
@@ -189,7 +189,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
             return array(array(T_DNUMBER, $t['value'][1], 2));
         else
             return array(array(T_LNUMBER, $t['value'][1], 2));
-        
+
     }
 }
 Snowscript_Lexer::init_named_tokenmap();
