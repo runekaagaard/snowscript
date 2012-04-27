@@ -313,6 +313,7 @@ def t_FLOAT_NUMBER(t):
     t.value = (float(t.value), t.value)
     return t
 
+
 def t_HEX_NUMBER(t):
     r"0[xX][0-9a-fA-F]+[lL]?"
     # In the following I use 'long' to make the actual type match the
