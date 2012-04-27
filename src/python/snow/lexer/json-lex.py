@@ -1,14 +1,6 @@
 import sys
-import os
 from glob import glob
-
-import string
-from standard import tokens
-
 from lexer import SnowLexer
-
-# Debug
-from sys import exit as e
 
 def prettyprint(code, with_colors=False):
     def nocolor(s, *args, **kwargs):

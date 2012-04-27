@@ -1,7 +1,12 @@
+"""
+This file holds a series of transformations of the lexer tokens.
+"""
+
 from ply import lex
 import re
 from error import raise_indentation_error
-from standard import INDENTATION_TRIGGERS, MISSING_PARENTHESIS, CASTS
+from tokens import INDENTATION_TRIGGERS, MISSING_PARENTHESIS, CASTS
+
 
 def build_token(_type, value, t):
     t2 = lex.LexToken()
@@ -343,4 +348,3 @@ def get_line_offsets(text):
     # This is only really needed if the input does not end with a newline
     offsets.append(len(text))
     return offsets
-
