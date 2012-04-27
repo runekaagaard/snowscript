@@ -167,17 +167,12 @@ def synthesize_indentation_tokens(lexer, token_stream):
         assert token is not None
         for _ in range(1, len(levels)):
             yield build_token("DEDENT", None, token)
-    
+
 
 def add_endmarker(token_stream):
-    tok = None
-    for tok in token_stream:
-        yield tok
-    if tok is not None:
-        lineno = tok.lineno
-    else:
-        lineno = 1
-    yield build_token("ENDMARKER", None, tok)
+    for t in token_stream:
+        yield t
+    yield build_token("ENDMARKER", None, t)
 _add_endmarker = add_endmarker
 
 # TODO: This is no longer a indentation file, but more like a token stream
@@ -191,7 +186,7 @@ def remove_empty_concats(token_stream):
         if t.type == "PERCENT":
             try:
                 t2 = token_stream.next()
-            except StopIteration as e:
+            except StopIteration:
                 yield t
                 raise StopIteration
             if not(t2.type == "STRING" and t2.value == ""):
@@ -200,15 +195,16 @@ def remove_empty_concats(token_stream):
         else:
             yield t
 
+
 def nuke_newlines_around_indent(token_stream):
     for t in token_stream:
         if t.type == 'NEWLINE':
             try:
                 t2 = token_stream.next()
-            except StopIteration as e:
+            except StopIteration:
                 yield t
                 raise StopIteration
-                
+
             if t2.type in ('INDENT', 'PASS'):
                 yield t2
             else:
@@ -217,7 +213,7 @@ def nuke_newlines_around_indent(token_stream):
         elif t.type in ('INDENT', 'PASS'):
             try:
                 t2 = token_stream.next()
-            except StopIteration as e:
+            except StopIteration:
                 yield t
                 raise StopIteration
             if t2.type == 'NEWLINE':
@@ -227,6 +223,7 @@ def nuke_newlines_around_indent(token_stream):
                 yield t2
         else:
             yield t
+
 
 def insert_missing_new(token_stream):
     for t in token_stream:
@@ -239,6 +236,7 @@ def insert_missing_new(token_stream):
         else:
             yield t
 
+
 def correct_class_accessor_names(token_stream):
     for t in token_stream:
         if t.type == 'DOT':
@@ -249,6 +247,7 @@ def correct_class_accessor_names(token_stream):
             yield t2
         else:
             yield t
+
 
 def correct_function_call(token_stream):
     for t in token_stream:
@@ -261,6 +260,7 @@ def correct_function_call(token_stream):
         else:
             yield t
 
+
 def correct_function_definition(token_stream):
     for t in token_stream:
         if t.type == 'FN':
@@ -271,6 +271,7 @@ def correct_function_definition(token_stream):
             yield t2
         else:
             yield t
+
 
 def casts_as_functioncalls(token_stream):
     remove_at_level = None
@@ -288,6 +289,7 @@ def casts_as_functioncalls(token_stream):
         else:
             yield t
 
+
 def add_missing_parenthesis(token_stream):
     inside_expression = False
     for t in token_stream:
@@ -302,18 +304,18 @@ def add_missing_parenthesis(token_stream):
             yield build_token('LPAR', '(', t)
             continue
 
-        if (inside_expression and t.type in ('INDENT', 'COLON') 
+        if (inside_expression and t.type in ('INDENT', 'COLON')
         and bracket_level == start_bracket_level):
             inside_expression = False
             yield build_token('RPAR', ')', t)
 
         yield t
 
+
 def add_missing_parenthesis_after_functions(token_stream):
-    inside_expression = False
     for t in token_stream:
         yield t
-        if t.type == 'FN':    
+        if t.type == 'FN':
             t1 = token_stream.next()
             yield t1
             if t1.type == 'PHP_STRING':
@@ -323,7 +325,8 @@ def add_missing_parenthesis_after_functions(token_stream):
                     yield build_token('RPAR', ')', t2)
                 yield t2
 
-def make_token_stream(lexer, add_endmarker = True):
+
+def make_token_stream(lexer, add_endmarker=True):
     token_stream = iter(lexer.token, None)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(lexer, token_stream)
