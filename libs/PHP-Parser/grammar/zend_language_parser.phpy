@@ -290,8 +290,6 @@ declare_list_element:
 switch_case_list:
       '{' case_list '}'                                     { $$ = $2; }
     | '{' ';' case_list '}'                                 { $$ = $3; }
-    | ':' case_list T_ENDSWITCH ';'                         { $$ = $2; }
-    | ':' ';' case_list T_ENDSWITCH ';'                     { $$ = $3; }
 ;
 
 case_list:
@@ -300,13 +298,7 @@ case_list:
 ;
 
 case:
-      T_CASE expr case_separator inner_statement_list       { $$ = Stmt_Case[$2, $4]; }
-    | T_DEFAULT case_separator inner_statement_list         { $$ = Stmt_Case[null, $3]; }
-;
-
-case_separator:
-      ':'
-    | ';'
+      T_CASE '(' expr_list ')' '{' inner_statement_list '}'      { $$ = Stmt_Case[$3, $6]; }
 ;
 
 while_statement:

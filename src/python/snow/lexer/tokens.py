@@ -39,7 +39,7 @@ INDENTATION_TRIGGERS = ('IF', 'ELSE', 'ELIF', 'FOR', 'SWITCH', 'CASE', 'WHILE',
 CASTS = ('ARRAY', 'BOOL', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', )
 
 # Keywords where parenthensis can be omitted.
-MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH')
+MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH', 'CASE')
 
 # When prettyprinting, display these tokens literally.
 SYMBOLIC = ('INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL',

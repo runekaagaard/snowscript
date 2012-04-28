@@ -1,7 +1,7 @@
 TOTAL TIME: 00:11
-40 PASSED TESTS
+41 PASSED TESTS
 0 SKIPPED TESTS
-18 FAILED TESTS:
+17 FAILED TESTS:
 /home/rune/workspace/snowscript/tests/expr/closure.phpt
 /home/rune/workspace/snowscript/tests/expr/new.phpt
 /home/rune/workspace/snowscript/tests/expr/strings_advanced.phpt
@@ -19,4 +19,3 @@ TOTAL TIME: 00:11
 /home/rune/workspace/snowscript/tests/stmt/namespace/name.phpt
 /home/rune/workspace/snowscript/tests/stmt/namespace/notBraced.phpt
 /home/rune/workspace/snowscript/tests/stmt/namespace/outsideStmt.phpt
-/home/rune/workspace/snowscript/tests/stmt/switch.phpt

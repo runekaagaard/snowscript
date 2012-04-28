@@ -594,8 +594,14 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_Case(PHPParser_Node_Stmt_Case $node) {
-        return (null !== $node->cond ? 'case ' . $this->p($node->cond) : 'default') . ':'
-             . "\n" . $this->pStmts($node->stmts) . "\n";
+        $result = '';
+        foreach ($node->conds as $cond) {
+            $result .= '    case ' . $this->p($cond, true) . ':' . "\n";
+        }
+        $stmts = $this->pStmts($node->stmts);
+        $result .= '    ' . str_replace("\n", "\n    ", $stmts) . "\n";
+        $result .= '        break;' . "\n";
+        return $result;
     }
 
     public function pStmt_Break(PHPParser_Node_Stmt_Break $node) {

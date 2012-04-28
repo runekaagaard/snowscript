@@ -16,12 +16,21 @@ function snowscript_to_php($code, $debug=false) {
 	echo "<?php\n" . $prettyPrinter->prettyPrint($stmts) . "\n";
 }
 
+function php_to_php($code, $debug=false) {
+	$lexer = new PHPParser_Lexer($code . "\n");
+	$parser = new PHPParser_Parser;
+	$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
+	$stmts = $parser->parse($lexer);
+	if ($debug) var_dump($stmts);
+	echo $prettyPrinter->prettyPrint($stmts) . "\n";
+}
+
 function debug_lexer($lexer) {
 	$fmt = str_repeat('%-30s', 4);
 	line(sprintf($fmt, "In type", "In value", "Out type", "Out value"));
 	line(sprintf($fmt, "-------", "--------", "--------", "---------"));
 	foreach ($lexer->debug as $row) {
-		line(sprintf($fmt, 
+		line(sprintf($fmt,
 			         $row['in_type'], str_replace("\n", '\n', "'" . $row['in_value'] . "'"),
 			         $row['out_type'], "'" . $row['out_value'] . "'"));
 	}
@@ -29,8 +38,8 @@ function debug_lexer($lexer) {
 function prettyprint_tokens($tokens) {
 	foreach ($tokens as $t)
 		if (is_array($t))
-			echo token_name($t[0]) === 'T_WHITESPACE' 
-				? "" 
+			echo token_name($t[0]) === 'T_WHITESPACE'
+				? ""
 				: token_name($t[0]) . ': ' . trim($t[1]) . "\n";
 		else
 			echo $t . "\n";

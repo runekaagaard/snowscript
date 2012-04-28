@@ -1,0 +1,33 @@
+fn x
+    switch a
+        0,1
+            b
+            c
+        2,3
+            d
+            e
+
+    switch f
+        4,5
+            g
+            h
+        6,7
+            i
+            j
+
+switch a
+    0,1
+        k
+        l
+    2,3
+        d
+        e
+
+switch f
+    4,5
+        g
+        h
+    6,7
+        i
+        j
+----

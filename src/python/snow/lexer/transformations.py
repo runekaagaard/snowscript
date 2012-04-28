@@ -44,6 +44,39 @@ MAY_INDENT = 1
 MUST_INDENT = 2
 
 
+def inject_case_tokens(token_stream):
+    inside_switch = False
+    case_indent = 0
+    for t in token_stream:
+        yield t
+
+        if inside_switch:
+            if t.type == 'NEWLINE':
+                t2 = token_stream.next()
+                yield t2
+
+                if t2.type == 'WS':
+                    indent = len(t2.value)
+                    if case_indent == 0:
+                        case_indent = indent
+                        yield build_token('CASE', 'case', t2)
+                    else:
+                        if indent == case_indent:
+                            yield build_token('CASE', 'case', t2)
+                        elif indent < case_indent:
+                            inside_switch = False
+                            case_indent = 0
+                elif t2.type == "SWITCH":
+                    case_indent = 0
+                else:
+                    inside_switch = False
+                    case_indent = 0
+
+        if t.type == "SWITCH":
+            inside_switch = True
+            case_indent = 0
+
+
 def annotate_indentation_state(lexer, token_stream):
     # only care about whitespace at the start of a line.
     lexer.at_line_start = at_line_start = True
@@ -327,8 +360,16 @@ def add_missing_parenthesis_after_functions(token_stream):
                 yield t2
 
 
+def debug(token_stream):
+    print
+    for t in token_stream:
+        print t
+        yield t
+
+
 def make_token_stream(lexer, add_endmarker=True):
     token_stream = iter(lexer.token, None)
+    token_stream = inject_case_tokens(token_stream)
     token_stream = annotate_indentation_state(lexer, token_stream)
     token_stream = synthesize_indentation_tokens(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
@@ -340,6 +381,8 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = casts_as_functioncalls(token_stream)
     token_stream = add_missing_parenthesis(token_stream)
     token_stream = add_missing_parenthesis_after_functions(token_stream)
+    # token_stream = debug(token_stream)
+
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
     return token_stream

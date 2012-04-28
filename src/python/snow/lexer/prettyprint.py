@@ -3,10 +3,8 @@ import os
 from glob import glob
 from difflib import unified_diff
 from termcolor import colored
-
 import string
-from standard import tokens, SYMBOLIC
-
+from tokens import tokens, SYMBOLIC
 from lexer import SnowLexer
 
 # Debug
