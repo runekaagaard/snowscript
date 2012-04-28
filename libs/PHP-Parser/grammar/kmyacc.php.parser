@@ -1,0 +1,294 @@
+<?php
+$meta #
+#semval($) $this->yyval
+#semval($,%t) $this->yyval
+#semval(%n) $this->yyastk[$this->yysp-(%l-%n)]
+#semval(%n,%t) $this->yyastk[$this->yysp-(%l-%n)]
+#include;
+
+/* This is an automatically GENERATED file, which should not be manually edited.
+ * Instead edit one of the following:
+ *  * the grammar file grammar/zend_language_parser.phpy
+ *  * the parser skeleton grammar/kymacc.php.parser
+ *  * the preprocessing script grammar/rebuildParser.php
+ *
+ * The skeleton for this parser was written by Moriyoshi Koizumi and is based on
+ * the work by Masato Bito and is in the PUBLIC DOMAIN.
+ */
+#if -t
+class #(-p)_Debug extends #(-p)
+#endif
+#ifnot -t
+class #(-p)
+#endif
+{
+#ifnot -t
+    const YYBADCH      = #(YYBADCH);
+    const YYMAXLEX     = #(YYMAXLEX);
+    const YYTERMS      = #(YYTERMS);
+    const YYNONTERMS   = #(YYNONTERMS);
+    const YYLAST       = #(YYLAST);
+    const YY2TBLSTATE  = #(YY2TBLSTATE);
+    const YYGLAST      = #(YYGLAST);
+    const YYSTATES     = #(YYSTATES);
+    const YYNLSTATES   = #(YYNLSTATES);
+    const YYINTERRTOK  = #(YYINTERRTOK);
+    const YYUNEXPECTED = #(YYUNEXPECTED);
+    const YYDEFAULT    = #(YYDEFAULT);
+
+    // {{{ Tokens
+#tokenval
+    const %s = %n;
+#endtokenval
+    // }}}
+
+    protected static $yyterminals = array(
+        #listvar terminals
+        , "???"
+    );
+
+    protected static $yytranslate = array(
+        #listvar yytranslate
+    );
+
+    protected static $yyaction = array(
+        #listvar yyaction
+    );
+
+    protected static $yycheck = array(
+        #listvar yycheck
+    );
+
+    protected static $yybase = array(
+        #listvar yybase
+    );
+
+    protected static $yydefault = array(
+        #listvar yydefault
+    );
+
+    protected static $yygoto = array(
+        #listvar yygoto
+    );
+
+    protected static $yygcheck = array(
+        #listvar yygcheck
+    );
+
+    protected static $yygbase = array(
+        #listvar yygbase
+    );
+
+    protected static $yygdefault = array(
+        #listvar yygdefault
+    );
+
+    protected static $yylhs = array(
+        #listvar yylhs
+    );
+
+    protected static $yylen = array(
+        #listvar yylen
+    );
+
+    protected $yyval;
+    protected $yyastk;
+    protected $yysp;
+    protected $lexer;
+#endif
+#if -t
+    protected static $yyproduction = array(
+        #production-strings;
+    );
+
+    protected function yyprintln($msg) {
+        echo $msg, "\n";
+    }
+
+    protected function YYTRACE_NEWSTATE($state, $sym) {
+        $this->yyprintln(
+            '% State ' . $state
+          . ', Lookahead ' . ($sym < 0 ? '--none--' : self::$yyterminals[$sym])
+        );
+    }
+
+    protected function YYTRACE_READ($sym) {
+        $this->yyprintln('% Reading ' . self::$yyterminals[$sym]);
+    }
+
+    protected function YYTRACE_SHIFT($sym) {
+        $this->yyprintln('% Shift ' . self::$yyterminals[$sym]);
+    }
+
+    protected function YYTRACE_ACCEPT() {
+        $this->yyprintln('% Accepted.');
+    }
+
+    protected function YYTRACE_REDUCE($n) {
+        $this->yyprintln('% Reduce by (' . $n . ') ' . self::$yyproduction[$n]);
+    }
+
+    protected function YYTRACE_POP($state) {
+        $this->yyprintln('% Recovering, uncovers state ' . $state);
+    }
+
+    protected function YYTRACE_DISCARD($sym) {
+        $this->yyprintln('% Discard ' . self::$yyterminals[$sym]);
+    }
+#endif
+
+    /**
+#ifnot -t
+     * Parses PHP code into a node tree.
+#endif
+#if -t
+     * Parses PHP code into a node tree and prints out debugging information.
+#endif
+     *
+     * @param PHPParser_Lexer $lexer A lexer
+     *
+     * @return array Array of statements
+     */
+    public function parse(PHPParser_Lexer $lexer) {
+        $this->lexer  = $lexer;
+
+        $this->yysp   = 0;                   // Stack pos
+        $yysstk       = array($yystate = 0); // State stack
+        $this->yyastk = array();             // AST   stack (?)
+        $yylstk       = array($yyline  = 1); // Line  stack
+        $yydstk       = array($yyDC = null); // Doc comment stack
+
+        $yychar       = -1;
+
+        for (;;) {
+#if -t
+            $this->YYTRACE_NEWSTATE($yystate, $yychar);
+#endif
+            if (self::$yybase[$yystate] == 0) {
+                $yyn = self::$yydefault[$yystate];
+            } else {
+                if ($yychar < 0) {
+                    if (($yychar = $lexer->lex($yylval, $yyline, $yyDC)) < 0)
+                        $yychar = 0;
+                    $yychar = $yychar < self::YYMAXLEX ?
+                        self::$yytranslate[$yychar] : self::YYBADCH;
+                    $yylstk[$this->yysp] = $yyline;
+                    $yydstk[$this->yysp] = $yyDC;
+#if -t
+                    $this->YYTRACE_READ($yychar);
+#endif
+                }
+                if ((($yyn = self::$yybase[$yystate] + $yychar) >= 0
+                     && $yyn < self::YYLAST && self::$yycheck[$yyn] == $yychar
+                     || ($yystate < self::YY2TBLSTATE
+                        && ($yyn = self::$yybase[$yystate + self::YYNLSTATES]
+                            + $yychar) >= 0
+                        && $yyn < self::YYLAST
+                        && self::$yycheck[$yyn] == $yychar))
+                    && ($yyn = self::$yyaction[$yyn]) != self::YYDEFAULT) {
+                    /*
+                     * >= YYNLSTATE: shift and reduce
+                     * > 0: shift
+                     * = 0: accept
+                     * < 0: reduce
+                     * = -YYUNEXPECTED: error
+                     */
+                    if ($yyn > 0) {
+                        /* shift */
+#if -t
+                        $this->YYTRACE_SHIFT($yychar);
+#endif
+                        ++$this->yysp;
+
+                        $yysstk[$this->yysp]       = $yystate = $yyn;
+                        $this->yyastk[$this->yysp] = $yylval;
+                        $yylstk[$this->yysp]       = $yyline;
+                        $yydstk[$this->yysp]       = $yyDC;
+                        $yychar = -1;
+
+                        if ($yyn < self::YYNLSTATES)
+                            continue;
+
+                        /* $yyn >= YYNLSTATES means shift-and-reduce */
+                        $yyn -= self::YYNLSTATES;
+                    } else {
+                        $yyn = -$yyn;
+                    }
+                } else {
+                    $yyn = self::$yydefault[$yystate];
+                }
+            }
+
+            for (;;) {
+                /* reduce/error */
+                if ($yyn == 0) {
+                    /* accept */
+#if -t
+                    $this->YYTRACE_ACCEPT();
+#endif
+                    return $this->yyval;
+                } elseif ($yyn != self::YYUNEXPECTED) {
+                    /* reduce */
+#if -t
+                    $this->YYTRACE_REDUCE($yyn);
+#endif
+                    try {
+                        $this->{'yyn' . $yyn}(
+                            $yylstk[$this->yysp - self::$yylen[$yyn]],
+                            $yydstk[$this->yysp - self::$yylen[$yyn]]
+                        );
+                    } catch (PHPParser_Error $e) {
+                        if (-1 === $e->getRawLine()) {
+                            $e->setRawLine($yyline);
+                        }
+
+                        throw $e;
+                    }
+
+                    /* Goto - shift nonterminal */
+                    $this->yysp -= self::$yylen[$yyn];
+                    $yyn = self::$yylhs[$yyn];
+                    if (($yyp = self::$yygbase[$yyn] + $yysstk[$this->yysp]) >= 0
+                         && $yyp < self::YYGLAST
+                         && self::$yygcheck[$yyp] == $yyn) {
+                        $yystate = self::$yygoto[$yyp];
+                    } else {
+                        $yystate = self::$yygdefault[$yyn];
+                    }
+
+                    ++$this->yysp;
+
+                    $yysstk[$this->yysp] = $yystate;
+                    $this->yyastk[$this->yysp] = $this->yyval;
+                    $yylstk[$this->yysp]       = $yyline;
+                    $yydstk[$this->yysp]       = $yyDC;
+                } else {
+                    /* error */
+                    throw new PHPParser_Error(
+                        'Unexpected token ' . self::$yyterminals[$yychar],
+                        $yyline
+                    );
+                }
+
+                if ($yystate < self::YYNLSTATES)
+                    break;
+                /* >= YYNLSTATES means shift-and-reduce */
+                $yyn = $yystate - self::YYNLSTATES;
+            }
+        }
+    }
+#ifnot -t
+#reduce
+
+    protected function yyn%n($line, $docComment) {
+        %b
+    }
+#noact
+
+    protected function yyn%n() {
+        $this->yyval = $this->yyastk[$this->yysp];
+    }
+#endreduce
+#endif
+}
+#tailcode;
