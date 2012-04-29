@@ -50,6 +50,9 @@
 %token T_DECLARE
 %token T_ENDDECLARE
 %token T_AS
+%token T_TO
+%token T_DOWNTO
+%token T_STEP
 %token T_IN
 %token T_SWITCH
 %token T_ENDSWITCH
@@ -193,8 +196,10 @@ statement:
           { $$ = Stmt_Foreach[$6, $4, [keyVar: null, byRef: true, stmts: $8]]; }
     | T_FOR '(' variable ',' optional_ref variable T_IN expr ')' foreach_statement
           { $$ = Stmt_Foreach[$8, $6, [keyVar: $3, byRef: $5, stmts: $10]]; }
+    | T_FOR '(' variable T_IN expr forloop_to expr optional_step ')' foreach_statement
+          { $$ = Stmt_ForNumeric[$3, $5, $7, $10, $6, $8]; }
     | T_DECLARE '(' declare_list ')' declare_statement      { $$ = Stmt_Declare[$3, $5]; }
-    | ';'                                                   { $$ = array(); /* means: no statement */ }
+    | ';'                                                   { $$ = array(); /* means: n statement */ }
     | T_TRY '{' inner_statement_list '}' catches            { $$ = Stmt_TryCatch[$3, $5]; }
     | T_THROW expr ';'                                      { $$ = Stmt_Throw[$2]; }
     | T_GOTO T_STRING ';'                                   { $$ = Stmt_Goto[$2]; }
@@ -219,6 +224,16 @@ variables_list:
 optional_ref:
       /* empty */                                           { $$ = false; }
     | '&'                                                   { $$ = true; }
+;
+
+forloop_to:
+    T_TO                                                      { $$ = $1; }
+    | T_DOWNTO                                                { $$ = $1; }
+;
+
+optional_step:
+      /* empty */                                           { $$ = false; }
+    | T_STEP expr                                           { $$ = $2; }
 ;
 
 function_declaration_statement:

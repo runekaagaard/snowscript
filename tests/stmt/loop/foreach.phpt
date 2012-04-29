@@ -5,16 +5,9 @@ Foreach loop
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-for b in a
-    pass
-for &b in a
-    pass
-for b,c in a
-    pass
-for b,&c in a
-    pass
-for b in []
-    pass
+fn x
+    for b in 1 downto 10 step 2
+        echo b
 ', 1);
 --EXPECT--
 <?php

@@ -561,6 +561,16 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . ') {' . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
     }
 
+    public function pStmt_ForNumeric(PHPParser_Node_Stmt_ForNumeric $node) {
+        #list($name, $from, $to, $inc, $cond, $forloop_to) = array(
+        #    $node->variable->name, $node->from->value, $node->to->value,
+        #    $node->inc, $node->cond,
+        #    );
+        return "for ($$name=$from; $$name $cond $to; $inc$$name) {"
+               . "\n" . $this->pStmts($node->stmts) . "\n" . '}'
+               . "\n" . "unset($$name);" . "\n";
+    }
+
     public function pStmt_Foreach(PHPParser_Node_Stmt_Foreach $node) {
         return 'foreach (' . $this->p($node->expr) . ' as '
              . (null !== $node->keyVar ? $this->p($node->keyVar) . ' => ' : '')

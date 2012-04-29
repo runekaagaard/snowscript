@@ -22,7 +22,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'RPAR', 'RSQB', 'SEMI', 'SL', 'SLASH', 'SL_EQUAL', 'SR', 'SR_EQUAL',
      'STAR', 'STATIC', 'STRINGTYPE', 'STRING_WITH_CONCAT', 'SWITCH', 'THROW',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
-     'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_'
+     'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
 ]
 
 RESERVED = dict([(t.lower(), t) for t in tokens])

@@ -1,11 +1,17 @@
 <?php
 
 define('T_IN', PHPParser_Parser::T_IN);
+define('T_TO', PHPParser_Parser::T_TO);
+define('T_DOWNTO', PHPParser_Parser::T_DOWNTO);
+define('T_STEP', PHPParser_Parser::T_STEP);
 
 // TODO: This is WIP code, just making a couple of tests pass.
 
 function snow_token_name($i) {
     if ($i === T_IN) return 'T_IN';
+    if ($i === T_TO) return 'T_TO';
+    if ($i === T_DOWNTO) return 'T_DOWNTO';
+    if ($i === T_STEP) return 'T_STEP';
     return token_name($i);
 }
 

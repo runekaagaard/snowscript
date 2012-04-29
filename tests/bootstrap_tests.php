@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL|E_STRICT);
+ini_set('displat_errors', 1);
+
 require dirname(__FILE__) . '/../libs/PHP-Parser/lib/bootstrap.php';
 require dirname(__FILE__) . '/../src/php/bootstrap.php';
 
