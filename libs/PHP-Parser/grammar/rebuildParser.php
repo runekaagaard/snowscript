@@ -42,7 +42,7 @@ echo 'Building parser. Output: "',
 
 rename(RESULT_FILE, '../lib/PHPParser/Parser.php');
 
-if (isset($_GET['debug'])) {
+if (true) {
     echo 'Building debug parser. Output: "',
     trim(shell_exec('kmyacc -t -v -l -m kmyacc.php.parser -p PHPParser_Parser ' . TMP_FILE . ' 2>&1')),
     '"', "\n";
@@ -56,7 +56,7 @@ if (isset($_GET['debug'])) {
 
 unlink(TMP_FILE);
 
-echo 'The following temporary preproprocessed grammar file was used:', "\n", $grammarCode;
+#echo 'The following temporary preproprocessed grammar file was used:', "\n", $grammarCode;
 
 echo '</pre>';
 

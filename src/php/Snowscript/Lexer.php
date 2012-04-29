@@ -1,6 +1,13 @@
 <?php
 
+define('T_IN', PHPParser_Parser::T_IN);
+
 // TODO: This is WIP code, just making a couple of tests pass.
+
+function snow_token_name($i) {
+    if ($i === T_IN) return 'T_IN';
+    return token_name($i);
+}
 
 class Snowscript_Lexer extends PHPParser_Lexer {
     public $tokens = array();
@@ -10,6 +17,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         $tmp_file = "/tmp/.snowcode";
         file_put_contents($tmp_file, $code);
         parent::__construct("");
+        #var_dump(Snowscript_Lexer::$named_tokenmap,
+        #         Snowscript_Lexer::$tokenMap); die;
         list($this->tokens, $this->debug) = $this->get_tokens($tmp_file);
         unlink($tmp_file);
     }
@@ -128,7 +137,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
                         'in_type' => $first ? $t['type'] : '',
                         'in_value' => $first ? $t['value'] : '',
                         'out_type' => is_array($php_token)
-                            ? token_name($php_token[0]) : 'LITERAL',
+                            ? snow_token_name($php_token[0]) : 'LITERAL',
                         'out_value' => is_array($php_token)
                             ? $php_token[1] : $php_token,
                     );
@@ -148,7 +157,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     static function init_named_tokenmap() {
         // 256 is the minimum possible token number, as everything below
         // it is an ASCII value
-        for ($i = 256; $i < 1000; ++$i) {
+        for ($i = 256; $i < 1002; ++$i) {
             // T_DOUBLE_COLON is equivalent to T_PAAMAYIM_NEKUDOTAYIM
             if (T_DOUBLE_COLON === $i) {
                 self::$named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
@@ -159,9 +168,10 @@ class Snowscript_Lexer extends PHPParser_Lexer {
             } elseif(T_CLOSE_TAG === $i) {
                 self::$named_tokenmap[$i] = ord(';');
             // and the others can be mapped directly
-            } elseif ('UNKNOWN' !== ($name = token_name($i))
+            } elseif ('UNKNOWN' !== ($name = snow_token_name($i))
                       && defined($name = 'PHPParser_Parser::' . $name)
             ) {
+                if ($i===1001) var_dump("OK", $name);
                 self::$named_tokenmap[$i] = $name;
             }
         }
@@ -193,4 +203,4 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     }
 }
 Snowscript_Lexer::init_named_tokenmap();
-// var_dump(Snowscript_Lexer::$named_tokenmap); die;
+#var_dump(Snowscript_Lexer::$named_tokenmap); die;

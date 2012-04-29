@@ -5,14 +5,17 @@ Foreach loop
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-foreach (a as b)  {}
-foreach (a as &b) {}
-foreach (a as b => c) {}
-foreach (a as b => &c) {}
-foreach (array() as b) {}
-foreach (a as b):
-endforeach
-', 0);
+for b in a
+    pass
+for &b in a
+    pass
+for b,c in a
+    pass
+for b,&c in a
+    pass
+for b in []
+    pass
+', 1);
 --EXPECT--
 <?php
 foreach ($a as $b)  {}

@@ -7,7 +7,7 @@ class PHPParser_Lexer
     protected $pos;
     protected $line;
 
-    protected static $tokenMap;
+    public static $tokenMap;
     protected static $dropTokens = array(
         T_WHITESPACE => 1, T_COMMENT => 1, T_OPEN_TAG => 1
     );
@@ -145,12 +145,13 @@ class PHPParser_Lexer
      * maps T_OPEN_TAG_WITH_ECHO to T_ECHO and T_CLOSE_TAG to ';'.
      */
     protected static function initTokenMap() {
+
         if (!self::$tokenMap) {
             self::$tokenMap = array();
 
             // 256 is the minimum possible token number, as everything below
             // it is an ASCII value
-            for ($i = 256; $i < 1000; ++$i) {
+            for ($i = 256; $i < 1002; ++$i) {
                 // T_DOUBLE_COLON is equivalent to T_PAAMAYIM_NEKUDOTAYIM
                 if (T_DOUBLE_COLON === $i) {
                     self::$tokenMap[$i] = PHPParser_Parser::T_PAAMAYIM_NEKUDOTAYIM;
@@ -161,7 +162,7 @@ class PHPParser_Lexer
                 } elseif(T_CLOSE_TAG === $i) {
                     self::$tokenMap[$i] = ord(';');
                 // and the others can be mapped directly
-                } elseif ('UNKNOWN' !== ($name = token_name($i))
+                } elseif ('UNKNOWN' !== ($name = snow_token_name($i))
                           && defined($name = 'PHPParser_Parser::' . $name)
                 ) {
                     self::$tokenMap[$i] = constant($name);
