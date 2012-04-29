@@ -188,11 +188,11 @@ statement:
     | expr ';'                                              { $$ = $1; }
     | T_UNSET '(' variables_list ')' ';'                    { $$ = Stmt_Unset[$3]; }
     | T_FOR '(' variable T_IN expr ')' foreach_statement
-          { $$ = Stmt_Foreach[$3, $5, [keyVar: null, byRef: false, stmts: $7]]; }
+          { $$ = Stmt_Foreach[$5, $3, [keyVar: null, byRef: false, stmts: $7]]; }
     | T_FOR '(' '&' variable T_IN expr ')' foreach_statement
-          { $$ = Stmt_Foreach[$3, $6, [keyVar: null, byRef: true, stmts: $8]]; }
+          { $$ = Stmt_Foreach[$6, $4, [keyVar: null, byRef: true, stmts: $8]]; }
     | T_FOR '(' variable ',' optional_ref variable T_IN expr ')' foreach_statement
-          { $$ = Stmt_Foreach[$3, $8, [keyVar: $5, byRef: $7, stmts: $10]]; }
+          { $$ = Stmt_Foreach[$8, $6, [keyVar: $3, byRef: $5, stmts: $10]]; }
     | T_DECLARE '(' declare_list ')' declare_statement      { $$ = Stmt_Declare[$3, $5]; }
     | ';'                                                   { $$ = array(); /* means: no statement */ }
     | T_TRY '{' inner_statement_list '}' catches            { $$ = Stmt_TryCatch[$3, $5]; }
