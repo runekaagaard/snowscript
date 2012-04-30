@@ -5,14 +5,14 @@ Conditional function definition
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-if (true)
-    fn A()
+if true
+    fn a
     	pass
 ', 0);
 --EXPECT--
 <?php
 if (true) {
-    function A()
+    function a()
     {
         
     }
