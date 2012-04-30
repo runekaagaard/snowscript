@@ -23,6 +23,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'STAR', 'STATIC', 'STRINGTYPE', 'STRING_WITH_CONCAT', 'SWITCH', 'THROW',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
+     'DOUBLE_ARROW'
 ]
 
 RESERVED = dict([(t.lower(), t) for t in tokens])
@@ -387,12 +388,19 @@ def t_RBRACE(t):
 def t_LSQB(t):
     r'\['
     t.lexer.bracket_level += 1
+    t.lexer.push_state('INSIDEARRAY')
     return t
 
 
 def t_RSQB(t):
     r'\]'
     t.lexer.bracket_level -= 1
+    t.lexer.pop_state()
+    return t
+
+def t_INSIDEARRAY_COLON(t):
+    r'\:'
+    t.type = 'DOUBLE_ARROW'
     return t
 
 # Strings. #

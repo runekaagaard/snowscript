@@ -5,22 +5,20 @@ Default values (static scalar tests)
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php(<<<EOT
-fn a(b = "null", 
+fn a(b = null, 
      c = 'foo',
-     d = A::B,
-     # TODO: e = A::b,
-     f = +1,
-     g = -1.0,
-     i = [],
-     # TODO: j = ['foo', 'bar': 'baz'],
-     k = ['foo']
-     )
+     d = A::B,     
+     e = +1,
+     f = -1.0,
+     g = [],
+     h = ['foo', 'bar': 'baz'],
+     i = ['foo'])
     pass
 EOT
 , 0);
 --EXPECT--
 <?php
-function a($b = 'null', $c = 'foo', $d = A::B, $f = +1, $g = -1.0, $i = array(), $k = array('foo'))
+function a($b = null, $c = 'foo', $d = A::B, $e = +1, $f = -1.0, $g = array(), $h = array('foo', 'bar' => 'baz'), $i = array('foo'))
 {
     
 }
