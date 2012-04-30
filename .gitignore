@@ -1,4 +1,3 @@
-libs/*
 *.pyc
 run-tests.log
 *.diff
