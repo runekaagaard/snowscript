@@ -5,12 +5,11 @@ While loop
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php('
-while (a) {}
-while (a):
-endwhile
+while a
+    pass
 ', 0);
 --EXPECT--
 <?php
-while ($a) {}
-while ($a):
-endwhile;
+while ($a) {
+    
+}
