@@ -562,20 +562,35 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_ForNumeric(PHPParser_Node_Stmt_ForNumeric $node) {
-        #list($name, $from, $to, $inc, $cond, $forloop_to) = array(
-        #    $node->variable->name, $node->from->value, $node->to->value,
-        #    $node->inc, $node->cond,
-        #    );
-        return "for ($$name=$from; $$name $cond $to; $inc$$name) {"
-               . "\n" . $this->pStmts($node->stmts) . "\n" . '}'
-               . "\n" . "unset($$name);" . "\n";
+        $is_to = $node->forloop_to === 'to';
+        $from = $is_to ? $node->from : $node->to;
+        $to = $is_to ? $node->to : $node->from;
+        $cond = $is_to ? " <= " : " >= ";
+        $var = $this->p($node->variable);
+        if (!$node->optional_step)
+            $inc = $is_to ? "++$var" : "--$var";
+        else
+            $inc = $is_to ? '$var += ' . $this->p($node->optional_step)
+                          : '$var -= ' . $this->p($node->optional_step);
+        return
+            "for (" . $var . ' = ' . $this->p($from) . '; '
+            . $var . $cond . $this->p($to) . '; '
+            . $inc
+            . ') {' . "\n" . $this->pStmts($node->stmts) . "\n" . '}'
+            . "\n" . "unset($var);"
+        ;
     }
 
     public function pStmt_Foreach(PHPParser_Node_Stmt_Foreach $node) {
         return 'foreach (' . $this->p($node->expr) . ' as '
              . (null !== $node->keyVar ? $this->p($node->keyVar) . ' => ' : '')
              . ($node->byRef ? '&' : '') . $this->p($node->valueVar) . ') {'
-             . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
+             . "\n" . $this->pStmts($node->stmts) . "\n" . '}' . "\n"
+             . 'unset('
+             . (null !== $node->keyVar ? $this->p($node->keyVar) . ', ' : '')
+             . $this->p($node->valueVar) . ');'
+
+        ;
     }
 
     public function pStmt_While(PHPParser_Node_Stmt_While $node) {
