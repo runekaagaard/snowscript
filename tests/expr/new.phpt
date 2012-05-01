@@ -11,6 +11,8 @@ new a['b']()
 new a.b()
 new a.b.c()
 new a.b['c']()
+A
+A()
 ", 0);
 --EXPECT--
 <?php
@@ -21,3 +23,5 @@ new $a['b']();
 new $a->b();
 new $a->b->c();
 new $a->b['c']();
+A;
+new A();
