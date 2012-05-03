@@ -86,7 +86,13 @@ Strings
 =======
 
 There are four kind of strings: '"""', '"', "'''" and "'". Whitespace before the 
-current indentation level is stripped.
+current indentation level is stripped. Strings can be concatenated using the "%"
+operator.
+
+snowscript:
+    echo "I am" % " legend!";
+php:
+    echo "I am" . " legend!";
 
 Quoted
 ------
@@ -115,17 +121,17 @@ Unquoted
 
 snowscript: 
     'No {magic} here\n'
-    '''{NOR} here.'''
+    '''{nor()} here.'''
 php:
     'No {magic} here\n';
-    '''{NOR} here.''';h
+    '''{nor()} here.''';h
 
 Functions
 =========
 
 The "fn" keyword is used to defined functions, and "<-" to return a value.
 
-Functioncalls can be chained using the "->" operator that passes the expression
+Function calls can be chained using the "->" operator that passes the expression
 before as the first argument to the next function.
 
 snowscript:
@@ -135,6 +141,75 @@ php:
     function titlefy(FancyString $fancystring) {
         return ucfirst(trim($fancystring, " -"));
     }
+
+Named parameters
+----------------
+
+All parameters with a default value are considered named and must also be
+called by name.
+
+snowscript:
+    fn render(template, format="html", allow_html=true, klingon=false)
+        pass
+    render("index.html", klingon=true, allow_html=false)
+php:
+    function render($template, $options_) {
+        $defaults_ = array(
+            'format' => "html", 
+            'allow_html' => true, 
+            'klingon' => false,
+        );
+        $options_ += $defaults_;
+    }
+    render("index.html", array('klingon'=>true, 'allow_html'=>false));
+
+Multiple assignment
+===================
+
+snowscript:
+    a, b, c = 1, 2, 3
+    [
+        something,
+        about,
+        summer,
+    ] = get_summer()
+php:
+    list($a, $b, $c) = array(1, 2, 3);
+    list(
+        $something, 
+        $about, 
+        $summer
+    ) = get_summer();
+
+Splats
+======
+
+The splat operator "..." designates an unknown number of elements.
+
+snowscript:
+    fn decorate_many(content, ...)
+        for style in ...
+            content.decorate(style)
+    decorate_many("Decorate this!", ...[Snowflakes(), Kittens(), Whiskers()])
+
+    a, b, ... = get_letters()
+    echo count(...)
+php:
+    function decorate_many($content) {
+        $args_ = array_slice(func_get_args(), -1);
+        foreach ($args_ as $style) {
+            $content->decorate($style);
+        }
+    }
+    $args_ = array(new Snowflakes, new Kittens, new Whiskers);
+    array_unshift($args_, "Decorate this!");
+    call_user_func_array("decorate_many", $args_);
+    unset($args_);
+
+    $tmp_ = get_letters();
+    $_splats = array_slice($_tmp, -1, count($_tmp) - 2);
+    list($a, $b) = $tmp_; 
+    echo count($_splats);
 
 Control structures
 ==================
@@ -209,24 +284,88 @@ php:
 Loops
 =====
 
-Stub.
+Two kind of loops are supported. Iterating over a collection, and iterating over
+a numeric range. Both key and value are local to the loop. A "&" can be used
+to designate the value as by-reference.
+
+snowscript:
+    for title, data in flowers
+        echo "{data.id}: title"
+    for &n in numbers
+        n *= 2
+
+    for i in 1 to 10 step 2
+        echo i
+    for i in 10 downto 1
+        echo i
+php:
+    foreach ($flowers as $title => $data) {
+        echo $data->id . ": " . $title;
+    }
+    unset($title, $data);
+    foreach ($numbers as $n) {
+        $n *= 2;
+    }
+    unset($n);
+
+    for ($i=1, $i <= 10, $i+=2) {
+        echo $i;
+    }
+    unset($i);
+    for ($i=10, $i >= 0, ++$i) {
+        echo $i;
+    }
+    unset($i);
 
 Comprehensions
 ==============
 
-Stub.
+Two kinds of comprehensions exist: Array comprehension and string comprehension.
 
-Multiple assignment
-===================
+Array comprehension
+-------------------
+
+snowscript:
+    [x, y for x in [1,2,3] for y in [3,1,4] if x != y]->var_dump
+    
+    fights = [[fight(samurai, villain)]
+              for samurai in seven_samurais
+                  if samurai->is_awake()
+              for villain in seven_vaillains
+                  if not villain->is_in_jail()
+    ]
+php:
+    $result_ = array();
+    foreach (array(1, 2, 3) as $x) {
+        foreach (array(3, 1, 4) as $y) {
+            if ($x != $y) {
+                $result_[$x] = $y;
+            }
+        }
+    }
+    unset($x, $y);
+    var_dump($result_);
+
+    $fights = array();
+    foreach ($seven_samurais as $samurai) {
+        if (!$samurai->is_awake()) {
+            continue;
+        }
+        foreach ($seven_villains as $villain) {
+            if ($villain->is_in_jail()) {
+                continue;
+            }
+            $fights[] = fight($samurai, $villain);
+        }
+    }
+    unset($samurai, $villain);
+
+String comprehension
+--------------------
 
 Stub.
 
 Classes
 =======
-
-Stub.
-
-Splats
-======
 
 Stub.
