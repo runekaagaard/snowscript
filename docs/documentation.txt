@@ -1,0 +1,232 @@
+Whitespace
+==========
+
+Snowscript has significant whitespace, meaning that the code structure is 
+managed by indenting/dedenting and not by using brackets ({)}. Whitespace is not
+significant inside comments, strings and brackets (() and []).
+
+snowscript:
+    # Returns the whereabouts of a person.
+
+      Only works on earth.
+    fn find_person(person)
+        echo "Awaiting devination
+        ..."
+        <- access_third_eye(
+            person.name,
+            person.last_known_location
+        )
+php:
+    function find_person($person) {
+        echo "Awaiting devination\n...";
+        return access_third_eye(
+            $person->name,
+            $person->last_known_location
+        );
+    }
+
+Comments
+========
+
+snowscript:
+    # Single line.
+    # Single line as docblock #
+    # This is a comment,
+
+      spanning multiple lines.
+php:
+    // Single line.
+    /**
+     * Single line as docblock. 
+     */
+    /**
+     * This is a comment,
+     *
+     * spanning multiple lines. 
+     */
+
+Arrays
+======
+
+Array are defined inside square brackets "[]". Items can be separated by "," or
+by using whitespace. 
+
+Keys are assumed stringy unless they exist in the scope. Surround the key with
+"{}" to force interpretation as a variable.
+
+snowscript:
+    pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
+    great_series = [
+        Heroes
+            genre = "Science Fiction"
+            creator = "Tim Kring"
+            seasons = 4
+        "Game Of Thrones"
+            genre = "Medieval fantasy"
+            creator = "David Benioff"
+            seasons = 2
+    ]
+
+php:
+    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans"]);
+    $series = array(
+        "Heroes" => array(
+            genre = "Science Fiction",
+            creator = "Tim Kring",
+            seasons = 4,
+        ),
+        "Game Of Thrones" => array(
+            genre = "Medieval fantasy",
+            creator = "David Benioff",
+            seasons = 2,
+        ),
+    );
+
+Strings
+=======
+
+There are four kind of strings: '"""', '"', "'''" and "'". Whitespace before the 
+current indentation level is stripped.
+
+Quoted
+------
+
+Code inside "{}" adds their value to the string.
+
+snowscript:
+    fn travel
+        echo "
+        The {animal} went to {world.place()}
+        with his {NUM} friends. 
+        "
+
+    """<a href="https://snowscript.org">Snowscript</a>\n"""
+
+php:
+    function travel() {
+        echo "The " . $animal . " went to " . $world->place() . "\n"
+        " with his " . NUM  . " friends.";
+        
+    }
+    "<a href=\"https://snowscript.org\">Snowscript</a>\n";
+
+Unquoted
+--------
+
+snowscript: 
+    'No {magic} here\n'
+    '''{NOR} here.'''
+php:
+    'No {magic} here\n';
+    '''{NOR} here.''';h
+
+Functions
+=========
+
+The "fn" keyword is used to defined functions, and "<-" to return a value.
+
+Functioncalls can be chained using the "->" operator that passes the expression
+before as the first argument to the next function.
+
+snowscript:
+    fn titlefy(FancyString fancystring)
+        <- fancystring->trim(" -")->ucfirst()
+php:
+    function titlefy(FancyString $fancystring) {
+        return ucfirst(trim($fancystring, " -"));
+    }
+
+Control structures
+==================
+
+If
+--
+
+snowscript:
+    if white_walkers.numbers < 500
+        fight_valiantly()
+    elif feeling_lucky
+        improvise()
+    else
+        run()
+
+php:
+    if ($white_walkers->numbers < 500) {
+        fight_valiantly();
+    } elif ($feeling_lucky) { 
+        improvise();
+    } else {
+        run();
+    }
+
+Switch
+------
+
+The case keyword has been removed.
+
+snowscript:
+    switch gamestate
+        BESERKER
+            signal("searchanddestroy")
+        UNDERWATER
+            gills.activate()
+        NORMAL, default
+            signal("playnice")
+            gills.deactivate()
+
+php:
+    switch $gamestate {
+        case BESERKER:
+            signal("searchanddestroy");
+            break;
+        case UNDERWATER:
+            gills.activate();
+            break;
+        case NORMAL:
+        default:
+            signal("playnice");
+            gills.deactivate();
+    }
+
+Return
+------
+
+Both if and switch statements can be used as a expression.
+
+snowscript:
+    mood = if prince.is_in_the_house
+        <- "Exquisite"
+    else
+        <- "Dull"
+
+php:
+     if ($prince->is_in_the_house) {
+        $mood = "Exquisite";
+    } else {
+        $mood = "Dull";
+    };
+
+Loops
+=====
+
+Stub.
+
+Comprehensions
+==============
+
+Stub.
+
+Multiple assignment
+===================
+
+Stub.
+
+Classes
+=======
+
+Stub.
+
+Splats
+======
+
+Stub.
