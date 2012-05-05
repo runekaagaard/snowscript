@@ -1,9 +1,9 @@
 <?php
 
-define('T_IN', PHPParser_Parser::T_IN);
-define('T_TO', PHPParser_Parser::T_TO);
-define('T_DOWNTO', PHPParser_Parser::T_DOWNTO);
-define('T_STEP', PHPParser_Parser::T_STEP);
+define('T_IN', 1001);
+define('T_TO', 1002);
+define('T_DOWNTO', 1003);
+define('T_STEP', 1004);
 
 // TODO: This is WIP code, just making a couple of tests pass.
 
@@ -118,6 +118,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         } elseif (isset($this->token_callback[$type])) {
             return $this->$type($t);
         } else {
+            var_dump(self::$named_tokenmap); die;
             echo "Unknown token:\n";
             var_dump($t, $type, $value);
             die;
@@ -163,7 +164,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     static function init_named_tokenmap() {
         // 256 is the minimum possible token number, as everything below
         // it is an ASCII value
-        for ($i = 256; $i < 1002; ++$i) {
+        for ($i = 256; $i < 1100; ++$i) {
             // T_DOUBLE_COLON is equivalent to T_PAAMAYIM_NEKUDOTAYIM
             if (T_DOUBLE_COLON === $i) {
                 self::$named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
@@ -177,7 +178,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
             } elseif ('UNKNOWN' !== ($name = snow_token_name($i))
                       && defined($name = 'PHPParser_Parser::' . $name)
             ) {
-                if ($i===1001) var_dump("OK", $name);
                 self::$named_tokenmap[$i] = $name;
             }
         }

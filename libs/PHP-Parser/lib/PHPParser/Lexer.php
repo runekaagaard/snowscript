@@ -151,7 +151,7 @@ class PHPParser_Lexer
 
             // 256 is the minimum possible token number, as everything below
             // it is an ASCII value
-            for ($i = 256; $i < 1002; ++$i) {
+            for ($i = 256; $i < 1100; ++$i) {
                 // T_DOUBLE_COLON is equivalent to T_PAAMAYIM_NEKUDOTAYIM
                 if (T_DOUBLE_COLON === $i) {
                     self::$tokenMap[$i] = PHPParser_Parser::T_PAAMAYIM_NEKUDOTAYIM;

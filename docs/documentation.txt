@@ -6,19 +6,13 @@ managed by indenting/dedenting and not by using brackets ({)}. Whitespace is not
 significant inside comments, strings and brackets (() and []).
 
 snowscript:
-    # Returns the whereabouts of a person.
-
-      Only works on earth.
     fn find_person(person)
-        echo "Awaiting devination
-        ..."
         <- access_third_eye(
             person.name,
             person.last_known_location
         )
 php:
     function find_person($person) {
-        echo "Awaiting devination\n...";
         return access_third_eye(
             $person->name,
             $person->last_known_location
@@ -51,17 +45,17 @@ Arrays
 Array are defined inside square brackets "[]". Items can be separated by "," or
 by using whitespace. 
 
-Keys are assumed stringy unless they exist in the scope. Surround the key with
-"{}" to force interpretation as a variable.
+Keys are stringy when using "=" as a separator, and interpreted when using ":".
 
 snowscript:
     pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
-    great_series = [
-        Heroes
+    name = "Heroes"
+    series = [
+        name:
             genre = "Science Fiction"
-            creator = "Tim Kring"
+            creator: "Tim Kring"
             seasons = 4
-        "Game Of Thrones"
+        Game Of Thrones =
             genre = "Medieval fantasy"
             creator = "David Benioff"
             seasons = 2
@@ -284,9 +278,12 @@ php:
 Loops
 =====
 
-Two kind of loops are supported. Iterating over a collection, and iterating over
-a numeric range. Both key and value are local to the loop. A "&" can be used
-to designate the value as by-reference.
+For
+---
+
+Two kind of for loops are supported. Iterating over a collection, and iterating 
+over a numeric range. Both key and value are local to the loop. A "&" can be 
+used to designate the value as by-reference.
 
 snowscript:
     for title, data in flowers
@@ -317,13 +314,19 @@ php:
     }
     unset($i);
 
-Comprehensions
-==============
+While
+-----
 
-Two kinds of comprehensions exist: Array comprehension and string comprehension.
+snow:
+    while frog.ass.is_watertight
+        echo "Rinse and repeat."
+php:
+    while ($frog->ass->is_watertight) {
+        echo "Rinse and repeat.";
+    }
 
 Array comprehension
--------------------
+===================
 
 snowscript:
     [x, y for x in [1,2,3] for y in [3,1,4] if x != y]->var_dump
@@ -359,11 +362,6 @@ php:
         }
     }
     unset($samurai, $villain);
-
-String comprehension
---------------------
-
-Stub.
 
 Classes
 =======

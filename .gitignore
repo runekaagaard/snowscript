@@ -4,3 +4,8 @@ run-tests.log
 *.out
 *.exp
 *.log
+tests/*.php
+tests/*/*.php
+tests/*/*/*.php
+y.output
+libs/PHP-Parser/lib/PHPParser/Parser/
