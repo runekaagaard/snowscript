@@ -19,25 +19,10 @@ fn u(item=null)
     <- u
 
 class U
-    private _chained = false # Are we in a chain?
+
+    # Start the chain.
+    private _chained = false
     
-    public fn chain(item=null)
-        list(item) = self::_wrapArgs(func_get_args(), 1)
-        if isset(this) and isset(this._chained) and this._chained
-            u = this
-        else
-            u = u(item)
-        u._chained = true
-        <- u
-    
-    public fn chain2
-      # Syntax experiments.
-        public fn
-            chain(...)
-                [item] = ::_wrapArgs(..., 1)
-                u = . if ._chained?? else u(item)
-                u._chained = true
-                <- u
     
 SNOW
 , 0); die;

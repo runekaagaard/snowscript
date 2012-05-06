@@ -236,11 +236,6 @@ def t_CONSTANT_NAME(t):
     return t
 
 
-
-
-
-
-
 def t_error(t):
     print t
     raise_syntax_error("invalid syntax", t)
