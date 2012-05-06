@@ -490,7 +490,7 @@ expr_list:
 
 expr:
       variable                                              { $$ = $1; }
-    | '[' array_pair_list ']' '=' expr               { $$ = Expr_AssignList[$2, $5]; }
+    | '[' array_pair_list ']' '=' expr                      { $$ = Expr_AssignList[$2, $5]; }
     | variable '=' expr                                     { $$ = Expr_Assign[$1, $3]; }
     | variable '=' '&' variable                             { $$ = Expr_AssignRef[$1, $4]; }
     | variable '=' '&' new_expr                             { $$ = Expr_Assign[$1, $4]; } /* reference dropped intentially */

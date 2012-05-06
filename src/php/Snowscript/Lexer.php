@@ -118,7 +118,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         } elseif (isset($this->token_callback[$type])) {
             return $this->$type($t);
         } else {
-            var_dump(self::$named_tokenmap); die;
             echo "Unknown token:\n";
             var_dump($t, $type, $value);
             die;

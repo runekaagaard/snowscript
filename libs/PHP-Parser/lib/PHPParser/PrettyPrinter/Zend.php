@@ -146,6 +146,14 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
         return $this->pAssignList($node->vars) . ' = ' . $this->p($node->expr);
     }
 
+    public function pExpr_AssignListInner($node) {
+        return $this->pAssignList($node->vars['items']);
+    }
+
+    public function pExpr_Pass($node) {
+        return '';
+    }
+
     // Binary expressions
 
     public function pExpr_Plus(PHPParser_Node_Expr_Plus $node) {

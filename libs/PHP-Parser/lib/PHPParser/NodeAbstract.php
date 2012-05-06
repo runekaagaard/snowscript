@@ -39,6 +39,10 @@ abstract class PHPParser_NodeAbstract implements PHPParser_Node, IteratorAggrega
         return array_keys($this->subNodes);
     }
 
+    public function getSubNodes() {
+        return $this->subNodes;
+    }
+ 
     /**
      * Gets line the node started in.
      *
@@ -120,4 +124,5 @@ abstract class PHPParser_NodeAbstract implements PHPParser_Node, IteratorAggrega
     public function getIterator() {
         return new ArrayIterator($this->subNodes);
     }
+
 }

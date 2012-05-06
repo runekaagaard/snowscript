@@ -4,14 +4,6 @@ Testing Hello World example.
 <?php
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
-/*
-TODO:
-list(a, , b) = c
-list(a, list(, c), d) = e
-list($a, , $b) = $c;
-list($a, list(, $c), $d) = $e;
-*/
-
 snowscript_to_php('
 a = b
 a band= b
@@ -27,7 +19,10 @@ a bleft= b
 a bright= b
 a =& b
 a =& new B
-[a, b, c] = [1,2,3]
+[a, b, c] = d
+[a, [null, c], d] = e
+[a, null, c] = c
+[a, [null, c, [d, e]], f] = g
 ++a
 a++
 --a
@@ -49,7 +44,10 @@ $a <<= $b;
 $a >>= $b;
 $a =& $b;
 $a = new B();
-list($a, $b, $c) = array(1, 2, 3);
+list($a, $b, $c) = $d;
+list($a, list(, $c), $d) = $e;
+list($a, , $c) = $c;
+list($a, list(, $c, list($d, $e)), $f) = $g;
 ++$a;
 $a++;
 --$a;
