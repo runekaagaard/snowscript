@@ -220,20 +220,25 @@ def t_SR(t):
     return t
 
 
-def t_constant_or_class_name(t):
-    r"[A-Z][a-zA-Z0-9_]*"
-    t.type = RESERVED.get(
-        t.value,
-        ("CONSTANT_NAME" if t.value == t.value.upper() and len(t.value) > 1
-                         else "CLASS_NAME")
-    )
-    return t
-
-
 def t_VARIABLE_NAME(t):
-    r"[a-zA-Z_][a-zA-Z0-9_]*"
+    r"[_]*[a-z][a-zA-Z0-9_]*"
     t.type = RESERVED.get(t.value, "NAME")
     return t
+
+
+def t_CLASS_NAME(t):
+    r"[A-Z_][a-zA-Z0-9_]*"
+    return t
+
+
+def t_CONSTANT_NAME(t):
+    r"[A-Z_][A-Z0-9_]*"
+    return t
+
+
+
+
+
 
 
 def t_error(t):
