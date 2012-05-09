@@ -5,7 +5,7 @@ This file holds a series of transformations of the lexer tokens.
 from ply import lex
 import re
 from error import raise_indentation_error, raise_syntax_error
-from tokens import INDENTATION_TRIGGERS, MISSING_PARENTHESIS, CASTS
+from tokens import MISSING_PARENTHESIS, CASTS
 
 
 def build_token(_type, value, t):
@@ -87,6 +87,8 @@ def inject_case_tokens(token_stream):
             inside_switch = True
             case_indent = 0
 
+INDENT_ERROR = "Dedention matches no previous level."
+
 
 def inject_indent_tokens(lexer, token_stream):
     levels = [0]
@@ -104,6 +106,8 @@ def inject_indent_tokens(lexer, token_stream):
                     levels.append(level)
                     yield build_token('INDENT', '', t2)
                 elif level < levels[-1]:
+                    if level not in levels:
+                        raise_indentation_error(INDENT_ERROR, t2)
                     while levels.pop() > level:
                         yield build_token('DEDENT', '', t2)
                     levels.append(level)
