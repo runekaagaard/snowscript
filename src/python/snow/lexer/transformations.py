@@ -44,6 +44,17 @@ MAY_INDENT = 1
 MUST_INDENT = 2
 
 
+def trim_beginning_newlines(token_stream):
+    still_trim = True
+    for t in token_stream:
+        if still_trim and t.type == 'NEWLINE':
+            continue
+        else:
+            still_trim = False
+
+        yield t
+
+
 def inject_case_tokens(token_stream):
     inside_switch = False
     case_indent = 0
@@ -77,132 +88,37 @@ def inject_case_tokens(token_stream):
             case_indent = 0
 
 
-def annotate_indentation_state(lexer, token_stream):
-    # only care about whitespace at the start of a line.
-    lexer.at_line_start = at_line_start = True
-    indent = NO_INDENT
-    indent_expected = False
-    prev_was_newline = False
-    for token in token_stream:
-        token.at_line_start = at_line_start
-        # If token if one of those who triggers an indentation we expect an
-        # indentation after next newline (omitting whitespace though).
-        if token.type in INDENTATION_TRIGGERS:
-            indent_expected = True
-            at_line_start = False
-            # If we are already expecting indentation and the last token was a
-            # newline this token should also indent.
-            token.must_indent = (prev_was_newline and
-                                 indent in (MAY_INDENT, MUST_INDENT))
-            indent = MAY_INDENT
-            prev_was_newline = False
-
-        # A colon cancels expected indentation.
-        elif token.type == 'COLON':
-            indent_expected = False
-            token.must_indent = False
-            at_line_start = False
-            prev_was_newline = False
-
-        # New line can trigger a need for indentation if it is expected.
-        elif token.type == "NEWLINE":
-            prev_was_newline = True
-            at_line_start = True
-            if indent == MAY_INDENT:
-                indent = MUST_INDENT
-            token.must_indent = False
-
-        # Whitespace does not change indent_expected.
-        elif token.type == "WS":
-            assert token.at_line_start == True
-            at_line_start = True
-            token.must_indent = False
-
-        # Normal token.
-        else:
-            if indent == MUST_INDENT:
-                token.must_indent = True
-                indent_expected = False
-            else:
-                token.must_indent = False
-            at_line_start = False
-            # Dont reset indent if we are waiting for an indent.
-            if not indent_expected:
-                indent = NO_INDENT
-            prev_was_newline = False
-
-        yield token
-        lexer.at_line_start = at_line_start
-
-
-def synthesize_indentation_tokens(lexer, token_stream):
-    """Track the indentation level and emit the right INDENT / DEDENT events."""
-    # A stack of indentation levels; will never pop item 0
+def inject_indent_tokens(lexer, token_stream):
     levels = [0]
-    token = None
-    depth = 0
-    prev_was_ws = False
-    for token in token_stream:
-        token.lexer = lexer
-        # WS only occurs at the start of the line
-        # There may be WS followed by NEWLINE so
-        # only track the depth here.  Don't indent/dedent
-        # until there's something real.
-        if token.type == "WS":
-            assert depth == 0
-            depth = len(token.value)
-            prev_was_ws = True
-            # WS tokens are never passed to the parser
-            continue
+    try:
+        for t in token_stream:
+            lexer.at_line_start = False
+            if t.type == "NEWLINE":
+                yield t
+                lexer.at_line_start = True
 
-        if token.type == "NEWLINE":
-            depth = 0
-            if prev_was_ws or token.at_line_start:
-                # ignore blank lines
+                t2 = token_stream.next()
+                level = len(t2.value) if t2.type == 'WS' else 0
+
+                if level > levels[-1]:
+                    levels.append(level)
+                    yield build_token('INDENT', '', t2)
+                elif level < levels[-1]:
+                    while levels.pop() > level:
+                        yield build_token('DEDENT', '', t2)
+                    levels.append(level)
+                    if levels == []:
+                        levels = [0]
+                if t2.type != 'WS':
+                    yield t2
+
+            elif t.type == "WS":
                 continue
-            # pass the other cases on through
-            yield token
-            continue
-
-        # then it must be a real token (not WS, not NEWLINE)
-        # which can affect the indentation level
-
-        prev_was_ws = False
-        if token.must_indent:
-            # The current depth must be larger than the previous level
-            if not (depth > levels[-1]):
-                raise_indentation_error("expected an indented block", token)
-
-            levels.append(depth)
-            yield build_token("INDENT", None, token)
-
-        elif token.at_line_start:
-            # Must be on the same level or one of the previous levels
-            if depth == levels[-1]:
-                # At the same level
-                pass
-            elif depth > levels[-1]:
-                # indentation increase but not in new block
-                raise_indentation_error("unexpected indent", token)
             else:
-                # Back up; but only if it matches a previous level
-                try:
-                    i = levels.index(depth)
-                except ValueError:
-                    # I report the error position at the start of the
-                    # token.  Python reports it at the end.  I prefer mine.
-                    raise_indentation_error("unindent does not match any outer "
-                                            "indentation level", token)
-                for _ in range(i + 1, len(levels)):
-                    yield build_token("DEDENT", None, token)
-                    levels.pop()
-
-        yield token
-    # Must dedent any remaining levels
-    if len(levels) > 1:
-        assert token is not None
-        for _ in range(1, len(levels)):
-            yield build_token("DEDENT", None, token)
+                yield t
+    except StopIteration:
+        for level in range(0, len(levels) - 1):
+            yield build_token('DEDENT', '', t)
 
 
 def add_endmarker(token_stream):
@@ -372,9 +288,9 @@ def debug(token_stream):
 
 def make_token_stream(lexer, add_endmarker=True):
     token_stream = iter(lexer.token, None)
+    token_stream = trim_beginning_newlines(token_stream)
     token_stream = inject_case_tokens(token_stream)
-    token_stream = annotate_indentation_state(lexer, token_stream)
-    token_stream = synthesize_indentation_tokens(lexer, token_stream)
+    token_stream = inject_indent_tokens(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
     token_stream = nuke_newlines_around_indent(token_stream)
     token_stream = insert_missing_new(token_stream)
