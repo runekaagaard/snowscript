@@ -211,7 +211,7 @@ snowscript::
 
     fn render(template, format="html", [mood, color, allow_html=true, klingon=false])
         pass
-    render("index.html", null, klingon=true, allow_html=false)
+    render("index.html", null, klingon=true, allow_html=false, mood="awesome", color="red")
 
 php::
 
@@ -233,7 +233,7 @@ php::
         }
         unset($_key);
     }
-    render("index.html", array('klingon'=>true, 'allow_html'=>false));
+    render("index.html", null, array('klingon'=>true, 'allow_html'=>false, 'mood'=>"awesome", 'color'=>"red"));
 
 Destructuring
 =============
