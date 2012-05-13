@@ -9,8 +9,8 @@ Snowscript is to PHP what Coffeescript is to Javascript.
 Roadmap
 +++++++
 
-The current status as of May 13th, 2012 is that a lot of things really works,
-but there is still some way to go before the first release can be done:
+The current status as of May 13th, 2012 is that the basics work. There are
+several things I want to fix before a first release candidate though:
 
 Todo
 ====
@@ -39,7 +39,7 @@ Done
 Documentation
 +++++++++++++
 
-Below are noncomplete examples of Snowscript. Subject to change.
+There is more thorough yet dated documentation on the google code page too.
 
 Whitespace
 ==========
@@ -114,17 +114,18 @@ snowscript::
 
 php::
 
-    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans"]);
+    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
+    $name = "Heroes";
     $series = array(
-        "Heroes" => array(
-            genre = "Science Fiction",
-            creator = "Tim Kring",
-            seasons = 4,
+        $name => array(
+            'genre' => "Science Fiction",
+            'creator' => "Tim Kring",
+            'seasons' => 4,
         ),
         "Game Of Thrones" => array(
-            genre = "Medieval fantasy",
-            creator = "David Benioff",
-            seasons = 2,
+            'genre' => "Medieval fantasy",
+            'creator' => "David Benioff",
+            'seasons' => 2,
         ),
     );
 
@@ -184,7 +185,7 @@ php::
 Functions
 =========
 
-The "fn" keyword is used to defined functions, and "<-" to return a value.
+The "fn" keyword is used to define functions, and "<-" to return a value.
 
 Function calls can be chained using the "->" operator that passes the expression
 before as the first argument to the next function.
@@ -203,10 +204,15 @@ php::
 Parameters
 ----------
 
-Positional parameters with a default non-null value will switch to that value
-when null is passed as an argument. Named parameters is supported using an
-array "[]" at the end of the function declaration. Named parameters with only a
-key are required.
+Optional parameters must come after required parameters. They can be passed 
+"null" to select the default value. This is helpful if you want to set a later
+parameter to a non-default value.
+
+Named parameters is supported using an array "[]" at the end of the function 
+declaration. Named parameters with only a key are required, i.e. an exception
+will be thrown if absent.
+
+Optional and named parameters can not be used in the same function definition.
 
 snowscript::
 
@@ -241,6 +247,7 @@ Destructuring
 
 snowscript::
 
+    a, b, c = 1, 2, 3
     [a, b, [c, d]] = letters
 
 php::
@@ -341,7 +348,7 @@ php::
 Return
 ------
 
-Both if and switch statements can be used as a expression.
+Both if and switch statements can be used as an expression.
 
 snowscript::
 
@@ -366,7 +373,7 @@ For
 ---
 
 Two kind of for loops are supported. Iterating over a collection, and iterating 
-over a numeric range. Both key and value are local to the loop. A "&" can be 
+over a numeric range. Both key and value are local to the loop. An "&" can be 
 used to designate the value as by-reference.
 
 snowscript::
@@ -396,7 +403,7 @@ php::
         echo $i;
     }
     unset($i);
-    for ($i=10, $i >= 0, ++$i) {
+    for ($i=10, $i >= 0, --$i) {
         echo $i;
     }
     unset($i);
@@ -459,4 +466,52 @@ php::
 Classes
 =======
 
+Declaration
+-----------
+
 Stub.
+
+snowscript::
+
+    class TabularWriter(File path, title)
+        # Properties. #
+        public
+            title = title
+            path = path
+
+            static
+                filesystem = "ext4"
+
+        private
+            filehandle
+
+        # Constructor. #
+        .check_filesystem()
+        .init_file()
+
+        # Methods. #
+
+        public
+            fn check filesystem
+                if self.filesystem not in supported_filesystems()
+                    raise UnsupportedFilesystemError()
+
+            fn init_file
+                if not file_exists(.path)
+                    throw FileMissingError()
+                else
+                    .filehandle = open_file(.path)
+
+php::
+
+    Stub.
+    
+    class TabularWriter {
+        public $title;
+        public $path;
+
+        function __construct(File $path, $title) {
+            $this->path = $path;
+            $this->title = $title;
+        }
+    }
