@@ -403,7 +403,8 @@ php::
 While
 -----
 
-snow:
+snow::
+    
     while frog.ass.is_watertight
         echo "Rinse and repeat."
 
