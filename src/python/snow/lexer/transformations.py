@@ -108,9 +108,11 @@ def inject_indent_tokens(lexer, token_stream):
                 elif level < levels[-1]:
                     if level not in levels:
                         raise_indentation_error(INDENT_ERROR, t2)
+
                     while levels.pop() > level:
                         yield build_token('DEDENT', '', t2)
                     levels.append(level)
+
                     if levels == []:
                         levels = [0]
                 if t2.type != 'WS':

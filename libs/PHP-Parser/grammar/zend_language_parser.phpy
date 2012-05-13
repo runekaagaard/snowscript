@@ -462,6 +462,7 @@ method_modifiers:
 non_empty_member_modifiers:
       member_modifier                                       { $$ = $1; }
     | non_empty_member_modifiers member_modifier            { Stmt_Class::verifyModifier($1, $2); $$ = $1 | $2; }
+    | non_empty_member_modifiers '{' member_modifier '}'    { Stmt_Class::verifyModifier($1, $2); $$ = $1 | $2; }
 ;
 
 member_modifier:

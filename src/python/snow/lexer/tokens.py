@@ -398,6 +398,7 @@ def t_RSQB(t):
     t.lexer.pop_state()
     return t
 
+
 def t_INSIDEARRAY_COLON(t):
     r'\:'
     t.type = 'DOUBLE_ARROW'
