@@ -283,9 +283,9 @@ php::
     unset($args_);
 
     $tmp_ = get_letters();
-    $_splats = array_slice($_tmp, -1, count($_tmp) - 2);
+    $splats_ = array_slice($_tmp, -1, count($_tmp) - 2);
     list($a, $b) = $tmp_; 
-    echo count($_splats);
+    echo count($splats_);
 
 Control structures
 ==================
@@ -316,7 +316,7 @@ php::
 Switch
 ------
 
-The case keyword has been removed.
+Stub.
 
 snowscript::
 
@@ -469,49 +469,95 @@ Classes
 Declaration
 -----------
 
-Stub.
+The arguments to the class is given after the class name and the body of the
+class works as the "constructor". 
+
+The "." is used to access the class instance. "self" accesses the class.
 
 snowscript::
 
     class TabularWriter(File path, title)
         # Properties. #
-        public
-            title = title
-            path = path
-
-            static
-                filesystem = "ext4"
-
-        private
-            filehandle
+        title = title
+        path = path
+        self.filesystem = Filesystem().get()
+        VERSION = 0.4
+        # Here lie dragons.
+        _filehandle = null
 
         # Constructor. #
         .check_filesystem()
         .init_file()
 
         # Methods. #
+        fn check filesystem
+            if self.filesystem not in supported_filesystems()
+                throw UnsupportedFilesystemError()
 
-        public
-            fn check filesystem
-                if self.filesystem not in supported_filesystems()
-                    raise UnsupportedFilesystemError()
-
-            fn init_file
-                if not file_exists(.path)
-                    throw FileMissingError()
-                else
-                    .filehandle = open_file(.path)
+        fn init_file
+            if not file_exists(.path)
+                throw FileMissingError()
+            else
+                ._filehandle = open_file(.path)
 
 php::
 
-    Stub.
-    
     class TabularWriter {
+        /**
+         * Properties.
+         */
         public $title;
         public $path;
+        static $filesystem;
+        const VERSION = 0.4;
+        // Here lie dragons.
+        public $_filehandle;
 
-        function __construct(File $path, $title) {
-            $this->path = $path;
+        /**
+         * Constructor.
+         */
+        public function __construct(File path, title) {
             $this->title = $title;
+            $this->path = $path;
+            $filesystem_ = new Filesystem;
+            self::$filesystem = $filesystem_.get();
+            unset($filesystem_);
+            $this->check_filesystem();
+            $this->init_file();
+        }
+
+        /**
+         * Methods.
+         */
+        public function check_filesystem() {
+            $tmp_ = supported_filesystems();
+            if (!isset($tmp_[self::$filesystem])) {
+                throw new UnsupportedFilesystemError;
+            }
+            unset($tmp_);
+        }
+
+        public function init_file() {
+            if (!file_exists($this->path)) {
+                throw new FileMissingError;
+            } else {
+                $this->filehandle = open_file($this->path);
+            }
         }
     }
+
+Protected and private visibility is supported but not considered very "snowy", 
+after all "We're all consenting adults here".
+
+snowscript::
+    class Boring
+        private zzz
+        protected hmm
+
+php::
+    class Boring {
+        private $zzz;
+        protected $hmm;        
+    }
+
+Stub.
