@@ -550,11 +550,13 @@ Protected and private visibility is supported but not considered very "snowy",
 after all "We're all consenting adults here".
 
 snowscript::
+
     class Boring
         private zzz
         protected hmm
 
 php::
+
     class Boring {
         private $zzz;
         protected $hmm;        
