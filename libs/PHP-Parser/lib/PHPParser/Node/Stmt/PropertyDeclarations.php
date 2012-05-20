@@ -14,13 +14,17 @@ class PHPParser_Node_Stmt_PropertyDeclarations extends PHPParser_Node_Stmt
      * @param int                                    $line       Line
      * @param null|string                            $docComment Nearest doc comment
      */
-    public function __construct($type, $props, $line = -1, $docComment = null) {
-        $args = func_get_args();
-        var_dump("ARGS propdecl", $args, "###################");
+    public function __construct(array $tree, $line = -1, $docComment = null) {
+        $modifiers = array();
+        while (gettype($tree[1]) === 'array') {
+            $modifiers []= $tree[0];
+            $tree = $tree[1];
+        }
+        $modifiers []= $tree[0];
         parent::__construct(
             array(
-                'type'  => $type,
-                'props' => array(),
+                'modifiers' => $modifiers,
+                'stmts' => $tree[1],
             ),
             $line, $docComment
         );

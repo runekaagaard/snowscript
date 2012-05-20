@@ -1,8 +1,11 @@
 <?php
 
-const GRAMMAR_FILE = './zend_language_parser.phpy';
-const TMP_FILE     = './tmp_parser.phpy';
-const RESULT_FILE  = './tmp_parser.php';
+define('BASEDIR', realpath(dirname(__FILE__)));
+chdir(BASEDIR);
+
+define('GRAMMAR_FILE', BASEDIR . '/zend_language_parser.phpy');
+define('TMP_FILE', BASEDIR . '/tmp_parser.phpy');
+define('RESULT_FILE', BASEDIR . '/tmp_parser.php');
 
 ///////////////////////////////
 /// Utility regex constants ///

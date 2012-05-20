@@ -6,11 +6,13 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
 class A
-    public 
-        static
-            final
-                abstract
-                    b
+    public
+        private
+            protected
+                static
+                    final
+                        abstract
+                            b = [1,2,3]
 ", 1);
 --EXPECT--
 <?php
