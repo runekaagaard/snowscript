@@ -502,6 +502,9 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . ';';
     }
 
+    public function pStmt_PropertyDeclarations(PHPParser_Node_Stmt_PropertyDeclarations $node) {
+        return "PROPDECL";
+    }
     public function pStmt_Property(PHPParser_Node_Stmt_Property $node) {
         return $this->pModifiers($node->type) . $this->pCommaSeparated($node->props) . ';';
     }

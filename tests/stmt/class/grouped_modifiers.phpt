@@ -5,13 +5,12 @@ Class declaration
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
-class A extends B implements C, D
+class A
     public 
-        static 
-            fn b
-                pass
-            fn c
-                pass
+        static
+            final
+                abstract
+                    b
 ", 1);
 --EXPECT--
 <?php

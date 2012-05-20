@@ -16,6 +16,10 @@ function snowscript_to_php($code, $debug=false) {
 	$parser = new PHPParser_Parser;
 	$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
 	$stmts = $parser->parse($lexer);
+	if ($debug) {
+		$nodeDumper = new PHPParser_NodeDumper;
+		echo $nodeDumper->dump($stmts) . "\n";
+	}
 	echo "<?php\n" . $prettyPrinter->prettyPrint($stmts) . "\n";
 }
 
@@ -24,7 +28,6 @@ function php_to_php($code, $debug=false) {
 	$parser = new PHPParser_Parser;
 	$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
 	$stmts = $parser->parse($lexer);
-	if ($debug) var_dump($stmts);
 	echo $prettyPrinter->prettyPrint($stmts) . "\n";
 }
 
