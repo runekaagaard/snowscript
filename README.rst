@@ -478,12 +478,12 @@ snowscript::
 
     class TabularWriter(File path, title)
         # Properties. #
-        title = title
-        path = path
+        .title = title
+        .path = path
         self.filesystem = Filesystem().get()
-        VERSION = 0.4
+        self.VERSION = 0.4
         # Here lie dragons.
-        _filehandle = null
+        ._filehandle = null
 
         # Constructor. #
         .check_filesystem()
@@ -547,19 +547,22 @@ php::
     }
 
 Protected and private visibility is supported but not considered very "snowy", 
-after all "We're all consenting adults here".
+after all "We're all consenting adults here". The "final", "static" and "const" 
+keywords are supported as well.
 
 snowscript::
 
-    class Boring
-        private zzz
-        protected hmm
+    abstract class FactoryFactory extends AbstractBuilder interfaces FactoryFactoryInterface
+        const DEFAULT_FACTORY = "DefaultFactory"
+
+        protected static SplObjectStorage factories
+
+        public static fn getInstance(factoryClassName)
+            <- self.factories[factoryClassName]
+
 
 php::
 
-    class Boring {
-        private $zzz;
-        protected $hmm;        
-    }
+    Stub.
 
 Stub.
