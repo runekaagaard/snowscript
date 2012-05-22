@@ -7,39 +7,30 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 snowscript_to_php("
 class A
     public
-        private
-            protected
-                static
-                    final
-                        abstract
-                            b = [1,2,3]
-", 1);
+        static
+            final
+                b = [1,2,3]
+                c = 4
+    private
+        abstract
+            d, e, f, g
+            h = 52, i = [1, 2, 3]
+    public
+        k
+    public static
+        l
+    protected static final 
+        m
+", 0);
 --EXPECT--
 <?php
-class A extends B implements C, D
+class A
 {
-    const A = 'B', C = 'D';
-    public $a = 'b', $c = 'd';
-    protected $e;
-    private $f;
-    public function a()
-    {
-        
-    }
-    public static function b()
-    {
-        
-    }
-    public final function c()
-    {
-        
-    }
-    protected function d()
-    {
-        
-    }
-    private function e()
-    {
-        
-    }
+    public static final $b = array(1, 2, 3);
+    public static final $c = 4;
+    private abstract $d, $e, $f, $g;
+    private abstract $h = 52, $i = array(1, 2, 3);
+    public $k;
+    public static $l;
+    protected static final $m;
 }

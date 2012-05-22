@@ -503,15 +503,12 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_PropertyDeclarations(PHPParser_Node_Stmt_PropertyDeclarations $node) {
+        $modifiers = $this->pModifiers($node->modifier);
         $result = "";
-        $modifiers = "";
-        foreach ($node->modifiers as $modifier) {
-            $modifiers .= $this->pModifiers($modifier);
-        }
         foreach ($node->stmts as $stmt) {
-            if (!$stmt) continue;
-            $result .= $modifiers . ltrim($this->pStmts($stmt)) . ';';
+            $result .= $modifiers . $this->pCommaSeparated($stmt) . ";\n";
         }
+        $result = rtrim($result, "\n");
         return $result;
     }
 

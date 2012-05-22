@@ -53,8 +53,18 @@ def trim_beginning_newlines(token_stream):
             still_trim = False
 
         yield t
-
-
+        
+def delete_multiple_newlines(token_stream):
+    prev_is_nl = False
+    for t in token_stream:
+        is_nl = t.type == 'NEWLINE'
+        
+        if prev_is_nl and is_nl:
+            continue
+        
+        prev_is_nl = is_nl
+        yield t
+            
 def inject_case_tokens(token_stream):
     inside_switch = False
     case_indent = 0
@@ -306,6 +316,7 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = casts_as_functioncalls(token_stream)
     token_stream = add_missing_parenthesis(token_stream)
     token_stream = add_missing_parenthesis_after_functions(token_stream)
+    token_stream = delete_multiple_newlines(token_stream)
     # token_stream = debug(token_stream)
 
     if add_endmarker:
