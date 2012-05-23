@@ -19,8 +19,7 @@ class A
         k
     public static
         l
-    protected static final 
-        m
+    protected final m, n = [1,2,3]
 ", 0);
 --EXPECT--
 <?php
@@ -32,5 +31,5 @@ class A
     private abstract $h = 52, $i = array(1, 2, 3);
     public $k;
     public static $l;
-    protected static final $m;
+    protected final $m, $n = array(1, 2, 3);
 }

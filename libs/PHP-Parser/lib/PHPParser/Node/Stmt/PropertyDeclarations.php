@@ -15,18 +15,21 @@ class PHPParser_Node_Stmt_PropertyDeclarations extends PHPParser_Node_Stmt
      */
     public function __construct(array $tree, $line = -1, $docComment = null) {
         $modifier = 0;
-        while (gettype($tree[1]) === 'array') {
+        while (is_array($tree[1])) {
             PHPParser_Node_Stmt_Class::verifyModifier($modifier, $tree[0]);
             $modifier |= $tree[0];
             $tree = $tree[1];
-        } 
-        PHPParser_Node_Stmt_Class::verifyModifier($modifier, $tree[0]);
-        $modifier |= $tree[0];
+        }
+        if (is_int($tree[0])) {
+            PHPParser_Node_Stmt_Class::verifyModifier($modifier, $tree[0]);
+            $modifier |= $tree[0];
+        }
         
         parent::__construct(
             array(
                 'modifier' => $modifier,
-                'stmts' => $tree[1]->stmts,
+                'stmts' => isset($tree[1]->stmts) ? $tree[1]->stmts 
+                                                  : array($tree),
             ),
             $line, $docComment
         );
