@@ -182,6 +182,7 @@ def t_COMMENT(t):
             t.value += cloned_t.value
             if cloned_t.lexer.current_state() == 'INITIAL':
                 return t
+                
     return t
 
 
@@ -331,8 +332,13 @@ def t_newline(t):
     # Don't return newlines while I'm inside of ()s.
     t.lexer.lineno += len(t.value)
     t.type = "NEWLINE"
-    if t.lexer.bracket_level == 0:
+    if MODE == MODES['PHP']:
+        if t.lexer.bracket_level == 0:
+            return t
+    elif MODE == MODES['HTML']:
         return t
+    else:
+        raise NotImplementedError()
 
 # Numbers. #
 

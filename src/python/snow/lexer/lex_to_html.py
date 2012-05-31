@@ -1,7 +1,3 @@
-"""
-Lexes a snow file given as first argument and returns its lexed tokens as json.
-"""
-
 import sys
 import json
 from lexer import SnowLexer
@@ -15,10 +11,12 @@ class SnowLexerHtml(SnowLexer):
     def set_token_stream(self):
         self.token_stream = token_stream = iter(self.lexer.token, None)
 
-if __name__ == '__main__':
-    code = open(sys.argv[1]).read()
+def lex_to_html(snowscript):
+    """
+    Lexes snowscript code and returns its lexed tokens as prettyprinted html.
+    """
     lexer = SnowLexerHtml()
-    lexer.input(code, '')
+    lexer.input(snowscript, '')
     token_types = {}
     for group_name,token_names in token_groups.iteritems():
         for token_name in token_names:
@@ -31,5 +29,4 @@ if __name__ == '__main__':
         else:
             value = t.value 
         result += "<span class='%s'>%s</span>" % (group, value)
-    print result
-        
+    return result
