@@ -1,7 +1,12 @@
 import re
+from functools import wraps
+
 from error import raise_syntax_error
 import tokenize
 from ply import lex
+
+MODES = {'PHP':0, 'HTML': 1}
+MODE = MODES['PHP']
 
 tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'BAND', 'BLEFT', 'BNOT', 'BOOL', 'BOR', 'BOX', 'BREAK', 'BRIGHT', 'BXOR',
@@ -23,8 +28,50 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'STAR', 'STATIC', 'STRINGTYPE', 'STRING_WITH_CONCAT', 'SWITCH', 'THROW',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-     'DOUBLE_ARROW'
+     'DOUBLE_ARROW',
 ]
+
+token_groups = {
+    # Keywords.
+    'kwd': ['ABSTRACT', 'AND', 'ARRAY', 'BAND', 'BLEFT', 'BNOT', 
+            'BOR', 'BOX', 'BREAK', 'BRIGHT', 'BXOR', 'CALLABLE', 
+            'CASE', 'CATCH', 'CLASS', 'CLONE', 
+            'CONST', 'DECLARE', 'DEFAULT', 'DIE', 'DOWNTO', 
+            'ECHO', 'ELIF', 'ELSE', 'EMPTY', 'END', 'ESCAPE', 'EXIT', 
+            'EXTENDS', 'FALLTHRU', 'FINAL', 'FN', 'FOR', 
+            'GLOBAL', 'IF', 'IMPLEMENTS', 'IN', 'INCLUDE', 'INCLUDE_ONCE', 
+            'INTERFACE', 'ISA', 
+            'ISSET', 'LIST', 'MOD', 'MOD_EQUAL', 
+            'NAMESPACE', 'NEW', 'NEXT', 'NOT', 'OR', 
+            'OR_EQUAL', 'PASS', 'PRINT', 'PRIVATE', 'PROTECTED', 'PUBLIC', 
+            'REQUIRE', 'REQUIRE_ONCE', 
+            'STATIC', 'SWITCH', 'THROW', 
+            'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 
+            'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP', 
+            ],
+    # Strings.
+    'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING'],
+    # Comments.
+    'com': ['INSIDE_COMMENT'],
+    # Types.
+    'type': ['FLOAT', 'BOOL', 'INT', 'NULL', 'OBJECT', 'STRINGTYPE'],
+    # Litteral values.
+    'lit': ['FALSE', 'TRUE', 'NUMBER'],
+    # Plain text.
+    'pln': ['CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME', 'WS', 'NAME', 
+            'NEWLINE'],
+    # Punctuation.
+    'pun': ['INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL',
+            'IS_NOT_EQUAL', 't_IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL',
+            'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL',
+            'CONCAT_EQUAL', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER',
+            'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR',
+            'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT',
+            'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR',
+            'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'DOUBLE_ARROW', 
+            'AND_EQUAL', 'COMMENT', 'IS_SMALLER_OR_EQUAL', 'SL', 'SL_EQUAL', 
+            'SR', 'SR_EQUAL'],
+}
 
 RESERVED = dict([(t.lower(), t) for t in tokens])
 RESERVED['str'] = 'STRINGTYPE'
@@ -42,15 +89,7 @@ CASTS = ('ARRAY', 'BOOL', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', )
 # Keywords where parenthensis can be omitted.
 MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH', 'CASE')
 
-# When prettyprinting, display these tokens literally.
-SYMBOLIC = ('INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL',
-            'IS_NOT_EQUAL', 't_IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL',
-            'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL',
-            'CONCAT_EQUAL', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER',
-            'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR',
-            'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT',
-            'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR',
-            'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB')
+SYMBOLIC = token_groups['pun']
 
 ## Token definitions ##
 t_INC = r'\+\+'
@@ -269,10 +308,14 @@ def t_WS(t):
             break
         n = 8 - (pos % 8)
         value = value[:pos] + " " * n + value[pos + 1:]
-
-    if t.lexer.at_line_start and t.lexer.bracket_level == 0:
+    
+    if MODE == MODES['PHP']:
+        if t.lexer.at_line_start and t.lexer.bracket_level == 0:
+            return t
+    elif MODE == MODES['HTML']:
         return t
-
+    else:
+        raise NotImplementedError()
 
 def t_escaped_newline(t):
     r"\\\n"
@@ -407,6 +450,27 @@ def t_INSIDEARRAY_COLON(t):
 # Strings. #
 
 
+def html_mode_string(f):
+    """
+    Decorator that returns a unaltered string token if the mode is set to
+    HTML, otherwise keeps the original return.
+    """
+    @wraps(f)
+    def _(t):
+        orig_value = t.value
+        t2 = f(t)
+        if MODE == MODES['PHP']:
+            return t2
+        elif MODE == MODES['HTML']:
+            t.type = "STRING"
+            t.value = orig_value
+            return t
+        else:
+            raise NotImplementedError()
+    
+    return _
+    
+
 def add_to_string(t, value):
     """Adds a value to the lexers string_content variable."""
     t.lexer.string_content += value
@@ -446,37 +510,37 @@ def add_escape(t):
 
 ## Tripple doublequoted string
 
-
+@html_mode_string
 def t_TRIPPLE_string_string_begin(t):
     r'"""'
     string_begin(t, 'INTRIPPLEDOUBLEQUOTEDSTRING')
 
-
+@html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_ESCAPE(t):
     r'(\\")|(\\{)|(\\)'
     # Matches an escaped " or { or a single \ as these should count as a normal
     # string char.
     add_escape(t)
 
-
+@html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_STRING(t):
     r'[^{"\\]+'
     # All that are normal string chars.
     add_to_string(t, t.value)
 
-
+@html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_STRING_END(t):
         r'"""'
         return string_end(t, 'INTRIPPLEDOUBLEQUOTEDSTRING')
 
-
+@html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_SINGLEQUOTE(t):
     r'"'
     # Matches an escaped " or { or a single \ as these should count as a normal
     # string char.
     add_to_string(t, t.value)
 
-
+@html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
     r"{"
     return snow_begin(t)
@@ -486,31 +550,31 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_error(t):
     print t
     raise_syntax_error("invalid syntax", t)
 
-
+@html_mode_string
 def t_string_begin(t):
     r'"'
     ## Single doublequoted string.
     string_begin(t, 'INDOUBLEQUOTEDSTRING')
 
-
+@html_mode_string
 def t_INDOUBLEQUOTEDSTRING_ESCAPE(t):
     r'(\\")|(\\{)|(\\)'
     # Matches an escaped " or { or a single \ as these should count as a normal
     # string char.
     add_escape(t)
 
-
+@html_mode_string
 def t_INDOUBLEQUOTEDSTRING_STRING(t):
         r'[^{"\\]+'
         # All that are normal string chars.
         add_to_string(t, t.value)
 
-
+@html_mode_string
 def t_INDOUBLEQUOTEDSTRING_STRING_END(t):
         r'"'
         return string_end(t, 'INDOUBLEQUOTEDSTRING')
 
-
+@html_mode_string
 def t_INDOUBLEQUOTEDSTRING_SNOW_BEGIN(t):
         r"{"
         return snow_begin(t)
@@ -590,7 +654,7 @@ def t_INSINGLEQUOTEDSTRING_error(t):
 
 ## Snow end
 
-
+@html_mode_string
 def t_SNOWINANYDOUBLEQUOTEDSTRING_SNOW_END(t):
     r"}"
     t.lexer.starting_string_token = t

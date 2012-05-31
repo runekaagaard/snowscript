@@ -46,7 +46,10 @@ class SnowLexer(object):
         self.lexer.input(data)
         self.lexer.filename = filename
         self.lexer.line_offsets = get_line_offsets(data)
-        self.token_stream = make_token_stream(self.lexer, add_endmarker=True)
+        self.set_token_stream()
+        
+    def set_token_stream(self):
+        self.token_stream = make_token_stream(self.lexer, add_endmarker=True)        
 
     def _reset(self):
         self.lexer.bracket_level = 0
