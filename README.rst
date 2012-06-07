@@ -45,24 +45,25 @@ Whitespace
 ==========
 
 Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by using brackets ({)}. Whitespace is not
-significant inside comments, strings and brackets (() and []).
+managed by indenting/dedenting and not by using brackets ({)}. Whitespace is 
+not significant inside comments, strings and brackets (() and []).
 
 snowscript::
 
-    fn find_person(person)
-        <- access_third_eye(
-            person.name,
-            person.last_known_location
-        )
+    fn is_it_big(number)
+        if number < 1000
+            <- "no"
+        else
+            <- "yes"
 
 php::
 
-    function find_person($person) {
-        return access_third_eye(
-            $person->name,
-            $person->last_known_location
-        );
+    function is_it_big($number) {
+        if ($number < 1000) {
+            return "no";
+        } else {
+            return "yes";
+        } 
     }
 
 Comments
@@ -92,9 +93,12 @@ Arrays
 ======
 
 Array are defined inside square brackets "[]". Items can be separated by "," or
-by using whitespace. 
+by using whitespace.
 
 Keys are stringy when using "=" as a separator, and interpreted when using ":".
+
+Keyless arrays can be defined without using "[]" when not in a bracket "[]()"
+context.
 
 snowscript::
 
@@ -110,6 +114,10 @@ snowscript::
             creator = "David Benioff"
             seasons = 2
     ]
+    
+    fn phone_home
+        <- dial(NUMBER), 0
+    message, status = phone_home()
 
 
 php::
@@ -128,6 +136,12 @@ php::
             'seasons' => 2,
         ),
     );
+    
+    function phone_home() {
+        return array(dial(NUMBER), 0);
+    }
+    $message, $status = list(phone_home());
+    
 
 Strings
 =======
@@ -200,6 +214,23 @@ php::
     function titlefy(FancyString $fancystring) {
         return ucfirst(trim($fancystring, " -"));
     }
+    
+Variables passed as argument must have a prefixing "&".
+
+snowscript::
+
+    fn init_ab(&a, &b)
+        a = 10
+        b = 10
+    init_ab(&a, &b)
+    
+php::
+
+    function init_ab(&$a, &$b) {
+        $a = 10;
+        $b = 10;
+    }
+    init_ab($a, $b);
 
 Parameters
 ----------
@@ -216,16 +247,17 @@ Optional and named parameters can not be used in the same function definition.
 
 snowscript::
 
-    fn render(template, format="html", [mood, color, allow_html=true, klingon=false])
+    fn render(template, [mood, color, allow_html=true, klingon=false])
         pass
-    render("index.html", null, klingon=true, allow_html=false, mood="awesome", color="red")
+    render("index.html", klingon=true, allow_html=false, mood="awesome", color="red")
 
+    fn make_pretty(text, font="Rocky", size=84)
+        pass
+    make_pretty("Snowscript", null, 42)
+    
 php::
 
-    function render($template, $format='html', $options_) {
-        if ($format === null) {
-            $format = 'html';
-        }
+    function render($template, $options_) {
         $defaults_ = array(
             'format' => "html", 
             'allow_html' => true, 
@@ -235,13 +267,23 @@ php::
         $required_ = array('mood', 'color');
         foreach ($required_ as $key) {
             if (!isset($options_[$key])) {
-                throw new InvalidArgumentException("$key is a required option.");
+                throw new InvalidArgumentException("'$key' is a required option.");
             }
         }
         unset($_key);
     }
-    render("index.html", null, array('klingon'=>true, 'allow_html'=>false, 'mood'=>"awesome", 'color'=>"red"));
-
+    render("index.html", array('klingon'=>true, 'allow_html'=>false, 'mood'=>"awesome", 'color'=>"red"));
+    
+    function make_pretty($text, $font=null, $size=null) {
+        if ($font === null) {
+            $font = "Rocky";
+        }
+        if ($size === null) {
+            $size = 84;
+        }
+    }
+    make_pretty("Snowscript", null, 42);
+    
 Destructuring
 =============
 
@@ -251,7 +293,7 @@ snowscript::
     [a, b, [c, d]] = letters
 
 php::
-
+    list($a, $b, $c) = [1, 2, 3];
     list($a, $b, list($c, $d)) = $letters;
 
 Splats
@@ -463,14 +505,71 @@ php::
     }
     unset($samurai, $villain);
 
+Naming conventions
+==================
+
+Snowscript uses naming conventions to strip out some of PHP's operators. 
+Classes are PascalCase, constants are ALL_CAPS while variables and functions
+are whats left.
+
+snowscript::
+    
+    foo    
+    foo()
+    Foo()
+    FOO
+    
+    bar.foo
+    bar.foo()
+    bar.FOO
+    Bar.foo
+    Bar.FOO
+     
+    
+php::
+
+    $foo;
+    foo();
+    new Foo;
+    FOO;
+    
+    $bar->foo;
+    $bar->foo();
+    $bar::FOO;
+    Bar::$foo;
+    Bar::FOO;
+    
+Snowscript uses scope information to determine when a name is a callable
+variable and when it's a function call.
+
+snowscript::
+
+    call_me()
+    
+    cb1 = get_callback()
+    cb1()
+    
+    set_callback(&cb2)
+    cb2()
+
+php::
+
+    call_me();
+    
+    $cb1 = get_callback();
+    $cb1();
+    
+    set_callback($cb2);
+    $cb2();
+    
 Classes
 =======
 
 Declaration
 -----------
 
-The arguments to the class is given after the class name and the body of the
-class works as the "constructor". 
+The arguments to the class is given after the class name and are avaible to use
+to set propertes.
 
 The "." is used to access the class instance. "self" accesses the class.
 
@@ -478,27 +577,28 @@ snowscript::
 
     class TabularWriter(File path, title)
         # Properties. #
-        .title = title
-        .path = path
-        self.filesystem = Filesystem().get()
-        self.VERSION = 0.4
-        # Here lie dragons.
-        ._filehandle = null
+        title = title
+        filesystem = Filesystem().get()
+        _filehandle = null
+        
+        # Constants. #
+        VERSION = 0.4
 
         # Constructor. #
-        .check_filesystem()
-        .init_file()
-
+        fn __construct
+            .check_filesystem()
+            .init_file(path)
+            
         # Methods. #
         fn check filesystem
-            if self.filesystem not in supported_filesystems()
+            if not supported_filesystems()[self.filesystem]?
                 throw UnsupportedFilesystemError()
 
-        fn init_file
-            if not file_exists(.path)
+        fn init_file(path)
+            if not file_exists(path)
                 throw FileMissingError()
             else
-                ._filehandle = open_file(.path)
+                ._filehandle = open_file(path)
 
 php::
 
@@ -507,28 +607,29 @@ php::
          * Properties.
          */
         public $title;
-        public $path;
-        static $filesystem;
-        const VERSION = 0.4;
-        // Here lie dragons.
         public $_filehandle;
+        
+        /**
+         * Constants.
+         */        
+        const VERSION = 0.4;
 
         /**
          * Constructor.
          */
         public function __construct(File path, title) {
             $this->title = $title;
-            $this->path = $path;
             $filesystem_ = new Filesystem;
             self::$filesystem = $filesystem_.get();
             unset($filesystem_);
             $this->check_filesystem();
-            $this->init_file();
+            $this->init_file($path);
         }
 
         /**
          * Methods.
          */
+         
         public function check_filesystem() {
             $tmp_ = supported_filesystems();
             if (!isset($tmp_[self::$filesystem])) {
@@ -537,11 +638,11 @@ php::
             unset($tmp_);
         }
 
-        public function init_file() {
-            if (!file_exists($this->path)) {
+        public function init_file($path) {
+            if (!file_exists($path)) {
                 throw new FileMissingError;
             } else {
-                $this->filehandle = open_file($this->path);
+                $this->filehandle = open_file($path);
             }
         }
     }
@@ -559,7 +660,6 @@ snowscript::
 
         public static fn getInstance(factoryClassName)
             <- self.factories[factoryClassName]
-
 
 php::
 
