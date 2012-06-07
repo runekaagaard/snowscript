@@ -293,6 +293,7 @@ snowscript::
     [a, b, [c, d]] = letters
 
 php::
+
     list($a, $b, $c) = [1, 2, 3];
     list($a, $b, list($c, $d)) = $letters;
 
@@ -379,12 +380,12 @@ php::
             signal("searchanddestroy");
             break;
         case UNDERWATER:
-            gills.activate();
+            gills->activate();
             break;
         case NORMAL:
         default:
             signal("playnice");
-            gills.deactivate();
+            gills->deactivate();
     }
 
 Return
