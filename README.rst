@@ -3,8 +3,7 @@ About
 
 Snowscript is a little language that compiles to PHP. It has its own syntax 
 inspired by Python, Ruby, Go and Scala that strives to be DRY, clean and easy to 
-read as well as write. For those familiar with Coffescript you could say that 
-Snowscript is to PHP what Coffeescript is to Javascript.
+read as well as write.
 
 Roadmap
 +++++++
@@ -30,7 +29,7 @@ Done
 - For loops.
 - Function style casts.
 - Basic classes.
-- Basic destructuring.
+- Destructuring.
 - Parsing of basic syntax.
 - Transformations for the non LALR(1) compatible features of Snowscript like
   implicit parenthesis, the switch syntax and significant whitespace.
@@ -39,14 +38,12 @@ Done
 Documentation
 +++++++++++++
 
-There is more thorough yet dated documentation on the google code page too.
-
 Whitespace
 ==========
 
 Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by using brackets ({)}. Whitespace is 
-not significant inside comments, strings and brackets (() and []).
+managed by indenting/dedenting and not by using brackets "{}". Whitespace is 
+not significant inside comments, strings and brackets "()[]".
 
 snowscript::
 
@@ -73,7 +70,7 @@ snowscript::
 
     # Single line.
     # Single line as docblock #
-    # This is a comment,
+    # This is a docblock,
 
       spanning multiple lines.
 
@@ -84,7 +81,7 @@ php::
      * Single line as docblock. 
      */
     /**
-     * This is a comment,
+     * This is a docblock,
      *
      * spanning multiple lines. 
      */
@@ -92,13 +89,9 @@ php::
 Arrays
 ======
 
-Array are defined inside square brackets "[]". Items can be separated by "," or
-by using whitespace.
+Array are defined inside square brackets "[]". Items are separated by ",".
 
 Keys are stringy when using "=" as a separator, and interpreted when using ":".
-
-Keyless arrays can be defined without using "[]" when not in a bracket "[]()"
-context.
 
 snowscript::
 
@@ -115,11 +108,6 @@ snowscript::
             seasons = 2
     ]
     
-    fn phone_home
-        <- dial(NUMBER), 0
-    message, status = phone_home()
-
-
 php::
 
     $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
@@ -137,17 +125,29 @@ php::
         ),
     );
     
+    
+Keyless arrays can be defined without using "[]" when not in a bracket "[]()"
+context.
+
+snowscript::
+
+    fn phone_home
+        <- dial(NUMBER), 0
+    message, status = phone_home()
+
+php::
+
     function phone_home() {
         return array(dial(NUMBER), 0);
     }
     $message, $status = list(phone_home());
     
-
 Strings
 =======
 
 There are four kind of strings: '"""', '"', "'''" and "'". Whitespace before the 
-current indentation level is stripped. Strings can be concatenated using the "%"
+current indentation level is stripped. A single empty line in the beginning
+or end is stripped too if present. Strings can be concatenated using the "%" 
 operator.
 
 snowscript::
@@ -239,22 +239,12 @@ Optional parameters must come after required parameters. They can be passed
 "null" to select the default value. This is helpful if you want to set a later
 parameter to a non-default value.
 
-Named parameters is supported using an array "[]" at the end of the function 
-declaration. Named parameters with only a key are required, i.e. an exception
-will be thrown if absent.
-
-Optional and named parameters can not be used in the same function definition.
-
 snowscript::
 
     fn render(template, [mood, color, allow_html=true, klingon=false])
         pass
-    render("index.html", klingon=true, allow_html=false, mood="awesome", color="red")
+    render("index.html", klingon=true, allow_html=false, mood="faul", color="red")
 
-    fn make_pretty(text, font="Rocky", size=84)
-        pass
-    make_pretty("Snowscript", null, 42)
-    
 php::
 
     function render($template, $options_) {
@@ -265,14 +255,28 @@ php::
         );
         $options_ += $defaults_;
         $required_ = array('mood', 'color');
-        foreach ($required_ as $key) {
-            if (!isset($options_[$key])) {
-                throw new InvalidArgumentException("'$key' is a required option.");
+        foreach ($required_ as $key_) {
+            if (!isset($options_[$key_])) {
+                throw new InvalidArgumentException("'$key_' is a required option.");
             }
         }
-        unset($_key);
+        unset($key_);
     }
-    render("index.html", array('klingon'=>true, 'allow_html'=>false, 'mood'=>"awesome", 'color'=>"red"));
+    render("index.html", array('klingon'=>true, 'allow_html'=>false, 'mood'=>"faul", 'color'=>"red"));
+
+Named parameters is supported using an array "[]" at the end of the function 
+declaration. Named parameters with only a key are required, i.e. an exception
+will be thrown if absent.
+
+Optional and named parameters can not be used in the same function definition.
+
+snowscript::
+
+    fn make_pretty(text, font="Rocky", size=84)
+        pass
+    make_pretty("Snowscript", null, 42)
+    
+php::
     
     function make_pretty($text, $font=null, $size=null) {
         if ($font === null) {
@@ -286,6 +290,8 @@ php::
     
 Destructuring
 =============
+
+Snowscript has simple destructuring.
 
 snowscript::
 
@@ -307,7 +313,7 @@ snowscript::
     fn decorate_many(content, ...)
         for style in ...
             content.decorate(style)
-    decorate_many("Decorate this!", ...[Snowflakes(), Kittens(), Whiskers()])
+    decorate_many("Decorate this!", Snowflakes(), Kittens(), Whiskers())
 
     a, b, ... = get_letters()
     echo count(...)
@@ -320,13 +326,10 @@ php::
             $content->decorate($style);
         }
     }
-    $args_ = array(new Snowflakes, new Kittens, new Whiskers);
-    array_unshift($args_, "Decorate this!");
-    call_user_func_array("decorate_many", $args_);
-    unset($args_);
+    decorate_many("Decorate this!", Snowflakes(), Kittens(), Whiskers());
 
     $tmp_ = get_letters();
-    $splats_ = array_slice($_tmp, -1, count($_tmp) - 2);
+    $splats_ = array_slice($tmp_, -1, count($tmp_) - 2);
     list($a, $b) = $tmp_; 
     echo count($splats_);
 
@@ -359,8 +362,6 @@ php::
 Switch
 ------
 
-Stub.
-
 snowscript::
 
     switch gamestate
@@ -380,12 +381,12 @@ php::
             signal("searchanddestroy");
             break;
         case UNDERWATER:
-            gills->activate();
+            $gills->activate();
             break;
         case NORMAL:
         default:
             signal("playnice");
-            gills->deactivate();
+            $gills->deactivate();
     }
 
 Return
@@ -579,12 +580,14 @@ snowscript::
     class TabularWriter(File path, title)
         # Properties. #
         title = title
-        filesystem = Filesystem().get()
         _filehandle = null
         
         # Constants. #
         VERSION = 0.4
-
+        
+        # Static members.
+        static filesystem = Filesystem().get()
+        
         # Constructor. #
         fn __construct
             .check_filesystem()
@@ -592,7 +595,7 @@ snowscript::
             
         # Methods. #
         fn check filesystem
-            if not supported_filesystems()[self.filesystem]?
+            if not filesystems()[self.filesystem]?
                 throw UnsupportedFilesystemError()
 
         fn init_file(path)
@@ -614,6 +617,11 @@ php::
          * Constants.
          */        
         const VERSION = 0.4;
+        
+        /**
+         * Static members.
+         */
+        static filesystem = null;
 
         /**
          * Constructor.
@@ -647,23 +655,39 @@ php::
             }
         }
     }
-
+    TabularWriter::$filesystem = Filesystem().get()
+    
 Protected and private visibility is supported but not considered very "snowy", 
-after all "We're all consenting adults here". The "final", "static" and "const" 
-keywords are supported as well.
+after all "We're all consenting adults here". Instead it's recommended to prefix
+members with a "_" to mark them as subject to change.
+
+The "final", "static" and "const" keywords are supported as well.
+
+Functions and properties can be indented below modifier keywords.
 
 snowscript::
 
     abstract class FactoryFactory extends AbstractBuilder interfaces FactoryFactoryInterface
         const DEFAULT_FACTORY = "DefaultFactory"
 
-        protected static SplObjectStorage factories
+        protected static 
+            factories = []
+            version = 1.0
 
         public static fn getInstance(factoryClassName)
             <- self.factories[factoryClassName]
 
 php::
 
-    Stub.
+    abstract class FactoryFactory extends AbstractBuilder interfaces FactoryFactoryInterface {
+        const DEFAULT_FACTORY = "DefaultFactory";
 
-Stub.
+        protected static $factories = [];
+        protected static $version = 1.0;
+
+        public static function getInstance(factoryClassName) {
+            return self.factories[factoryClassName]
+            
+        }
+            
+    }
