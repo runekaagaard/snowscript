@@ -64,7 +64,7 @@ for ($b = 10; $b >= 1; $var -= 2) {
     echo $b;
 }
 unset($b);
-for ($b = func(); $b >= Foo::getIt(); $var -= YES_WE_CAN) {
+for ($b = Foo::getIt(); $b >= func(); $var -= YES_WE_CAN) {
     echo $b;
 }
 unset($b);

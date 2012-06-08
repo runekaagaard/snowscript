@@ -581,8 +581,8 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
 
     public function pStmt_ForNumeric(PHPParser_Node_Stmt_ForNumeric $node) {
         $is_to = $node->forloop_to === 'to';
-        $from = $is_to ? $node->from : $node->to;
-        $to = $is_to ? $node->to : $node->from;
+        $from = $node->from;
+        $to = $node->to;
         $cond = $is_to ? " <= " : " >= ";
         $var = $this->p($node->variable);
         if (!$node->optional_step)
