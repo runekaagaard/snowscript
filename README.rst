@@ -11,17 +11,15 @@ Roadmap
 The current status as of May 13th, 2012 is that the basics work. There are
 several things I want to fix before a first release candidate though:
 
-Todo
-====
+Todo 0.4
+========
 
 - Webpage.
 - Documentation.
-- Named parameters.
 - Advanced class syntax.
-- List comprehension.
-- Splats.
-- Commandline compile tool.
-- Loops and control structures as expressions.
+- Command line compile tool.
+- Full examples.
+- Strings.
 
 Done
 ==== 
@@ -34,6 +32,20 @@ Done
 - Transformations for the non LALR(1) compatible features of Snowscript like
   implicit parenthesis, the switch syntax and significant whitespace.
 - Lexer.
+
+Todo 0.5
+========
+
+- Named parameters.
+- List comprehension.
+- Splats.
+- Loops and control structures as expressions.
+
+Todo 0.6
+========
+
+- Closures.
+- Namespaces.
 
 Documentation
 +++++++++++++
@@ -145,14 +157,15 @@ php::
 Strings
 =======
 
-There are four kind of strings: '"""', '"', "'''" and "'". Whitespace before the 
-current indentation level is stripped. A single empty line in the beginning
-or end is stripped too if present. Strings can be concatenated using the "%" 
-operator.
+There are four kind of strings: '"""', '"', "'''" and "'", all multiline.
+
+Whitespace before the current indentation level is stripped. A single empty line 
+in the beginning or end is stripped too if present. Strings can be concatenated 
+using the "%" operator.
 
 snowscript::
 
-    echo "I am" % " legend!";
+    echo "I am" % " legend!"
 
 php::
 
@@ -232,8 +245,8 @@ php::
     }
     init_ab($a, $b);
 
-Parameters
-----------
+Optional parameters
+-------------------
 
 Optional parameters must come after required parameters. They can be passed 
 "null" to select the default value. This is helpful if you want to set a later
@@ -243,7 +256,7 @@ snowscript::
 
     fn render(template, [mood, color, allow_html=true, klingon=false])
         pass
-    render("index.html", klingon=true, allow_html=false, mood="faul", color="red")
+    render("index.html", klingon=true, mood="faul", color="red")
 
 php::
 
@@ -262,13 +275,16 @@ php::
         }
         unset($key_);
     }
-    render("index.html", array('klingon'=>true, 'allow_html'=>false, 'mood'=>"faul", 'color'=>"red"));
+    render("index.html", array('klingon'=>true, 'mood'=>"faul", 'color'=>"red"));
+
+Named parameters
+----------------
 
 Named parameters is supported using an array "[]" at the end of the function 
 declaration. Named parameters with only a key are required, i.e. an exception
 will be thrown if absent.
 
-Optional and named parameters can not be used in the same function definition.
+Optional and named parameters can not be mixed in the same function definition.
 
 snowscript::
 
@@ -570,8 +586,8 @@ Classes
 Declaration
 -----------
 
-The arguments to the class is given after the class name and are avaible to use
-to set propertes.
+The arguments to the class is given after the class name and are available to 
+use to set propertes.
 
 The "." is used to access the class instance. "self" accesses the class.
 
@@ -685,8 +701,8 @@ php::
         protected static $factories = [];
         protected static $version = 1.0;
 
-        public static function getInstance(factoryClassName) {
-            return self.factories[factoryClassName]
+        public static function getInstance($factoryClassName) {
+            return self::factories[$factoryClassName];
             
         }
             
