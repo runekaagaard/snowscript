@@ -10,7 +10,7 @@ function line($msg) {
 	echo $msg . "\n";
 }
 
-function snowscript_to_php($code, $debug=false) {
+function snowscript_to_php($code, $debug=false, $return=false) {
 	$lexer = new Snowscript_Lexer($code . "\n");
 	if ($debug) debug_lexer($lexer);
 	$parser = new PHPParser_Parser;
@@ -20,7 +20,11 @@ function snowscript_to_php($code, $debug=false) {
 		$nodeDumper = new PHPParser_NodeDumper;
 		echo $nodeDumper->dump($stmts) . "\n";
 	}
-	echo "<?php\n" . $prettyPrinter->prettyPrint($stmts) . "\n";
+	$php = $prettyPrinter->prettyPrint($stmts) . "\n";
+	if ($return)
+	    return $php;
+	else
+	    print "<?php\n" . $php;
 }
 
 function php_to_php($code, $debug=false) {

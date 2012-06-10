@@ -25,14 +25,14 @@ switch a
     0,1
         b
         c
-    2,3
+    default
         d
         e
 switch f
     4,5
         g
         h
-    6,7
+    6,7,default
         i
         j
 ', 0);
@@ -72,8 +72,7 @@ switch ($a) {
         $b;
         $c;
         break;
-    case 2:
-    case 3:
+    default:
         $d;
         $e;
         break;
@@ -86,6 +85,7 @@ switch ($f) {
         break;
     case 6:
     case 7:
+    default:
         $i;
         $j;
         break;

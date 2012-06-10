@@ -30,7 +30,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     }
 
     public $transform_token_value = array(
-        'T_VARIABLE' => '$%s', 'T_CONSTANT_ENCAPSED_STRING' => "'%s'",
+        'T_VARIABLE' => '$%s', 'T_CONSTANT_ENCAPSED_STRING' => '"%s"',
     );
 
     // Use the actual code value of these.
