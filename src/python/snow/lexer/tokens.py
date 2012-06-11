@@ -28,7 +28,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'STAR', 'STATIC', 'STRINGTYPE', 'STRING_WITH_CONCAT', 'SWITCH', 'THROW',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-     'DOUBLE_ARROW',
+     'DOUBLE_ARROW', 'QUESTION_MARK'
 ]
 
 token_groups = {
@@ -47,7 +47,8 @@ token_groups = {
             'REQUIRE', 'REQUIRE_ONCE', 
             'STATIC', 'SWITCH', 'THROW', 
             'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 
-            'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP', 
+            'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
+            'QUESTION_MARK', 
             ],
     # Strings.
     'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING'],
@@ -128,7 +129,7 @@ t_BACKQUOTE = r'\`'
 t_CIRCUMFLEX = r'\^'
 t_TILDE = r'\~'
 t_AT = r'\@'
-
+t_QUESTION_MARK = r'\?'
 
 def t_INLINE_HTML(t):
     r"(?sm)%>(?:.*<%|.*$)"

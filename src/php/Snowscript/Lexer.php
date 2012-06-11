@@ -37,8 +37,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     public $literal_tokens = array(
         'T_PLUS'=>1, 'T_GREATER'=>1, 'T_LPAR'=>1, 'T_RPAR'=>1,
         'T_MINUS'=>1, 'T_STAR'=>1, 'T_SLASH'=>1, 'T_EQUAL'=>1,
-        'T_AMPER'=>1, 'T_COMMA'=>1, 'T_LSQB'=>1, 'T_RSQB'=>1,
-
+        'T_AMPER'=>1, 'T_COMMA'=>1, 'T_LSQB'=>1, 'T_RSQB'=>1, 
+        'T_QUESTION_MARK'=>1, 'T_COLON'=>1,
     );
     // Use the value of the token names key.
     public $translated_tokens = array(
@@ -56,7 +56,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_NAME' => 'T_VARIABLE',
         'T_PHP_STRING' => 'T_STRING',
         'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
-        'T_COLON' => 'T_DOUBLE_ARROW',
         'T_STRING' => 'T_CONSTANT_ENCAPSED_STRING',
         'T_FN' => 'T_FUNCTION',
         'T_DOUBLE_COLON' => 'T_PAAMAYIM_NEKUDOTAYIM',

@@ -15,14 +15,12 @@ fn pluralize(i)
         default
             <- "{i} bottles of beer"
 
+
 for i in 99 downto 1
     bottles = pluralize(i)
     echo "{bottles} on the wall, {bottles}.\n"
     echo "Take one down, pass it around, {pluralize(i-1)} on the wall"
-    if i == 1
-        echo "!"
-    else
-        echo "."
+    echo i == 1 ? "!" : "."
     echo "\n--\n"
     
 SNOW
