@@ -273,7 +273,7 @@ def add_missing_parenthesis(token_stream):
             yield build_token('LPAR', '(', t)
             continue
 
-        if (inside_expression and t.type in ('INDENT', 'COLON')
+        if (inside_expression and t.type in ('INDENT', 'COLON', 'THEN')
         and bracket_level == start_bracket_level):
             inside_expression = False
             yield build_token('RPAR', ')', t)

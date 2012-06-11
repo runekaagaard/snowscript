@@ -9,6 +9,7 @@
 %right T_PRINT
 %left '=' T_PLUS_EQUAL T_MINUS_EQUAL T_MUL_EQUAL T_DIV_EQUAL T_CONCAT_EQUAL T_MOD_EQUAL T_AND_EQUAL T_OR_EQUAL T_XOR_EQUAL T_SL_EQUAL T_SR_EQUAL
 %left '?' ':'
+%token T_THEN
 %left T_BOOLEAN_OR
 %left T_BOOLEAN_AND
 %left '|'
@@ -535,8 +536,7 @@ expr:
     | expr T_IS_GREATER_OR_EQUAL expr                       { $$ = Expr_GreaterOrEqual[$1, $3]; }
     | expr T_INSTANCEOF class_name_reference                { $$ = Expr_Instanceof    [$1, $3]; }
     | '(' expr ')'                                          { $$ = $2; }
-    | expr '?' expr ':' expr                                { $$ = Expr_Ternary[$1, $3,   $5]; }
-    | expr '?' ':' expr                                     { $$ = Expr_Ternary[$1, null, $4]; }
+    | T_IF '(' expr ')' T_THEN expr T_ELSE expr             { $$ = Expr_Ternary[$3, $6,   $8]; }
     | T_ISSET '(' variables_list ')'                        { $$ = Expr_Isset[$3]; }
     | T_EMPTY '(' variable ')'                              { $$ = Expr_Empty[$3]; }
     | T_INCLUDE expr                                        { $$ = Expr_Include[$2, Expr_Include::TYPE_INCLUDE]; }

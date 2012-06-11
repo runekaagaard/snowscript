@@ -4,6 +4,7 @@ define('T_IN', 1001);
 define('T_TO', 1002);
 define('T_DOWNTO', 1003);
 define('T_STEP', 1004);
+define('T_THEN', 1005);
 
 // TODO: This is WIP code, just making a couple of tests pass.
 
@@ -12,6 +13,7 @@ function snow_token_name($i) {
     if ($i === T_TO) return 'T_TO';
     if ($i === T_DOWNTO) return 'T_DOWNTO';
     if ($i === T_STEP) return 'T_STEP';
+    if ($i === T_THEN) return 'T_THEN';
     return token_name($i);
 }
 

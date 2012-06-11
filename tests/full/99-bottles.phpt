@@ -20,7 +20,7 @@ for i in 99 downto 1
     bottles = pluralize(i)
     echo "{bottles} on the wall, {bottles}.\n"
     echo "Take one down, pass it around, {pluralize(i-1)} on the wall"
-    echo i == 1 ? "!" : "."
+    echo if i == 1 then "!" else "."
     echo "\n--\n"
     
 SNOW

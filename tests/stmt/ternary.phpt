@@ -5,7 +5,7 @@ If/Elseif/Else
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 snowscript_to_php('
-echo a ? b : c
+echo if a then b else c
 ', 0);
 --EXPECT--
 <?php
