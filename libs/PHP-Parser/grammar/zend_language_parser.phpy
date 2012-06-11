@@ -173,10 +173,7 @@ inner_statement:
 statement:
       '{' inner_statement_list '}'                          { $$ = $2; }
     | T_IF '(' expr ')' statement elseif_list else_single   { $$ = Stmt_If[$3, [stmts: toArray($5), elseifs: $6, else: $7]]; }
-    | T_IF '(' expr ')' ':' inner_statement_list new_elseif_list new_else_single T_ENDIF ';'
-          { $$ = Stmt_If[$3, [stmts: $6, elseifs: $7, else: $8]]; }
     | T_WHILE '(' expr ')' while_statement                  { $$ = Stmt_While[$3, $5]; }
-    | T_DO statement T_WHILE '(' expr ')' ';'               { $$ = Stmt_Do   [$5, toArray($2)]; }
     | T_SWITCH '(' expr ')' switch_case_list                { $$ = Stmt_Switch[$3, $5]; }
     | T_BREAK ';'                                           { $$ = Stmt_Break[null]; }
     | T_BREAK expr ';'                                      { $$ = Stmt_Break[$2]; }
@@ -333,23 +330,9 @@ elseif:
       T_ELSEIF '(' expr ')' statement                       { $$ = Stmt_ElseIf[$3, toArray($5)]; }
 ;
 
-new_elseif_list:
-      /* empty */                                           { init(); }
-    | new_elseif_list new_elseif                            { push($1, $2); }
-;
-
-new_elseif:
-     T_ELSEIF '(' expr ')' ':' inner_statement_list         { $$ = Stmt_ElseIf[$3, $6]; }
-;
-
 else_single:
       /* empty */                                           { $$ = null; }
     | T_ELSE statement                                      { $$ = Stmt_Else[toArray($2)]; }
-;
-
-new_else_single:
-      /* empty */                                           { $$ = null; }
-    | T_ELSE ':' inner_statement_list                       { $$ = Stmt_Else[$3]; }
 ;
 
 parameter_list:
