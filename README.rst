@@ -139,7 +139,7 @@ php::
     
     
 Keyless arrays can be defined without using "[]" when not in a bracket "[]()"
-context.
+context. Anonymous functions inside bracket context can use keyless arrays too.
 
 snowscript::
 
@@ -228,7 +228,7 @@ php::
         return ucfirst(trim($fancystring, " -"));
     }
     
-Variables passed as argument must have a prefixing "&".
+Arguments passed as reference must have a prefixing "&".
 
 snowscript::
 
@@ -251,6 +251,33 @@ Optional parameters
 Optional parameters must come after required parameters. They can be passed 
 "null" to select the default value. This is helpful if you want to set a later
 parameter to a non-default value.
+
+snowscript::
+
+    fn make_pretty(text, font="Rocky", size=84)
+        pass
+    make_pretty("Snowscript", null, 42)
+    
+php::
+    
+    function make_pretty($text, $font=null, $size=null) {
+        if ($font === null) {
+            $font = "Rocky";
+        }
+        if ($size === null) {
+            $size = 84;
+        }
+    }
+    make_pretty("Snowscript", null, 42);
+
+Named parameters
+----------------
+
+Named parameters is supported using an array "[]" at the end of the function 
+declaration. Named parameters with only a key are required, i.e. an exception
+will be thrown if absent.
+
+Optional and named parameters can not be mixed in the same function definition.
 
 snowscript::
 
@@ -277,33 +304,63 @@ php::
     }
     render("index.html", array('klingon'=>true, 'mood'=>"faul", 'color'=>"red"));
 
-Named parameters
-----------------
+Inner functions
+---------------
 
-Named parameters is supported using an array "[]" at the end of the function 
-declaration. Named parameters with only a key are required, i.e. an exception
-will be thrown if absent.
-
-Optional and named parameters can not be mixed in the same function definition.
+Stub.
 
 snowscript::
 
-    fn make_pretty(text, font="Rocky", size=84)
-        pass
-    make_pretty("Snowscript", null, 42)
+    fn foo(x)
+        fn bar(y)
+            <- y * 2
+        
+        <- bar(x)
+        
+php::
+
+    stub.
+
+Closures
+--------
+
+Closures are multiline controlled by indentation. A "+" before the variable name
+includes a variable from the outer scope.
+
+snowscript::
+    
+    little_helper = fn(input)
+        output = polish(input)
+        <- output
+    
+    little_helper(Lamp())
+    
+    c = 101
+    takes_functions(
+        fn(x)
+            <- [x * 2, x * x]
+        fn(y, +c)
+            <- y * c
+    )
+
+php::
+
+    stub.
+    
+Lambdas
+-------
+
+Single line closures, that can only return a single expression. The "<-" return
+keyword is omitted.
+
+snowscript::
+
+    filter(coll, fn(x): x > 3, true)
     
 php::
-    
-    function make_pretty($text, $font=null, $size=null) {
-        if ($font === null) {
-            $font = "Rocky";
-        }
-        if ($size === null) {
-            $size = 84;
-        }
-    }
-    make_pretty("Snowscript", null, 42);
-    
+
+    stub.
+
 Destructuring
 =============
 
@@ -425,6 +482,20 @@ php::
     } else {
         $mood = "Dull";
     };
+
+Ternary operator
+----------------
+
+Ternary operator is a oneline ``if a then b else c`` syntax.
+
+snowscript::
+
+    echo if height > 199 then "tall" else "small"
+    
+php::
+
+    echo ($height > 199 ? "tall" : "small");
+
 
 Loops
 =====
@@ -707,3 +778,8 @@ php::
         }
             
     }
+    
+Namespaces
+==========
+
+Stub.

@@ -407,6 +407,7 @@ class_statement:
     | property_declarations T_FUNCTION optional_ref T_STRING '(' parameter_list ')' method_body
           { $$ = Stmt_ClassMethod[$4, [type: $1, byRef: $3, params: $6, stmts: $8]]; }
     | T_USE name_list trait_adaptations                     { $$ = Stmt_TraitUse[$2, $3]; }
+    | variable '=' expr ';'                                 { $$ = Expr_Assign[$1, $3]; }
 ;
 
 trait_adaptations:
