@@ -1,9 +1,9 @@
 About
 +++++
 
-Snowscript is a little language that compiles to PHP. It has its own syntax 
-inspired by Python, Ruby, Go and Scala that strives to be DRY, clean and easy to 
-read as well as write.
+Snowscript is a language that compiles to PHP. It has its own syntax inspired by 
+Python, Lua, Ruby, Coffescript, Go and Scala that strives to be DRY, clean and 
+easy to read as well as write.
 
 Roadmap
 +++++++
@@ -19,11 +19,15 @@ Todo 0.4
 - Advanced class syntax.
 - Command line compile tool.
 - Full examples.
-- Strings.
+- Some bugs in strings and comments.
+- Tolerable error messages.
+- Existance.
 
 Done
 ==== 
 
+- Ternary operator.
+- Control structures.
 - For loops.
 - Function style casts.
 - Basic classes.
@@ -40,12 +44,19 @@ Todo 0.5
 - List comprehension.
 - Splats.
 - Loops and control structures as expressions.
+- Inner functions.
 
 Todo 0.6
 ========
 
-- Closures.
+- Closures and lambdas.
 - Namespaces.
+- Ommision of "," inside brackets.
+
+Todo 0.7
+========
+
+- Great error messages.
 
 Documentation
 +++++++++++++
@@ -55,25 +66,27 @@ Whitespace
 
 Snowscript has significant whitespace, meaning that the code structure is 
 managed by indenting/dedenting and not by using brackets "{}". Whitespace is 
-not significant inside comments, strings and brackets "()[]".
+not significant inside strings and brackets "()[]", except in closures.
 
 snowscript::
 
     fn is_it_big(number)
         if number < 1000
-            <- "no"
+            <- YES
         else
-            <- "yes"
+            <- NO
 
 php::
 
     function is_it_big($number) {
         if ($number < 1000) {
-            return "no";
+            return YES;
         } else {
-            return "yes";
+            return NO;
         } 
     }
+
+Inside brackets, a new line can be used as a separator instead of ",".
 
 Comments
 ========
@@ -101,20 +114,22 @@ php::
 Arrays
 ======
 
-Array are defined inside square brackets "[]". Items are separated by ",".
+Array are defined and accessed using square brackets "[]". Items are separated 
+by "," or a new line.
 
 Keys are stringy when using "=" as a separator, and interpreted when using ":".
 
 snowscript::
 
     pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
+    
     name = "Heroes"
     series = [
         name:
             genre = "Science Fiction"
-            creator: "Tim Kring"
+            creator = "Tim Kring"
             seasons = 4
-        Game Of Thrones =
+        "Game Of Thrones":
             genre = "Medieval fantasy"
             creator = "David Benioff"
             seasons = 2
@@ -123,6 +138,7 @@ snowscript::
 php::
 
     $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
+    
     $name = "Heroes";
     $series = array(
         $name => array(
@@ -137,9 +153,21 @@ php::
         ),
     );
     
-    
+Accessing items is done using square brackets "[]" or by using the "|" shortcut. 
+Integers and the regex "[A-Za-z][A-Za-z0-9]+" can be used with the "|" shortcut.
+
+snowscript::
+
+    echo answers|0|options|0|help_text
+    echo answers[0]['options'][0]['help_text']
+
+php::
+
+    echo $answers[0]['options'][0]['help_text'];
+    echo $answers[0]['options'][0]['help_text'];
+
 Keyless arrays can be defined without using "[]" when not in a bracket "[]()"
-context. Anonymous functions inside bracket context can use keyless arrays too.
+context.
 
 snowscript::
 
@@ -152,8 +180,10 @@ php::
     function phone_home() {
         return array(dial(NUMBER), 0);
     }
-    $message, $status = list(phone_home());
-    
+    list($message, $status) = phone_home();
+
+Anonymous functions inside bracket context can use keyless arrays too.
+
 Strings
 =======
 
@@ -207,7 +237,7 @@ snowscript::
 php::
 
     'No {magic} here\n';
-    '''{nor()} here.''';h
+    '''{nor()} here.''';
 
 Functions
 =========
@@ -282,7 +312,7 @@ Optional and named parameters can not be mixed in the same function definition.
 snowscript::
 
     fn render(template, [mood, color, allow_html=true, klingon=false])
-        pass
+        echo mood()
     render("index.html", klingon=true, mood="faul", color="red")
 
 php::
@@ -301,51 +331,69 @@ php::
             }
         }
         unset($key_);
+        echo $options_['mood'];
     }
     render("index.html", array('klingon'=>true, 'mood'=>"faul", 'color'=>"red"));
 
 Inner functions
 ---------------
 
-Stub.
+Functions inside functions, is defined at compile time, and are only available
+inside the scope where they are defined. Nesting can go arbitrarily deep.
 
 snowscript::
 
-    fn foo(x)
-        fn bar(y)
-            <- y * 2
-        
-        <- bar(x)
-        
-php::
+    fn wash_car(Car car)
+        fn apply_water(car)
+            pass
+        fn dry(car)
+            pass
+        <- car->apply_water()->dry()
 
-    stub.
+php::
+    
+    function _wash_car_apply_water_($car) {}
+    function _wash_car_dry_($car) {}
+    function wash_car(Car $car) {
+        return _wash_car_dry_(_wash_car_apply_water_($car));
+    }
 
 Closures
 --------
 
 Closures are multiline controlled by indentation. A "+" before the variable name
-includes a variable from the outer scope.
+binds a variable from the outer scope.
 
 snowscript::
     
-    little_helper = fn(input)
-        output = polish(input)
-        <- output
-    
+    use_me = get_use_me()
+    little_helper = fn(input, +use_me)
+        <- polish(input, use_me)
     little_helper(Lamp())
     
-    c = 101
     takes_functions(
         fn(x)
             <- [x * 2, x * x]
-        fn(y, +c)
+        fn(y, c)
             <- y * c
     )
 
 php::
 
-    stub.
+    $use_me = get_use_me();
+    $little_helper = function($input) use ($use_me) {
+        return polish(input, $use_me);
+    }
+    little_helper(new Lamp);
+    
+    takes_functions(
+        function(x) {
+            return array(x * 2, x * x);
+        },
+        function(y, c) {
+            return array(y * c);
+        }
+    )
     
 Lambdas
 -------
@@ -359,7 +407,7 @@ snowscript::
     
 php::
 
-    stub.
+    filter($coll, function() { return $x > 3; }, true);
 
 Destructuring
 =============
@@ -376,40 +424,12 @@ php::
     list($a, $b, $c) = [1, 2, 3];
     list($a, $b, list($c, $d)) = $letters;
 
-Splats
-======
-
-The splat operator "..." designates an unknown number of elements.
-
-snowscript::
-
-    fn decorate_many(content, ...)
-        for style in ...
-            content.decorate(style)
-    decorate_many("Decorate this!", Snowflakes(), Kittens(), Whiskers())
-
-    a, b, ... = get_letters()
-    echo count(...)
-
-php::
-
-    function decorate_many($content) {
-        $args_ = array_slice(func_get_args(), -1);
-        foreach ($args_ as $style) {
-            $content->decorate($style);
-        }
-    }
-    decorate_many("Decorate this!", Snowflakes(), Kittens(), Whiskers());
-
-    $tmp_ = get_letters();
-    $splats_ = array_slice($tmp_, -1, count($tmp_) - 2);
-    list($a, $b) = $tmp_; 
-    echo count($splats_);
-
 Control structures
 ==================
 
-If
+Three control structures are available: "if", "switch" and the ternary operator.
+
+if
 --
 
 snowscript::
@@ -432,7 +452,7 @@ php::
         run();
     }
 
-Switch
+switch
 ------
 
 snowscript::
@@ -474,7 +494,6 @@ snowscript::
     else
         <- "Dull"
 
-
 php::
 
      if ($prince->is_in_the_house) {
@@ -496,6 +515,49 @@ php::
 
     echo ($height > 199 ? "tall" : "small");
 
+
+Existence
+=========
+
+There are two existence shortcuts "?" and "??". The first is a shortcut for
+``isset(expr)`` the second for ``!empty(expr)``.
+
+snowscript::
+
+    if get_result()?
+        do_stuff()
+
+    if get_result()??
+        do_stuff()
+
+php::
+
+    $tmp_ = get_result(); 
+    if (isset($tmp_)) {
+        do_stuff();
+    }
+    unset($tmp_);
+
+    $tmp_ = get_result(); 
+    if (!empty($tmp_)) {
+        do_stuff();
+    }
+    unset($tmp_);
+        
+
+Type casting
+============
+
+To cast an expression to a type, use the `array`, `bool`, `float`, `int`, 
+`object` or `str` functions.
+
+php::
+
+    array(a)
+
+php::
+
+    (array) $a;
 
 Loops
 =====
@@ -555,6 +617,8 @@ php::
 
 Array comprehension
 ===================
+
+Snowscript has array comprehension similiar to that of Python and others.
 
 snowscript::
 
@@ -778,8 +842,40 @@ php::
         }
             
     }
-    
+
+Access
+------
+
+Objects are accessed using the "." operator.
+
+Stub.
+
+Operators
+=========
+
+A number of operators has changed from PHP.
+
+================= ============================
+PHP               Snow
+================= ============================
+&&                and
+!                 not
+||                or
+and               _and_ (Not recommended)
+or                _or_ (Not recommended)
+%                 mod
+$a  %= $b         a mod= b
+.                 %
+$a .= $b          a %= b
+&                 band
+|                 bor
+^                 bxor
+<<                bleft
+>>                bright
+~                 bnot
+================= ============================
+
 Namespaces
 ==========
 
-Stub.
+I'm still undecided on the use of namespaces in Snowscript.
