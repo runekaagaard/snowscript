@@ -22,6 +22,7 @@ Todo 0.4
 - Some bugs in strings and comments.
 - Tolerable error messages.
 - Existance.
+- Code cleanup.
 
 Done
 ==== 
@@ -45,18 +46,25 @@ Todo 0.5
 - Splats.
 - Loops and control structures as expressions.
 - Inner functions.
+- Parser written in Snowscript.
+
 
 Todo 0.6
 ========
 
 - Closures and lambdas.
-- Namespaces.
 - Ommision of "," inside brackets.
 
 Todo 0.7
 ========
 
 - Great error messages.
+- Namespaces.
+
+Todo 0.8
+========
+
+- Macros.
 
 Documentation
 +++++++++++++
@@ -624,7 +632,7 @@ snowscript::
 
     [x, y for x in [1,2,3] for y in [3,1,4] if x != y]->var_dump
     
-    fights = [[fight(samurai, villain)]
+    fights = [fight(samurai, villain)
               for samurai in seven_samurais
                   if samurai->is_awake()
               for villain in seven_vaillains
@@ -662,8 +670,8 @@ Naming conventions
 ==================
 
 Snowscript uses naming conventions to strip out some of PHP's operators. 
-Classes are PascalCase, constants are ALL_CAPS while variables and functions
-are whats left.
+Classes are PascalCase, constants are ALL_CAPS while variables, methods and
+functions are whats left.
 
 snowscript::
     
@@ -691,6 +699,9 @@ php::
     $bar::FOO;
     Bar::$foo;
     Bar::FOO;
+
+Mechanisms for working with non-compliant PHP code will be made available
+as macros.
     
 Snowscript uses scope information to determine when a name is a callable
 variable and when it's a function call.
@@ -843,12 +854,41 @@ php::
             
     }
 
-Access
-------
+Usage
+-----
 
-Objects are accessed using the "." operator.
+Class instantiation uses function notation.
 
-Stub.
+snowscript::
+
+    Bicycle(Rider())
+
+php::
+
+    new Bicycle(new Rider));
+
+Properties and methods on instantiated classes is accessed with the "."
+operator. Using "." after a ClassName access static members.
+
+snowscript::
+
+    wind = Wind(52, 12)
+    wind.blow()
+    Newspaper().read()
+    
+    Player.register("Ronaldo")
+    Player.MALE
+    Player.genders
+
+php::
+
+    $wind = Wind(52, 12);
+    $wind->blow();
+    (new Newspaper())->read();
+    
+    Player::register("Ronaldo");
+    Player::MALE;
+    Player::$genders;
 
 Operators
 =========
@@ -879,3 +919,8 @@ Namespaces
 ==========
 
 I'm still undecided on the use of namespaces in Snowscript.
+
+Macros
+======
+
+Stub.
