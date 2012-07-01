@@ -1,7 +1,7 @@
 About
 +++++
 
-Snowscript is a language that compiles to PHP. It has its own syntax inspired by 
+Snowscript is a language that compiles to PHP. Its syntax is inspired by 
 Python, Lua, Ruby, Coffescript, Go and Scala that strives to be DRY, clean and 
 easy to read as well as write.
 
@@ -21,7 +21,6 @@ Todo 0.4
 - Full examples.
 - Some bugs in strings and comments.
 - Tolerable error messages.
-- Existance.
 - Code cleanup.
 
 Done
@@ -47,7 +46,7 @@ Todo 0.5
 - Loops and control structures as expressions.
 - Inner functions.
 - Parser written in Snowscript.
-
+- Existance.
 
 Todo 0.6
 ========
@@ -94,7 +93,28 @@ php::
         } 
     }
 
-Inside brackets, a new line can be used as a separator instead of ",".
+Inside brackets "()[]", a new line can be used as a separator instead of ",". 
+One line structures is done with a ":".
+
+snowscript::
+    
+    ordering = [
+        first()
+        second()
+        third()
+    ]
+    fn double(x): <- x * 2
+    
+php::
+
+    $ordering = array(
+        first(),
+        second(),
+        third(),
+    );
+    function double($x) {
+        return $x * 2;
+    }
 
 Comments
 ========
@@ -102,7 +122,7 @@ Comments
 snowscript::
 
     # Single line.
-    # Single line as docblock #
+    # Single line as docblock. #
     # This is a docblock,
 
       spanning multiple lines.
@@ -119,13 +139,14 @@ php::
      * spanning multiple lines. 
      */
 
-Arrays
-======
+Arrays and dictionaries
+=======================
 
-Array are defined and accessed using square brackets "[]". Items are separated 
-by "," or a new line.
+Array and dictionaries are defined using square brackets "[]". Items are 
+separated by "," or a new line. 
 
-Keys are stringy when using "=" as a separator, and interpreted when using ":".
+Dictionaries are defined with key/value pairs seperated with "=" or ":". Keys 
+are stringy when using "=" as a separator, and interpreted when using ":".
 
 snowscript::
 
@@ -162,7 +183,8 @@ php::
     );
     
 Accessing items is done using square brackets "[]" or by using the "|" shortcut. 
-Integers and the regex "[A-Za-z][A-Za-z0-9]+" can be used with the "|" shortcut.
+Integers and the regex "[A-Za-z_][A-Za-z0-9_]+" can be used with the "|" 
+shortcut.
 
 snowscript::
 
@@ -174,8 +196,7 @@ php::
     echo $answers[0]['options'][0]['help_text'];
     echo $answers[0]['options'][0]['help_text'];
 
-Keyless arrays can be defined without using "[]" when not in a bracket "[]()"
-context.
+Arrays can be defined without using "[]" when not in a bracket "[]()" context.
 
 snowscript::
 
@@ -190,7 +211,22 @@ php::
     }
     list($message, $status) = phone_home();
 
-Anonymous functions inside bracket context can use keyless arrays too.
+Anonymous functions inside bracket context can use arrays without "[]" too.
+
+snowscript::
+
+    call_a_friend(
+        fn number
+            <- "Sweden", 123456789
+    )
+
+php::
+
+    call_a_friend(
+        function number() {
+            return array("Sweden", 123456789);
+        }
+    );
 
 Strings
 =======
@@ -223,7 +259,6 @@ snowscript::
         "
 
     """<a href="https://snowscript.org">Snowscript</a>\n"""
-
 
 php::
 
