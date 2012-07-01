@@ -2,7 +2,7 @@ About
 +++++
 
 Snowscript is a language that compiles to PHP. Its syntax is inspired by 
-Python, Lua, Ruby, Coffescript, Go and Scala that strives to be DRY, clean and 
+Python, Lua, Ruby, Coffescript, Go and Scala and strives to be DRY, clean and 
 easy to read as well as write.
 
 Roadmap
@@ -216,14 +216,14 @@ Anonymous functions inside bracket context can use arrays without "[]" too.
 snowscript::
 
     call_a_friend(
-        fn number
+        fn
             <- "Sweden", 123456789
     )
 
 php::
 
     call_a_friend(
-        function number() {
+        function {
             return array("Sweden", 123456789);
         }
     );
