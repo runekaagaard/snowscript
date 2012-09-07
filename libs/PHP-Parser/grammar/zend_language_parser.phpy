@@ -409,8 +409,8 @@ class_statement_list:
 class_statement:
       property_declarations                                 { $$ = Stmt_PropertyDeclarations[$1]; }
     | T_CONST constant_declaration_list ';'                 { $$ = Stmt_ClassConst[$2]; }
-    | property_declarations T_FUNCTION optional_ref T_STRING '(' parameter_list ')' method_body
-          { $$ = Stmt_ClassMethod[$4, [type: $1, byRef: $3, params: $6, stmts: $8]]; }
+    | T_FUNCTION T_STRING '(' parameter_list ')' method_body
+          { $$ = Stmt_ClassMethod[$2, [params: $6, stmts: $8]]; }
     | T_USE name_list trait_adaptations                     { $$ = Stmt_TraitUse[$2, $3]; }
     | variable '=' expr ';'                                 { $$ = Expr_AssignClassProperty[$1, $3]; }
 ;
