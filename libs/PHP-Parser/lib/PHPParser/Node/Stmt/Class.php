@@ -41,6 +41,7 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 'extends'    => null,
                 'implements' => array(),
                 'stmts'      => array(),
+                'props'      => array(),
             ),
             $line, $docComment
         );
@@ -59,6 +60,20 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 throw new PHPParser_Error(sprintf('Cannot use "%s" as interface name as it is reserved', $interface));
             }
         }
+        list($this->stmts, $this->props) = $this->splitStmtsAndProps($this->stmts);
+    }
+
+    private function splitStmtsAndProps($stmts_old) {
+        $stmts = array();
+        $props = array();
+        foreach ($stmts_old as $stmt) {
+            if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
+                $props []= $stmt;
+            } else {
+                $stmts []= $stmt;
+            }
+        }
+        return array($stmts, $props);
     }
 
     public static function verifyModifier($a, $b) {

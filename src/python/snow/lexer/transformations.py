@@ -193,10 +193,11 @@ def nuke_newlines_around_indent(token_stream):
 
 def insert_missing_new(token_stream):
     prev_was_new = False
+    prev_was_class = False
     for t in token_stream:
         if t.type == 'CLASS_NAME':
             t2 = token_stream.next()
-            if t2.type == 'LPAR' and not prev_was_new:
+            if t2.type == 'LPAR' and not prev_was_new and not prev_was_class:
                 yield build_token('NEW', 'new', t)
             yield t
             yield t2
@@ -204,7 +205,7 @@ def insert_missing_new(token_stream):
             yield t
 
         prev_was_new = t.type == 'NEW'
-
+        prev_was_class = t.type == 'CLASS'
 
 def correct_class_accessor_names(token_stream):
     for t in token_stream:

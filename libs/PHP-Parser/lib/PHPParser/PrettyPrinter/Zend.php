@@ -94,6 +94,10 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
         return $this->p($node->var) . ' = ' . $this->p($node->expr);
     }
 
+    public function pExpr_AssignClassProperty(PHPParser_Node_Expr_AssignClassProperty $node) {
+        return '$this->' . $node->var->name . ' = ' . $this->p($node->expr);
+    }
+
     public function pExpr_AssignRef(PHPParser_Node_Expr_AssignRef $node) {
         return $this->p($node->var) . ' =& ' . $this->p($node->expr);
     }
@@ -474,7 +478,13 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . 'class ' . $node->name
              . (null !== $node->extends ? ' extends ' . $this->p($node->extends) : '')
              . (!empty($node->implements) ? ' implements ' . $this->pCommaSeparated($node->implements) : '')
-             . "\n" . '{' . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
+             . "\n" . '{' . "\n" . $this->pStmts($node->stmts) . "\n" . 
+
+             'function __construct(' . 
+                (($node->parameter_list) ? $this->pCommaSeparated($node->parameter_list) : '') .
+                ') {' . "\n" .
+                    $this->pStmts($node->props) .
+             "\n" . '}' . "\n" . '}';
     }
 
     public function pStmt_Trait(PHPParser_Node_Stmt_Trait $node) {
