@@ -98,9 +98,10 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
         $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse($this));
         foreach ($stmts_old as $stmt) {
             if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
-                $stmts = $traverser->traverse(array($stmt));
-                $props []= $stmts[0];
-                $this->prop_names[$stmts[0]->var->name]= true;
+                $stmts_traversed = $traverser->traverse(array($stmt));
+                $stmt = $stmts_traversed[0];
+                $props []= $stmt;
+                $this->prop_names[$stmt->var->name]= true;
             } else {
                 $stmts []= $stmt;
             }
