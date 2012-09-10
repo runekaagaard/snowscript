@@ -269,6 +269,8 @@ def t_VARIABLE_NAME(t):
 
 def t_CLASS_NAME(t):
     r"[A-Z_][a-zA-Z0-9_]*"
+    if t.value == t.value.upper():
+        t.type = 'CONSTANT_NAME'
     return t
 
 

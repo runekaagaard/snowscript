@@ -591,8 +591,8 @@ php::
 Type casting
 ============
 
-To cast an expression to a type, use the `array`, `bool`, `float`, `int`, 
-`object` or `str` functions.
+To cast an expression to a type, use the ``array``, ``bool``, ``float``, 
+``int``, ``object`` or ``str`` functions.
 
 php::
 
@@ -768,7 +768,7 @@ Declaration
 -----------
 
 The arguments to the class is given after the class name and are available to 
-use to set propertes.
+use to set propertes as well as in the constructor method ``__construct()``.
 
 The "." is used to access the class instance. "self" accesses the class.
 
@@ -855,7 +855,7 @@ php::
     TabularWriter::$filesystem = Filesystem().get()
     
 Protected and private visibility is supported but not considered very "snowy", 
-after all "We're all consenting adults here". Instead it's recommended to prefix
+after all "we're all consenting adults here". Instead it's recommended to prefix
 members with a "_" to mark them as subject to change.
 
 The "final", "static" and "const" keywords are supported as well.
@@ -953,7 +953,40 @@ $a .= $b          a %= b
 Namespaces
 ==========
 
-I'm still undecided on the use of namespaces in Snowscript.
+A namespace is defined by adding an empty file called "__namespace.snow" in the 
+folder which should be the root of the namespace. So given a directory structure
+as::
+
+    .
+    └── starwars
+        ├── __namespace.snow
+        └── battle.snow
+
+the file "battle.snow" would have the namespace "starwars.battle".
+
+Classes, functions, constants and variables can be imported from a namespace. 
+The __global namespace can be used to work with non namespaced code.
+
+Classes and functions are postfixed with "()" and a namespace with a ".".
+
+snow::
+
+    # Import a class, function, variable, constant and namespace respectively.
+    from starwars.battle use (XFighter(), set_trap(), fighters, WHAT_TO_TRUST, 
+                              deathstar.)
+ 
+    # Aliasing.
+    from Starwars use XFighter() as X(), set_trap() as st()
+    use Db.Fields as F
+
+    # Importing global constructs.
+    from __global use str_replace(), settings
+
+    # Aliasing the global namespace.
+    use __global as g
+    g.trim(" Oups ")
+
+    Planet.
 
 Macros
 ======

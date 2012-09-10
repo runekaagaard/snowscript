@@ -12,10 +12,11 @@ class PHPParser_Node_Stmt_ClassConst extends PHPParser_Node_Stmt
      * @param int                    $line       Line
      * @param null|string            $docComment Nearest doc comment
      */
-    public function __construct(array $consts, $line = -1, $docComment = null) {
+    public function __construct($name, PHPParser_Node_Scalar $value, $line = -1, $docComment = null) {
         parent::__construct(
             array(
-                'consts' => $consts,
+                'name' => $name,
+                'value' => array($value),
             ),
             $line, $docComment
         );

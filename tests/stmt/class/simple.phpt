@@ -5,12 +5,16 @@ Class declaration
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
-class A(array a, MyClass b, c=42, d)
-    a = get_this(42)
-    b = SuperMand(is_good(), 42, Oops())
 
-    #function x()
-    #    <- 200
+class A(array a, MyClass b, c=42, d)
+    a = get_this(a)
+    b = SuperMand(is_good(), 42, Oops())
+    FOO_BAR = 1
+    d = a*2
+
+    fn x()
+        <- 200
+
 ", 1);
 die;
 

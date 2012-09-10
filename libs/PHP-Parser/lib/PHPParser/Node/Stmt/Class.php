@@ -68,6 +68,11 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
         $props = array();
         foreach ($stmts_old as $stmt) {
             if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
+                foreach ($stmt as $node) {
+                    if ($node instanceof PHPParser_Node_Expr_Variable) {
+                        var_dump($node); die;
+                    }
+                }
                 $props []= $stmt;
             } else {
                 $stmts []= $stmt;

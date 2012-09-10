@@ -134,7 +134,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
             die;
         }
         $debug = array();
-        $php_tokens = array(array(368, '<?php ', 1));
+
+        $php_tokens = array(array(T_OPEN_TAG, '<?php ', 1));
         foreach($python_tokens as $t) {
             $first = true;
             foreach ((array)$this->translate_token($t) as $php_token) {
