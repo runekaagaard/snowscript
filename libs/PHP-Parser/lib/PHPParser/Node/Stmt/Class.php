@@ -2,26 +2,27 @@
 
 class PHPParser_Node_Stmt_Class_Traverse extends PHPParser_NodeVisitorAbstract {
     public $parameter_names = array();
+    public $class_node;
 
     public function __construct($class_node) {
+        $this->class_node = $class_node;
         foreach ($class_node->parameter_list as $node) {
             $this->parameter_names [$node->name]= true;
         }
     }
 
     public function leaveNode(PHPParser_Node $node) {
-        if ($node instanceof PHPParser_Node_Expr_Variable && !isset($this->parameter_names[$node->name])) {
+        if ($node instanceof PHPParser_Node_Expr_Variable) {
+            $in_props = isset($this->class_node->prop_names[$node->name]);
+            $in_params = isset($this->parameter_names[$node->name]);
+
+            if (!$in_props and $in_params) return;
             
             return new PHPParser_Node_Expr_PropertyFetch(
                 new PHPParser_Node_Expr_Variable('this'),
                 $node->name
             );
-            #return new PHPParser_Node_Expr_Variable("QWDQWF");
-            $node->name = 'xxxxxxx';
-            #return $node;
-            #var_dump($node); die;
         }
-        #return $node;
     }
 }
 
@@ -92,16 +93,19 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
     private function splitStmtsAndProps($stmts_old) {
         $stmts = array();
         $props = array();
+        $this->prop_names = array();
         $traverser = new PHPParser_NodeTraverser;
         $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse($this));
         foreach ($stmts_old as $stmt) {
             if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
-                $stmt = $traverser->traverse(array($stmt));
-                $props []= $stmt[0];
+                $stmts = $traverser->traverse(array($stmt));
+                $props []= $stmts[0];
+                $this->prop_names[$stmts[0]->var->name]= true;
             } else {
                 $stmts []= $stmt;
             }
         }
+        $this->prop_names = array();
         return array($stmts, $props);
     }
 
