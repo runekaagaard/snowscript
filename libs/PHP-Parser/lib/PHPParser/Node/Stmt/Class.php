@@ -64,11 +64,12 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
     public function __construct($name, array $subNodes = array(), $line = -1, $docComment = null) {
         parent::__construct(
             $subNodes + array(
-                'type'       => 0,
-                'extends'    => null,
-                'implements' => array(),
-                'stmts'      => array(),
-                'props'      => array(),
+                'type'        => 0,
+                'extends'     => null,
+                'implements'  => array(),
+                'stmts'       => array(),
+                'props'       => array(),
+                'constructor' => array(),
             ),
             $line, $docComment
         );
@@ -87,12 +88,14 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 throw new PHPParser_Error(sprintf('Cannot use "%s" as interface name as it is reserved', $interface));
             }
         }
-        list($this->stmts, $this->props) = $this->splitStmtsAndProps($this->stmts);
+        list($this->stmts, $this->props, $this->constructor) = 
+            $this->splitStmtsAndProps($this->stmts);
     }
 
     private function splitStmtsAndProps($stmts_old) {
         $stmts = array();
         $props = array();
+        $constructor = false;
         $this->prop_names = array();
         $traverser = new PHPParser_NodeTraverser;
         $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse($this));
@@ -102,12 +105,17 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 $stmt = $stmts_traversed[0];
                 $props []= $stmt;
                 $this->prop_names[$stmt->var->name]= true;
+            } elseif ($stmt instanceof PHPParser_Node_Stmt_ClassMethod
+            && $stmt->name == '__construct') {
+                if ($constructor !== false) throw new PHPParser_Error(
+                    "Only one __construct method allow per class.");
+                $constructor = $stmt->stmts;
             } else {
-                $stmts []= $stmt;
+                $stmts[] = $stmt;
             }
         }
         $this->prop_names = array();
-        return array($stmts, $props);
+        return array($stmts, $props, $constructor);
     }
 
     public static function verifyModifier($a, $b) {

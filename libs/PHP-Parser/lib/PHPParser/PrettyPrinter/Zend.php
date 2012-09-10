@@ -484,11 +484,12 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . (!empty($node->implements) ? ' implements ' . $this->pCommaSeparated($node->implements) : '')
              . "\n" . '{' . "\n" . $this->pStmts($node->stmts) .  "\n" . 
              $this ->noIndentToken . "\n" .
-             $this->indent_more('function __construct(' . 
+             $this->indent_more('public function __construct(' . 
                 (($node->parameter_list) ? $this->pCommaSeparated($node->parameter_list) : '') .
                 ') {' . "\n" .
-                    $this->pStmts($node->props) .
-             "\n" . '}') . "\n\n" . '}';
+                    $this->pStmts($node->props) . 
+             "\n" . $this->pStmts($node->constructor) . "\n" 
+             . '}') . "\n\n" . '}';
     }
 
     public function pStmt_Trait(PHPParser_Node_Stmt_Trait $node) {

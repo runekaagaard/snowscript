@@ -14,7 +14,10 @@ def build_token(_type, value, t):
     t2.value = value
     t2.lineno = t.lineno
     t2.lexpos = -1
-    t2.lexer = t.lexer
+    try:
+        t2.lexer = t.lexer
+    except AttributeError:
+        pass
     return t2
 
 
@@ -295,6 +298,13 @@ def add_missing_parenthesis_after_functions(token_stream):
                     yield build_token('RPAR', ')', t2)
                 yield t2
 
+def add_missing_this(token_stream):
+    for t in token_stream:
+        if t.type == 'DOT' and prev_t.type not in ('PHP_STRING', 'NAME'):
+            yield build_token("NAME", "this", t)
+
+        yield t
+        prev_t = t
 
 def debug(token_stream):
     print
@@ -318,6 +328,7 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = add_missing_parenthesis(token_stream)
     token_stream = add_missing_parenthesis_after_functions(token_stream)
     token_stream = delete_multiple_newlines(token_stream)
+    token_stream = add_missing_this(token_stream)
     # token_stream = debug(token_stream)
 
     if add_endmarker:
