@@ -1,5 +1,17 @@
 <?php
 
+class PHPParser_Node_Stmt_Class_Traverse extends PHPParser_NodeVisitorAbstract {
+    public function leaveNode(PHPParser_Node $node) {
+        if ($node instanceof PHPParser_Node_Expr_Variable) {
+            #return new PHPParser_Node_Expr_Variable("QWDQWF");
+            $node->name = 'xxxxxxx';
+            #return $node;
+            #var_dump($node); die;
+        }
+        #return $node;
+    }
+}
+
 /**
  * @property int                      $type       Type
  * @property string                   $name       Name
@@ -7,6 +19,7 @@
  * @property PHPParser_Node_Name[]    $implements Names of implemented interfaces
  * @property PHPParser_Node[]         $stmts      Statements
  */
+
 class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
 {
     const MODIFIER_PUBLIC    =  1;
@@ -66,14 +79,12 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
     private function splitStmtsAndProps($stmts_old) {
         $stmts = array();
         $props = array();
+        $traverser = new PHPParser_NodeTraverser;
+        $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse);
         foreach ($stmts_old as $stmt) {
             if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
-                foreach ($stmt as $node) {
-                    if ($node instanceof PHPParser_Node_Expr_Variable) {
-                        var_dump($node); die;
-                    }
-                }
-                $props []= $stmt;
+                $stmt = $traverser->traverse(array($stmt));
+                $props []= $stmt[0];
             } else {
                 $stmts []= $stmt;
             }

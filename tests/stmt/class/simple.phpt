@@ -4,6 +4,14 @@ Class declaration
 <?php
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
+php_to_php('<?php
+class X {
+    function __construct() {
+        $this->a = 42;
+    }
+}
+
+'); die;
 snowscript_to_php("
 
 class A(array a, MyClass b, c=42, d)
