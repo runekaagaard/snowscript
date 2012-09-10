@@ -32,8 +32,10 @@ function php_to_php($code, $debug=false) {
 	$parser = new PHPParser_Parser;
 	$prettyPrinter = new PHPParser_PrettyPrinter_Zend;
 	$stmts = $parser->parse($lexer);
-	var_dump($stmts);
-	$prettyPrinter->prettyPrint($stmts) . "\n";
+	$nodeDumper = new PHPParser_NodeDumper;
+	echo $nodeDumper->dump($stmts);
+	#var_dump($stmts);
+	#$prettyPrinter->prettyPrint($stmts) . "\n";
 }
 
 function debug_lexer($lexer) {

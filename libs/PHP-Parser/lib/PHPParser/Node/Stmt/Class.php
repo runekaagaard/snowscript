@@ -1,8 +1,21 @@
 <?php
 
 class PHPParser_Node_Stmt_Class_Traverse extends PHPParser_NodeVisitorAbstract {
+    public $parameter_names = array();
+
+    public function __construct($class_node) {
+        foreach ($class_node->parameter_list as $node) {
+            $this->parameter_names [$node->name]= true;
+        }
+    }
+
     public function leaveNode(PHPParser_Node $node) {
-        if ($node instanceof PHPParser_Node_Expr_Variable) {
+        if ($node instanceof PHPParser_Node_Expr_Variable && !isset($this->parameter_names[$node->name])) {
+            
+            return new PHPParser_Node_Expr_PropertyFetch(
+                new PHPParser_Node_Expr_Variable('this'),
+                $node->name
+            );
             #return new PHPParser_Node_Expr_Variable("QWDQWF");
             $node->name = 'xxxxxxx';
             #return $node;
@@ -80,7 +93,7 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
         $stmts = array();
         $props = array();
         $traverser = new PHPParser_NodeTraverser;
-        $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse);
+        $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse($this));
         foreach ($stmts_old as $stmt) {
             if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
                 $stmt = $traverser->traverse(array($stmt));

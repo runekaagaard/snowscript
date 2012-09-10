@@ -4,21 +4,57 @@ Class declaration
 <?php
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
+/*
 php_to_php('<?php
 class X {
     function __construct() {
         $this->a = 42;
     }
 }
+array(
+    0: Stmt_Class(
+        type: 0
+        extends: null
+        implements: array(
+        )
+        stmts: array(
+            0: Stmt_ClassMethod(
+                params: array(
+                )
+                stmts: array(
+                    0: Expr_Assign(
+                        var: Expr_PropertyFetch(
+                            var: Expr_Variable(
+                                name: this
+                            )
+                            name: a
+                        )
+                        expr: Scalar_LNumber(
+                            value: 42
+                        )
+                    )
+                )
+                type: 1
+                byRef: false
+                name: __construct
+            )
+        )
+        parameter_list: null
+        props: array(
+        )
+        name: X
+    )
+)
 
 '); die;
+*/
 snowscript_to_php("
 
 class A(array a, MyClass b, c=42, d)
     a = get_this(a)
-    b = SuperMand(is_good(), 42, Oops())
+    x = SuperMand(is_good(), 42, Oops())
     FOO_BAR = 1
-    d = a*2
+    d = x*2
 
     fn x()
         <- 200
