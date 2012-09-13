@@ -14,7 +14,7 @@ tokens = tuple(tokens) + ("NEWLINE", "NUMBER", "NAME", "WS",
     "STRING_END", "STRING", "INDENT", "DEDENT", "ENDMARKER")
 
 # The different states the lexer can operate in. Token names in non-initial
-# states are written as "t_[STATE]_TOKENNAME]".
+# states are written as "t_[STATE]_[TOKENNAME]".
 states = (
     ("COMMENT", "exclusive"),
     ('INSIDEARRAY', 'inclusive'),

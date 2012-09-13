@@ -520,7 +520,7 @@ def add_escape(t):
 ## Tripple doublequoted string
 
 @html_mode_string
-def t_TRIPPLE_string_string_begin(t):
+def t_TRIPPLE_string_begin(t):
     r'"""'
     string_begin(t, 'INTRIPPLEDOUBLEQUOTEDSTRING')
 

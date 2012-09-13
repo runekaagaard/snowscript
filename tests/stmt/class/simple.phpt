@@ -6,7 +6,7 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
 
-class A(array a, MyClass b, c=42, ds)
+class A(array a, MyClass b, c=42, ds) extends B implements C,D 
     FOO_BAR = 1
 
     y = a

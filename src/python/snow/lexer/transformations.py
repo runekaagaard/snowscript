@@ -314,6 +314,7 @@ def debug(token_stream):
 
 
 def make_token_stream(lexer, add_endmarker=True):
+    
     token_stream = iter(lexer.token, None)
     token_stream = trim_beginning_newlines(token_stream)
     token_stream = inject_case_tokens(token_stream)
