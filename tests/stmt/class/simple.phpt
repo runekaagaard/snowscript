@@ -25,7 +25,6 @@ class A(array a, MyClass b, c=42, ds) extends B implements C,D
         <- 200
 
 ", 0);
-
 --EXPECT--
 <?php
 class A
