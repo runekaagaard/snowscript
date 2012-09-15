@@ -28,7 +28,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'STAR', 'STATIC', 'STRINGTYPE', 'STRING_WITH_CONCAT', 'SWITCH', 'THROW',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-     'DOUBLE_ARROW', 'QUESTION_MARK', 'THEN',
+     'DOUBLE_ARROW', 'QUESTION_MARK', 'THEN', 'STRING_DOUBLE', 'STRING_SINGLE',
 ]
 
 token_groups = {
@@ -51,7 +51,7 @@ token_groups = {
             'QUESTION_MARK', 'THEN',
             ],
     # Strings.
-    'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING'],
+    'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING_DOUBLE', 'STRING_SINGLE'],
     # Comments.
     'com': ['INSIDE_COMMENT'],
     # Types.
@@ -500,9 +500,9 @@ def snow_begin(t):
     if t.lexer.string_content:
         return get_string_token(t, type='STRING_WITH_CONCAT')
 
-
-def string_begin(t, to_state):
+def string_begin(t, to_state, string_type):
     t.lexer.string_content = ''
+    t.lexer.string_type = string_type
     t.lexer.push_state(to_state)
     t.lexer.starting_string_token = t
 
@@ -511,7 +511,7 @@ def string_end(t, from_state):
     t.lexpos = t.lexer.starting_string_token.lexpos
     t.lineno = t.lexer.starting_string_token.lineno
     t.lexer.pop_state()
-    return get_string_token(t)
+    return get_string_token(t, t.lexer.string_type)
 
 
 def add_escape(t):
@@ -522,7 +522,7 @@ def add_escape(t):
 @html_mode_string
 def t_TRIPPLE_string_begin(t):
     r'"""'
-    string_begin(t, 'INTRIPPLEDOUBLEQUOTEDSTRING')
+    string_begin(t, 'INTRIPPLEDOUBLEQUOTEDSTRING', 'STRING_DOUBLE')
 
 @html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_ESCAPE(t):
@@ -563,7 +563,7 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_error(t):
 def t_string_begin(t):
     r'"'
     ## Single doublequoted string.
-    string_begin(t, 'INDOUBLEQUOTEDSTRING')
+    string_begin(t, 'INDOUBLEQUOTEDSTRING', 'STRING_DOUBLE')
 
 @html_mode_string
 def t_INDOUBLEQUOTEDSTRING_ESCAPE(t):
@@ -599,7 +599,7 @@ def t_INDOUBLEQUOTEDSTRING_error(t):
 
 def t_TRIPPLE_SINGLEQUOTED_STRING_BEGIN(t):
     r"'''"
-    string_begin(t, 'INTRIPPLESINGLEQUOTEDSTRING')
+    string_begin(t, 'INTRIPPLESINGLEQUOTEDSTRING', 'STRING_SINGLE')
 
 
 def t_INTRIPPLESINGLEQUOTEDSTRING_ESCAPE(t):
@@ -636,7 +636,7 @@ def t_INTRIPPLESINGLEQUOTEDSTRING_error(t):
 
 def t_SINGLEQUOTED_STRING_BEGIN(t):
     r"'"
-    string_begin(t, 'INSINGLEQUOTEDSTRING')
+    string_begin(t, 'INSINGLEQUOTEDSTRING', 'STRING_SINGLE')
 
 
 def t_INSINGLEQUOTEDSTRING_ESCAPE(t):

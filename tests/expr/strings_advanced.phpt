@@ -15,8 +15,6 @@ mystring = "I am {A_CONSTANT} with {a_string} and {func_tion("foo")}"
 'fo \ \{ \' x'
 a = "aaa 'bbb' {foo(bar)} ddd"
 a = "foo {bar("ufel")} sup"
-"\n"
-'\n'
 EOT
 , 0);
 --EXPECT--
@@ -31,5 +29,3 @@ $mystring = (((('I am ' . A_CONSTANT) . ' with ') . $a_string) . ' and ') . func
 'fo \\ \\{ \' x';
 $a = ('aaa \'bbb\' ' . foo($bar)) . ' ddd';
 $a = ('foo ' . bar('ufel')) . ' sup';
-"\n";
-'\n';

@@ -32,7 +32,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     }
 
     public $transform_token_value = array(
-        'T_VARIABLE' => '$%s', 'T_CONSTANT_ENCAPSED_STRING' => '"%s"',
+        'T_VARIABLE' => '$%s',
     );
 
     // Use the actual code value of these.
@@ -58,7 +58,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_NAME' => 'T_VARIABLE',
         'T_PHP_STRING' => 'T_STRING',
         'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR',
-        'T_STRING' => 'T_CONSTANT_ENCAPSED_STRING',
         'T_FN' => 'T_FUNCTION',
         'T_DOUBLE_COLON' => 'T_PAAMAYIM_NEKUDOTAYIM',
         'T_CALLABLE' => 'T_STRING',
@@ -81,7 +80,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_NEXT' => 'T_CONTINUE',
      );
     public $token_callback = array(
-        'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1,
+        'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1, 'T_STRING_DOUBLE' => 1,
+        'T_STRING_SINGLE' => 1,
     );
 
     function alter_token_type($t) {
@@ -207,6 +207,26 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         else
             return array(array(T_LNUMBER, $t['value'][1], 2));
 
+    }
+
+    function T_STRING_DOUBLE($t) {
+        return array(
+            array(
+                T_CONSTANT_ENCAPSED_STRING,
+                '"' . $t['value'] . '"',
+                2
+            ),
+        );
+    }
+
+    function T_STRING_SINGLE($t) {
+        return array(
+            array(
+                T_CONSTANT_ENCAPSED_STRING,
+                "'" . $t['value'] . "'",
+                2
+            ),
+        );
     }
 }
 Snowscript_Lexer::init_named_tokenmap();
