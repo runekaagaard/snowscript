@@ -72,48 +72,25 @@ Whitespace
 ==========
 
 Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by using brackets "{}". Whitespace is 
-not significant inside strings and brackets "()[]", except in closures.
+managed by indenting/dedenting and not by using curly brackets "{}". Whitespace 
+is not significant inside strings and brackets "()[]".
 
 snowscript::
 
-    fn is_it_big(number)
-        if number < 1000
-            <- YES
-        else
-            <- NO
+    fn how_big_is_it(number)
+        if number < 100
+            <- NOT_VERY_BIG
+        elif 
+            <- BIG
 
 php::
 
-    function is_it_big($number) {
-        if ($number < 1000) {
-            return YES;
+    function how_big_is_it($number) {
+        if ($number < 100) {
+            return NOT_VERY_BIG;
         } else {
-            return NO;
+            return BIG;
         } 
-    }
-
-Inside brackets "()[]", a new line can be used as a separator instead of ",". 
-One line structures is done with a ":".
-
-snowscript::
-    
-    ordering = [
-        first()
-        second()
-        third()
-    ]
-    fn double(x): <- x * 2
-    
-php::
-
-    $ordering = array(
-        first(),
-        second(),
-        third(),
-    );
-    function double($x) {
-        return $x * 2;
     }
 
 Comments
@@ -139,38 +116,39 @@ php::
      * spanning multiple lines. 
      */
 
-Arrays and dictionaries
-=======================
+Arrays
+======
 
-Array and dictionaries are defined using square brackets "[]". Items are 
-separated by "," or a new line. 
+Arrays are defined using square brackets "[]". Items are separated by ",". A
+trailing "," is allowed. 
 
-Dictionaries are defined with key/value pairs seperated with "=" or ":". Keys 
-are stringy when using "=" as a separator, and interpreted when using ":".
+Arrays can contain key/value pairs seperated with "=". The keys can be omitted
+and an running integers will be assigned. Keys are always interpreted stringy. 
+Keys not matching the regex "[a-zA-Z0-9_]+" can be made by surrounding the key 
+with quotes.
 
 snowscript::
 
     pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
-    
-    name = "Heroes"
     series = [
-        name:
-            genre = "Science Fiction"
-            creator = "Tim Kring"
-            seasons = 4
-        "Game Of Thrones":
-            genre = "Medieval fantasy"
-            creator = "David Benioff"
-            seasons = 2
+        Heroes: [
+            genre: "Science Fiction",
+            creator: "Tim Kring",
+            seasons: 4,
+        ],
+        "Game Of Thrones": [
+            genre: "Medieval fantasy",
+            creator: "David Benioff",
+            seasons: 2,
+        ],
     ]
     
 php::
 
     $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
     
-    $name = "Heroes";
     $series = array(
-        $name => array(
+        'Heroes' => array(
             'genre' => "Science Fiction",
             'creator' => "Tim Kring",
             'seasons' => 4,
@@ -181,22 +159,19 @@ php::
             'seasons' => 2,
         ),
     );
-    
-Accessing items is done using square brackets "[]" or by using the "|" shortcut. 
-Integers and the regex "[A-Za-z_][A-Za-z0-9_]+" can be used with the "|" 
-shortcut.
+
+Accessing items is done using square brackets "[]".
 
 snowscript::
 
-    echo answers|0|options|0|help_text
     echo answers[0]['options'][0]['help_text']
 
 php::
 
     echo $answers[0]['options'][0]['help_text'];
-    echo $answers[0]['options'][0]['help_text'];
 
-Arrays can be defined without using "[]" when not in a bracket "[]()" context.
+Arrays lists can be defined without using "[]" when not in a bracket "[]()" 
+context.
 
 snowscript::
 
@@ -211,52 +186,34 @@ php::
     }
     list($message, $status) = phone_home();
 
-Anonymous functions inside bracket context can use arrays without "[]" too.
-
-snowscript::
-
-    call_a_friend(
-        fn
-            <- "Sweden", 123456789
-    )
-
-php::
-
-    call_a_friend(
-        function {
-            return array("Sweden", 123456789);
-        }
-    );
-
 Strings
 =======
 
-There are four kind of strings: '"""', '"', "'''" and "'", all multiline.
+There are four kind of strings: """, ", ''' and ', all multiline.
 
-Whitespace before the current indentation level is stripped. A single empty line 
-in the beginning or end is stripped too if present. Strings can be concatenated 
-using the "%" operator.
+Whitespace before the current indentation level is stripped. Any line ending 
+with "\" is stripped. Strings can be concatenated using the "%" operator.
 
 snowscript::
 
-    echo "I am" % " legend!"
+    echo 'I am' % ' legend!'
 
 php::
 
-    echo "I am" . " legend!";
+    echo 'I am' . ' legend!';
 
 Quoted
 ------
 
-Code inside "{}" adds their value to the string.
+Code blocks inside "{}" is concatenated to the string.
 
 snowscript::
 
     fn travel
-        echo "
+        echo "\
         The {animal} went to {world.place()}
         with his {NUM} friends. 
-        "
+        \"
 
     """<a href="https://snowscript.org">Snowscript</a>\n"""
 
@@ -267,7 +224,7 @@ php::
         " with his " . NUM  . " friends.";
         
     }
-    "<a href=\"https://snowscript.org\">Snowscript</a>\n";
+    "<a href=\"https://snowscript.org\">Snowscript</a>";
 
 Unquoted
 --------
@@ -287,8 +244,8 @@ Functions
 
 The "fn" keyword is used to define functions, and "<-" to return a value.
 
-Function calls can be chained using the "->" operator that passes the expression
-before as the first argument to the next function.
+Function calls can be chained using the "->" operator which passes the prior 
+expression along as the first argument to the function.
 
 snowscript::
 
@@ -321,62 +278,33 @@ php::
 Optional parameters
 -------------------
 
-Optional parameters must come after required parameters. They can be passed 
-"null" to select the default value. This is helpful if you want to set a later
-parameter to a non-default value.
-
-snowscript::
-
-    fn make_pretty(text, font="Rocky", size=84)
-        pass
-    make_pretty("Snowscript", null, 42)
-    
-php::
-    
-    function make_pretty($text, $font=null, $size=null) {
-        if ($font === null) {
-            $font = "Rocky";
-        }
-        if ($size === null) {
-            $size = 84;
-        }
-    }
-    make_pretty("Snowscript", null, 42);
+Functions does not allow to be defined with optional parameters. Functions in
+PHP land using optional parameters can of course be called.
 
 Named parameters
 ----------------
 
-Named parameters is supported using an array "[]" at the end of the function 
-declaration. Named parameters with only a key are required, i.e. an exception
-will be thrown if absent.
-
-Optional and named parameters can not be mixed in the same function definition.
+Named parameters uses variable declaration syntax.
 
 snowscript::
 
-    fn render(template, [mood, color, allow_html=true, klingon=false])
-        echo mood()
-    render("index.html", klingon=true, mood="faul", color="red")
+    fn render(template, allow_html=true, klingon=false)
+        echo template.render(allow_html, klingon)
+
+    render("index.html", klingon=true)
 
 php::
 
     function render($template, $options_) {
         $defaults_ = array(
-            'format' => "html", 
             'allow_html' => true, 
             'klingon' => false,
         );
         $options_ += $defaults_;
-        $required_ = array('mood', 'color');
-        foreach ($required_ as $key_) {
-            if (!isset($options_[$key_])) {
-                throw new InvalidArgumentException("'$key_' is a required option.");
-            }
-        }
-        unset($key_);
-        echo $options_['mood'];
+        echo $template->render($options_['allow_html'], $options_['klingon']);
     }
-    render("index.html", array('klingon'=>true, 'mood'=>"faul", 'color'=>"red"));
+
+    render("index.html", array('klingon'=> true);
 
 Inner functions
 ---------------
@@ -404,21 +332,25 @@ php::
 Closures
 --------
 
-Closures are multiline controlled by indentation. A "+" before the variable name
-binds a variable from the outer scope.
+Anonymous functions are declared as a normal function but surrounded with "()".
+A "+" before the variable name binds a variable from the outer scope.
 
 snowscript::
     
     use_me = get_use_me()
-    little_helper = fn(input, +use_me)
-        <- polish(input, use_me)
+    little_helper = (fn(input, +use_me)
+        <- polish(input, use_me))
+
     little_helper(Lamp())
     
     takes_functions(
-        fn(x)
-            <- [x * 2, x * x]
-        fn(y, c)
+        (fn(x)
+            y = give_me_a_y(x)
+            <- x * 2, y
+        ),
+        (fn(y, c)
             <- y * c
+        ),
     )
 
 php::
@@ -427,30 +359,30 @@ php::
     $little_helper = function($input) use ($use_me) {
         return polish(input, $use_me);
     }
+
     little_helper(new Lamp);
     
     takes_functions(
         function(x) {
-            return array(x * 2, x * x);
+            $y = give_me_a_y($x);
+            return array(x * 2, $y);
         },
         function(y, c) {
-            return array(y * c);
+            return y * c;
         }
     )
-    
-Lambdas
--------
 
-Single line closures, that can only return a single expression. The "<-" return
-keyword is omitted.
+As the only structure in Snowscript, closures has a single line mode.
 
 snowscript::
 
-    filter(coll, fn(x): x > 3, true)
-    
+    filter(guys, (fn (guy) <- weight(guy) > 100))
+
 php::
 
-    filter($coll, function() { return $x > 3; }, true);
+    filter($guys, function() {
+        return weight($guy) > 100;
+    });
 
 Destructuring
 =============
@@ -525,26 +457,6 @@ php::
             $gills->deactivate();
     }
 
-Return
-------
-
-Both if and switch statements can be used as an expression.
-
-snowscript::
-
-    mood = if prince.is_in_the_house
-        <- "Exquisite"
-    else
-        <- "Dull"
-
-php::
-
-     if ($prince->is_in_the_house) {
-        $mood = "Exquisite";
-    } else {
-        $mood = "Dull";
-    };
-
 Ternary operator
 ----------------
 
@@ -562,15 +474,15 @@ php::
 Existence
 =========
 
-There are two existence shortcuts "?" and "??". The first is a shortcut for
-``isset(expr)`` the second for ``!empty(expr)``.
+There are two existence shortcut functions "?" and "??". The first is a shortcut
+for ``isset(expr)``, the second for ``!empty(expr)``.
 
 snowscript::
 
-    if get_result()?
+    if get_result()->?
         do_stuff()
 
-    if get_result()??
+    if get_result()->??
         do_stuff()
 
 php::
@@ -768,7 +680,7 @@ Declaration
 -----------
 
 The arguments to the class is given after the class name and are available to 
-use to set propertes as well as in the constructor method ``__construct()``.
+use to set properties as well as in the constructor method ``__construct()``.
 
 The "." is used to access the class instance. "self" accesses the class.
 
@@ -792,7 +704,7 @@ snowscript::
             
         # Methods. #
         fn check filesystem
-            if not filesystems()[self.filesystem]?
+            if not filesystems()[self.filesystem]->?
                 throw UnsupportedFilesystemError()
 
         fn init_file(path)
@@ -858,14 +770,21 @@ Protected and private visibility is supported but not considered very "snowy",
 after all "we're all consenting adults here". Instead it's recommended to prefix
 members with a "_" to mark them as subject to change.
 
-The "final", "static" and "const" keywords are supported as well.
-
 Functions and properties can be indented below modifier keywords.
+
+The "final", "static" and "abstract" keywords are supported as well.
+
+A class can inherit an other class, implement multiple interfaces and use
+multiple traits.
 
 snowscript::
 
-    abstract class FactoryFactory extends AbstractBuilder interfaces FactoryFactoryInterface
-        const DEFAULT_FACTORY = "DefaultFactory"
+    abstract class FactoryFactory
+        extends AbstractBuilder 
+        interfaces IFactoryFactory, IBuilder
+        use FactoryBehaviour, LoggingBehaviour
+
+        DEFAULT_FACTORY = "DefaultFactory"
 
         protected static 
             factories = []
@@ -928,6 +847,8 @@ php::
 Operators
 =========
 
+Stub.
+
 A number of operators has changed from PHP.
 
 ================= ============================
@@ -952,6 +873,8 @@ $a .= $b          a %= b
 
 Namespaces
 ==========
+
+Stub.
 
 A namespace is defined by adding an empty file called "__namespace.snow" in the 
 folder which should be the root of the namespace. So given a directory structure
@@ -987,6 +910,11 @@ snow::
     g.trim(" Oups ")
 
     Planet.
+
+Traits
+======
+
+Stub.
 
 Macros
 ======
