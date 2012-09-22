@@ -2,7 +2,7 @@ About
 +++++
 
 Snowscript is a language that compiles to PHP. Its syntax is inspired by 
-Python, Lua, Ruby, Coffescript, Go and Scala and strives to be DRY, clean and 
+Python, Lua, Coffescript, Go and Scala and strives to be DRY, clean and 
 easy to read as well as write.
 
 Roadmap
@@ -34,7 +34,7 @@ Done
 - Destructuring.
 - Parsing of basic syntax.
 - Transformations for the non LALR(1) compatible features of Snowscript like
-  implicit parenthesis, the switch syntax and significant whitespace.
+  implicit parenthesis and significant whitespace.
 - Lexer.
 
 Todo 0.5
@@ -43,7 +43,6 @@ Todo 0.5
 - Named parameters.
 - List comprehension.
 - Splats.
-- Loops and control structures as expressions.
 - Inner functions.
 - Parser written in Snowscript.
 - Existance.
@@ -72,15 +71,17 @@ Whitespace
 ==========
 
 Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by using curly brackets "{}". Whitespace 
-is not significant inside strings and brackets "()[]".
+managed by indenting/dedenting and not by curly brackets "{}". Whitespace is not 
+significant inside strings and brackets "()[]".
+
+The only allowed indention format is 4 spaces.
 
 snowscript::
 
     fn how_big_is_it(number)
         if number < 100
             <- NOT_VERY_BIG
-        elif 
+        else
             <- BIG
 
 php::
@@ -120,12 +121,12 @@ Arrays
 ======
 
 Arrays are defined using square brackets "[]". Items are separated by ",". A
-trailing "," is allowed. 
+trailing "," is allowed.
 
-Arrays can contain key/value pairs seperated with "=". The keys can be omitted
-and an running integers will be assigned. Keys are always interpreted stringy. 
-Keys not matching the regex "[a-zA-Z0-9_]+" can be made by surrounding the key 
-with quotes.
+Arrays can contain key/value pairs seperated with ":". The keys can be omitted
+and running integers will be assigned. Keys are always interpreted stringy. 
+Keys not matching the regex "[a-zA-Z_][a-zA-Z0-9_]+" can be made by surrounding
+the key with quotes.
 
 snowscript::
 
@@ -170,8 +171,7 @@ php::
 
     echo $answers[0]['options'][0]['help_text'];
 
-Arrays lists can be defined without using "[]" when not in a bracket "[]()" 
-context.
+Outside of bracket "[]()" context arrays can be defined without "[]".
 
 snowscript::
 
@@ -191,16 +191,8 @@ Strings
 
 There are four kind of strings: """, ", ''' and ', all multiline.
 
-Whitespace before the current indentation level is stripped. Any line ending 
-with "\" is stripped. Strings can be concatenated using the "%" operator.
-
-snowscript::
-
-    echo 'I am' % ' legend!'
-
-php::
-
-    echo 'I am' . ' legend!';
+Whitespace before the current indentation level is stripped. All empty lines
+ending in "\" is stripped.
 
 Quoted
 ------
@@ -238,6 +230,20 @@ php::
 
     'No {magic} here\n';
     '''{nor()} here.''';
+
+Concatenation
+-------------
+
+Strings can be concatenated with the "%" operator, but the 
+``"Hello {current_planet()}"``form is prefered.
+
+snowscript::
+
+    echo 'I am' % ' legend!'
+
+php::
+
+    echo 'I am' . ' legend!';
 
 Functions
 =========
@@ -332,7 +338,9 @@ php::
 Closures
 --------
 
-Anonymous functions are declared as a normal function but surrounded with "()".
+Anonymous functions are declared like a normal function without the function 
+name and surrounded with "()".
+
 A "+" before the variable name binds a variable from the outer scope.
 
 snowscript::
@@ -402,7 +410,7 @@ php::
 Control structures
 ==================
 
-Three control structures are available: "if", "switch" and the ternary operator.
+Two control structures are available: "if" and the ternary operator.
 
 if
 --
@@ -425,36 +433,6 @@ php::
         improvise();
     } else {
         run();
-    }
-
-switch
-------
-
-snowscript::
-
-    switch gamestate
-        BESERKER
-            signal("searchanddestroy")
-        UNDERWATER
-            gills.activate()
-        NORMAL, default
-            signal("playnice")
-            gills.deactivate()
-
-
-php::
-
-    switch $gamestate {
-        case BESERKER:
-            signal("searchanddestroy");
-            break;
-        case UNDERWATER:
-            $gills->activate();
-            break;
-        case NORMAL:
-        default:
-            signal("playnice");
-            $gills->deactivate();
     }
 
 Ternary operator
@@ -768,7 +746,7 @@ php::
     
 Protected and private visibility is supported but not considered very "snowy", 
 after all "we're all consenting adults here". Instead it's recommended to prefix
-members with a "_" to mark them as subject to change.
+members with a "_" to mark them as a implementation detail.
 
 Functions and properties can be indented below modifier keywords.
 
@@ -892,7 +870,7 @@ The __global namespace can be used to work with non namespaced code.
 
 Classes and functions are postfixed with "()" and a namespace with a ".".
 
-snow::
+snowscript::
 
     # Import a class, function, variable, constant and namespace respectively.
     from starwars.battle use (XFighter(), set_trap(), fighters, WHAT_TO_TRUST, 
