@@ -192,7 +192,7 @@ Strings
 There are four kind of strings: """, ", ''' and ', all multiline.
 
 Whitespace before the current indentation level is stripped. All empty lines
-ending in "\" is stripped.
+ending in "\\" is stripped.
 
 Quoted
 ------
@@ -235,7 +235,7 @@ Concatenation
 -------------
 
 Strings can be concatenated with the "%" operator, but the 
-``"Hello {current_planet()}"``form is prefered.
+``"Hello {current_planet()}"`` form is preferred.
 
 snowscript::
 
@@ -842,7 +842,7 @@ $a  %= $b         a mod= b
 .                 %
 $a .= $b          a %= b
 &                 band
-|                 bor
+\|                 bor
 ^                 bxor
 <<                bleft
 >>                bright
