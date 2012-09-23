@@ -123,7 +123,7 @@ Arrays
 Arrays are defined using square brackets "[]". Items are separated by ",". A
 trailing "," is allowed.
 
-Arrays can contain key/value pairs seperated with ":". The keys can be omitted
+Arrays can contain key/value pairs seperated with "=". The keys can be omitted
 and running integers will be assigned. Keys are always interpreted stringy. 
 Keys not matching the regex "[a-zA-Z_][a-zA-Z0-9_]+" can be made by surrounding
 the key with quotes.
@@ -132,15 +132,15 @@ snowscript::
 
     pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
     series = [
-        Heroes: [
-            genre: "Science Fiction",
-            creator: "Tim Kring",
-            seasons: 4,
+        Heroes = [
+            genre = "Science Fiction",
+            creator = "Tim Kring",
+            seasons = 4,
         ],
-        "Game Of Thrones": [
-            genre: "Medieval fantasy",
-            creator: "David Benioff",
-            seasons: 2,
+        "Game Of Thrones" = [
+            genre = "Medieval fantasy",
+            creator = "David Benioff",
+            seasons = 2,
         ],
     ]
     
@@ -854,6 +854,9 @@ Namespaces
 
 Stub.
 
+General
+-------
+
 A namespace is defined by adding an empty file called "__namespace.snow" in the 
 folder which should be the root of the namespace. So given a directory structure
 as::
@@ -861,33 +864,178 @@ as::
     .
     └── starwars
         ├── __namespace.snow
-        └── battle.snow
+        ├── battle.snow
+        ├── galaxy.snow
+        └── settings.snow
 
-the file "battle.snow" would have the namespace "starwars.battle".
+the file "battle.snow" would have the namespace "starwars.battle". If no
+"__namespace.snow" file is found in the same folder or above, the namespace will 
+be that of the file itself.
 
-Classes, functions, constants and variables can be imported from a namespace. 
-The __global namespace can be used to work with non namespaced code.
+Classes, interfaces, traits, functions, constants and variables can be imported 
+from a namespace. Sub-namespaces are separated with ":".
 
-Classes and functions are postfixed with "()" and a namespace with a ".".
+If any member is prefixed with "_" it is a warning that it should not be 
+accessed from outside its file.
 
 snowscript::
 
     # Import a class, function, variable, constant and namespace respectively.
-    from starwars.battle use (XFighter(), set_trap(), fighters, WHAT_TO_TRUST, 
-                              deathstar.)
+    from starwars:battle use (XFighter(), set_trap(), fighters, WHAT_TO_TRUST, 
+                              deathstar:)
  
     # Aliasing.
     from Starwars use XFighter() as X(), set_trap() as st()
-    use Db.Fields as F
+    use Db:Fields as F
 
     # Importing global constructs.
-    from __global use str_replace(), settings
+    from __global use str_replace(),
 
     # Aliasing the global namespace.
     use __global as g
-    g.trim(" Oups ")
+    g:trim(" Oops ")
 
-    Planet.
+Namespaces (importing)
+----------------------
+
+Namespaces can be imported and must be postfixed with a ":".
+
+snowscript::
+
+    from Db use Fields:, Transaction:
+
+php::
+
+    use \Db\Fields;
+    use \Db\Transaction;
+
+A namespace must be imported before it can be used in the code. So the following
+won't work.
+
+snowscript::
+
+    add_trust_in(:starwars:settings:THE_FORCE)
+
+But must be.
+
+snowscript::
+
+    use starwars:
+    add_trust_in(starwars:settings:THE_FORCE)
+
+Classes
+-------
+
+Classes can be imported from other namespaces. Their names must be PascalCase
+and postfixed with "()".
+
+snowscript::
+
+    # In the file battle.snow.
+    from starwars:galaxy use Dagobah(), Alderaan(), Sullust()
+    planet = Dagobah()
+
+php::
+
+    use \starwars\galaxy\Dagobah;
+    use \starwars\galaxy\Alderaan;
+    use \starwars\galaxy\Sullust;
+    $planet = new Dagobah();
+
+Functions
+---------
+
+Functions can opposed to PHP be imported too.
+
+Their names must not be PascalCase nor ALL_CAPS. They must be postfixed with 
+"()".
+
+snowscript::
+    
+    # In the file galaxy.snow.
+    from starwars:battle use attack()
+    attack()
+
+php::
+    
+    namespace \starwars\galaxy;
+
+    use \starwars\battle;
+    battle.attack();
+
+Constants
+---------
+
+Constants must be ALL_CAPS.
+
+snowscript::
+
+    from starwars:settings use NUMBER_OF_OCEANS
+    echo NUMBER_OF_OCEANS
+
+php::
+
+    use \starwars\settings\NUMBER_OF_OCEANS;
+    echo NUMBER_OF_OCEANS;
+
+Variables
+---------
+
+Opposed to PHP, variables assigned in the body of a file belongs to the
+namespace of that file, not in the global namespace. Their names must not be
+PascalCase nor ALL_CAPS.
+
+snowscript::
+    
+    # In the file settings.snow.
+    jedis = ['Luke', 'Obi-Wan', 'Yoda']
+
+php::
+
+    namespace \starwars\settings;
+    global $starwars_settings_jedis = array('Luke', 'Obi-Wan', 'Yoda');
+
+This means that variables can be imported.
+
+snowscript::
+
+    # In the file battle.snow.
+    from starwars:settings use jedis
+
+    fn print_jedis
+        <- ["<li>{jedi}</li>" for jedi in jedis]->implode()
+
+php::
+
+    namespace \starwars\battle;
+
+    function print_jedis();
+        global $starwars_settings_jedis;
+        $result_ = array();
+        foreach ($starwars_settings_jedis as $jedi) {
+            $result_[] = '<li>' . $jedi . '</li>'; 
+        }
+        return implode($result_);
+
+Global Space
+------------
+
+Members in the global space can be imported using the "__global" magic name.
+
+snowscript::
+
+    from __global use trim(), str_replace()
+    trim(" A string")
+
+php::
+
+    \trim(" A string")
+
+
+Scoping rules
+=============
+
+Stub.
 
 Traits
 ======
