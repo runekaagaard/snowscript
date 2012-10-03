@@ -738,7 +738,7 @@ snowscript::
 
     abstract class FactoryFactory
         extends AbstractBuilder 
-        interfaces IFactoryFactory, IBuilder
+        implements IFactoryFactory, IBuilder
         use FactoryBehaviour, LoggingBehaviour
 
         DEFAULT_FACTORY = "DefaultFactory"
@@ -752,7 +752,10 @@ snowscript::
 
 php::
 
-    abstract class FactoryFactory extends AbstractBuilder interfaces FactoryFactoryInterface {
+    abstract class FactoryFactory extends AbstractBuilder implements FactoryFactoryInterface, IBuilder {
+        use FactoryBehaviour;
+        use LoggingBehaviour;
+
         const DEFAULT_FACTORY = "DefaultFactory";
 
         protected static $factories = [];
@@ -760,7 +763,6 @@ php::
 
         public static function getInstance($factoryClassName) {
             return self::factories[$factoryClassName];
-            
         }
             
     }
@@ -892,6 +894,7 @@ snowscript::
     planet = Dagobah()
 
 php::
+
     namespace \starwars\battle;
 
     use \starwars\galaxy\Dagobah;
