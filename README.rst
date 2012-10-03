@@ -8,15 +8,16 @@ easy to read as well as write.
 Roadmap
 +++++++
 
-The current status as of May 13th, 2012 is that the basics work. There are
-several things I want to fix before a first release candidate though:
+The current status as of October 3rd, 2012 is that both the lexer and parser
+actually works. A lot of Snowscript can be compiled to PHP. But there is still
+tons of work until it's usable. Come join the fun!
 
 Todo 0.4
 ========
 
 - Webpage.
 - Documentation.
-- Advanced class syntax.
+- Classes part2.
 - Command line compile tool.
 - Full examples.
 - Some bugs in strings and comments.
@@ -30,7 +31,7 @@ Done
 - Control structures.
 - For loops.
 - Function style casts.
-- Basic classes.
+- Classes part1.
 - Destructuring.
 - Parsing of basic syntax.
 - Transformations for the non LALR(1) compatible features of Snowscript like
@@ -42,7 +43,6 @@ Todo 0.5
 
 - Named parameters.
 - List comprehension.
-- Splats.
 - Inner functions.
 - Parser written in Snowscript.
 - Existance.
@@ -71,8 +71,7 @@ Whitespace
 ==========
 
 Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by curly brackets "{}". Whitespace is not 
-significant inside strings and brackets "()[]".
+managed by indenting/dedenting and not by curly brackets "{}". Whitespace is not significant inside strings and brackets "()[]".
 
 The only allowed indention format is 4 spaces.
 
@@ -197,7 +196,7 @@ ending in "\\" is stripped.
 Quoted
 ------
 
-Code blocks inside "{}" is concatenated to the string.
+Code inside "{}" concatenates to the string.
 
 snowscript::
 
@@ -250,18 +249,15 @@ Functions
 
 The "fn" keyword is used to define functions, and "<-" to return a value.
 
-Function calls can be chained using the "->" operator which passes the prior 
-expression along as the first argument to the function.
-
 snowscript::
 
     fn titlefy(FancyString fancystring)
-        <- fancystring->trim(" -")->ucfirst()
+        <- fancystring.make_fancy()
 
 php::
 
     function titlefy(FancyString $fancystring) {
-        return ucfirst(trim($fancystring, " -"));
+        return $fancystring->make_fancy();
     }
     
 Arguments passed as reference must have a prefixing "&".
@@ -312,10 +308,25 @@ php::
 
     render("index.html", array('klingon'=> true);
 
+Chaining
+--------
+
+
+Function calls can be chained using the "->" operator which passes the prior 
+expression along as the first argument to the function.
+
+snowscript::
+
+    "peter"->ucfirst()->str_rot13();
+
+php::
+
+    str_rot13(ucfirst("peter"));
+
 Inner functions
 ---------------
 
-Functions inside functions, is defined at compile time, and are only available
+Functions inside functions are defined at compile time, and only available
 inside the scope where they are defined. Nesting can go arbitrarily deep.
 
 snowscript::
@@ -384,7 +395,7 @@ As the only structure in Snowscript, closures has a single line mode.
 
 snowscript::
 
-    filter(guys, (fn (guy) <- weight(guy) > 100))
+    filter(guys, (fn(guy) <- weight(guy) > 100))
 
 php::
 
@@ -399,12 +410,12 @@ Snowscript has simple destructuring.
 
 snowscript::
 
-    a, b, c = 1, 2, 3
+    a, b, c = b, c, a
     [a, b, [c, d]] = letters
 
 php::
 
-    list($a, $b, $c) = [1, 2, 3];
+    list($a, $b, $c) = [$b, $c, $a];
     list($a, $b, list($c, $d)) = $letters;
 
 Control structures
@@ -452,8 +463,7 @@ php::
 Existence
 =========
 
-There are two existence shortcut functions "?" and "??". The first is a shortcut
-for ``isset(expr)``, the second for ``!empty(expr)``.
+There are two existence shortcut functions "?" and "??". The first is a shortcut for ``isset(expr)``, the second for ``!empty(expr)``.
 
 snowscript::
 
@@ -498,9 +508,7 @@ Loops
 For
 ---
 
-Two kind of for loops are supported. Iterating over a collection, and iterating 
-over a numeric range. Both key and value are local to the loop. An "&" can be 
-used to designate the value as by-reference.
+Two kind of for loops are supported. Iterating over a collection, and iterating over a numeric range. Both key and value are local to the loop. An "&" can be used to designate the value as by-reference.
 
 snowscript::
 
@@ -555,14 +563,13 @@ Snowscript has array comprehension similiar to that of Python and others.
 
 snowscript::
 
-    [x, y for x in [1,2,3] for y in [3,1,4] if x != y]->var_dump
+    [x, y for x in [1,2,3] for y in [3,1,4] if x != y]->var_dump()
     
     fights = [fight(samurai, villain)
               for samurai in seven_samurais
-                  if samurai->is_awake()
-              for villain in seven_vaillains
-                  if not villain->is_in_jail()
-    ]
+                  if samurai.is_awake()
+                    for villain in seven_vaillains
+                        if not villain.is_in_jail()]
 
 php::
 
@@ -624,32 +631,6 @@ php::
     $bar::FOO;
     Bar::$foo;
     Bar::FOO;
-
-Mechanisms for working with non-compliant PHP code will be made available
-as macros.
-    
-Snowscript uses scope information to determine when a name is a callable
-variable and when it's a function call.
-
-snowscript::
-
-    call_me()
-    
-    cb1 = get_callback()
-    cb1()
-    
-    set_callback(&cb2)
-    cb2()
-
-php::
-
-    call_me();
-    
-    $cb1 = get_callback();
-    $cb1();
-    
-    set_callback($cb2);
-    $cb2();
     
 Classes
 =======
@@ -660,11 +641,11 @@ Declaration
 The arguments to the class is given after the class name and are available to 
 use to set properties as well as in the constructor method ``__construct()``.
 
-The "." is used to access the class instance. "self" accesses the class.
+The "." is used to access the class instance.
 
 snowscript::
 
-    class TabularWriter(File path, title)
+    class TabularWriter(File path, filesystem, title)
         # Properties. #
         title = title
         _filehandle = null
@@ -672,17 +653,14 @@ snowscript::
         # Constants. #
         VERSION = 0.4
         
-        # Static members.
-        static filesystem = Filesystem().get()
-        
         # Constructor. #
         fn __construct
-            .check_filesystem()
+            .check_filesystem(filesystem)
             .init_file(path)
             
         # Methods. #
-        fn check filesystem
-            if not filesystems()[self.filesystem]->?
+        fn check_filesystem(filesystem)
+            if not filesystems()[filesystem]->?
                 throw UnsupportedFilesystemError()
 
         fn init_file(path)
@@ -750,9 +728,10 @@ members with a "_" to mark them as a implementation detail.
 
 Functions and properties can be indented below modifier keywords.
 
-The "final", "static" and "abstract" keywords are supported as well.
+The "public", "final", "static" and "abstract" keywords are supported as well,
+but not recommended.
 
-A class can inherit an other class, implement multiple interfaces and use
+A class can inherit a single class, implement multiple interfaces and use
 multiple traits.
 
 snowscript::
@@ -869,8 +848,7 @@ as::
         └── settings.snow
 
 the file "battle.snow" would have the namespace "starwars.battle". If no
-"__namespace.snow" file is found in the same folder or above, the namespace will 
-be that of the file itself.
+"__namespace.snow" file is found in the same folder or above, the namespace will be that of the file itself.
 
 Classes, interfaces, traits, functions, constants and variables can be imported 
 from a namespace. Sub-namespaces are separated with ":".
@@ -888,13 +866,6 @@ snowscript::
     from Starwars use XFighter() as X(), set_trap() as st()
     use Db:Fields as F
 
-    # Importing global constructs.
-    from __global use str_replace(),
-
-    # Aliasing the global namespace.
-    use __global as g
-    g:trim(" Oops ")
-
 Namespaces (importing)
 ----------------------
 
@@ -909,25 +880,10 @@ php::
     use \Db\Fields;
     use \Db\Transaction;
 
-A namespace must be imported before it can be used in the code. So the following
-won't work.
+Classes, interfaces and traits
+------------------------------
 
-snowscript::
-
-    add_trust_in(:starwars:settings:THE_FORCE)
-
-But must be.
-
-snowscript::
-
-    use starwars:
-    add_trust_in(starwars:settings:THE_FORCE)
-
-Classes
--------
-
-Classes can be imported from other namespaces. Their names must be PascalCase
-and postfixed with "()".
+Classes, interfaces and traits can be imported from other namespaces. Their names must be PascalCase and postfixed with "()".
 
 snowscript::
 
@@ -936,6 +892,7 @@ snowscript::
     planet = Dagobah()
 
 php::
+    namespace \starwars\battle;
 
     use \starwars\galaxy\Dagobah;
     use \starwars\galaxy\Alderaan;
@@ -1020,17 +977,15 @@ php::
 Global Space
 ------------
 
-Members in the global space can be imported using the "__global" magic name.
+The global namespace can be accessed directly with a prefixing ":".
 
 snowscript::
 
-    from __global use trim(), str_replace()
-    trim(" A string")
+    :trim(" A string")
 
 php::
 
     \trim(" A string")
-
 
 Scoping rules
 =============
