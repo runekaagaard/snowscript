@@ -50,8 +50,7 @@ Todo 0.5
 Todo 0.6
 ========
 
-- Closures and lambdas.
-- Ommision of "," inside brackets.
+- Closures.
 
 Todo 0.7
 ========
@@ -71,7 +70,8 @@ Whitespace
 ==========
 
 Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by curly brackets "{}". Whitespace is not significant inside strings and brackets "()[]".
+managed by indenting/dedenting and not by curly brackets "{}". Whitespace is not
+significant inside strings and brackets "()[]".
 
 The only allowed indention format is 4 spaces.
 
@@ -202,8 +202,8 @@ snowscript::
 
     fn travel
         echo "\
-        The {animal} went to {world.place()}
-        with his {NUM} friends. 
+            The {animal} went to {world.place()}
+            with his {NUM} friends. 
         \"
 
     """<a href="https://snowscript.org">Snowscript</a>\n"""
@@ -310,7 +310,6 @@ php::
 
 Chaining
 --------
-
 
 Function calls can be chained using the "->" operator which passes the prior 
 expression along as the first argument to the function.
@@ -463,31 +462,33 @@ php::
 Existence
 =========
 
-There are two existence shortcut functions "?" and "??". The first is a shortcut for ``isset(expr)``, the second for ``!empty(expr)``.
+There are two existence operators "?" and "??". The first checks with 
+``isset(expr)``, the second with ``!empty(expr)``.
 
 snowscript::
 
-    if get_result()->?
+    if field['title']?
         do_stuff()
 
-    if get_result()->??
-        do_stuff()
+    stuff = try_this() ?? that ?? "Default"
 
 php::
 
-    $tmp_ = get_result(); 
-    if (isset($tmp_)) {
+    if (isset($field['title'])) {
         do_stuff();
     }
-    unset($tmp_);
 
-    $tmp_ = get_result(); 
-    if (!empty($tmp_)) {
-        do_stuff();
+    $stuff = false;
+    $tmp_ = try_this();
+    if ($tmp_) {
+        $stuff = $tmp_;
+    } elseif(!empty($that)) {
+        $stuff = $that;
+    } else {
+        $stuff = "Default";
     }
     unset($tmp_);
-        
-
+    
 Type casting
 ============
 
@@ -508,7 +509,9 @@ Loops
 For
 ---
 
-Two kind of for loops are supported. Iterating over a collection, and iterating over a numeric range. Both key and value are local to the loop. An "&" can be used to designate the value as by-reference.
+Two kind of for loops are supported. Iterating over a collection, and iterating
+over a numeric range. Both key and value are local to the loop. An "&" can be 
+used to designate the value as by-reference.
 
 snowscript::
 
@@ -722,14 +725,13 @@ php::
     }
     TabularWriter::$filesystem = Filesystem().get()
     
-Protected and private visibility is supported but not considered very "snowy", 
-after all "we're all consenting adults here". Instead it's recommended to prefix
-members with a "_" to mark them as a implementation detail.
+Protected and private visibility using "private" and "protected" is supported 
+but not considered very "snowy", after all "we're all consenting adults here". 
+Instead it's recommended to prefix members with a "_" to mark them as a 
+implementation detail. The "public", "final", "static" and "abstract" keywords 
+are supported as well, but not recommended.
 
 Functions and properties can be indented below modifier keywords.
-
-The "public", "final", "static" and "abstract" keywords are supported as well,
-but not recommended.
 
 A class can inherit a single class, implement multiple interfaces and use
 multiple traits.
@@ -781,7 +783,7 @@ php::
     new Bicycle(new Rider));
 
 Properties and methods on instantiated classes is accessed with the "."
-operator. Using "." after a ClassName access static members.
+operator. Using "." after a ClassName accesses static members.
 
 snowscript::
 
@@ -850,7 +852,8 @@ as::
         └── settings.snow
 
 the file "battle.snow" would have the namespace "starwars.battle". If no
-"__namespace.snow" file is found in the same folder or above, the namespace will be that of the file itself.
+"__namespace.snow" file is found in the same folder or above, the namespace will 
+be that of the file itself.
 
 Classes, interfaces, traits, functions, constants and variables can be imported 
 from a namespace. Sub-namespaces are separated with ":".
@@ -885,7 +888,8 @@ php::
 Classes, interfaces and traits
 ------------------------------
 
-Classes, interfaces and traits can be imported from other namespaces. Their names must be PascalCase and postfixed with "()".
+Classes, interfaces and traits can be imported from other namespaces. Their 
+names must be PascalCase and postfixed with "()".
 
 snowscript::
 
