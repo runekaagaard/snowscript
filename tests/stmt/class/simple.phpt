@@ -27,7 +27,7 @@ class A(array a, MyClass b, c=42, ds) extends B implements C,D
 ", 0);
 --EXPECT--
 <?php
-class A
+class A extends B implements C, D
 {
     const FOO_BAR = 1;
     
