@@ -5,6 +5,8 @@ define('T_TO', 1002);
 define('T_DOWNTO', 1003);
 define('T_STEP', 1004);
 define('T_THEN', 1005);
+define('T_STRING_SINGLE', 1006);
+define('T_STRING_DOUBLE', 1007);
 
 // TODO: This is WIP code, just making a couple of tests pass.
 
@@ -14,6 +16,8 @@ function snow_token_name($i) {
     if ($i === T_DOWNTO) return 'T_DOWNTO';
     if ($i === T_STEP) return 'T_STEP';
     if ($i === T_THEN) return 'T_THEN';
+    if ($i === T_STRING_SINGLE) return 'T_STRING_SINGLE';
+    if ($i === T_STRING_DOUBLE) return 'T_STRING_DOUBLE';
     return token_name($i);
 }
 
@@ -80,8 +84,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         'T_NEXT' => 'T_CONTINUE',
      );
     public $token_callback = array(
-        'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1, 'T_STRING_DOUBLE' => 1,
-        'T_STRING_SINGLE' => 1,
+        'T_STRING_WITH_CONCAT'=>1, 'T_NUMBER' =>1,
     );
 
     function alter_token_type($t) {
@@ -193,8 +196,8 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     function T_STRING_WITH_CONCAT($t) {
         return array(
             array(
-                T_CONSTANT_ENCAPSED_STRING,
-                "'" . $t['value'] . "'",
+                T_STRING_SINGLE,
+                $t['value'],
                 2
             ),
             ".",
@@ -207,26 +210,6 @@ class Snowscript_Lexer extends PHPParser_Lexer {
         else
             return array(array(T_LNUMBER, $t['value'][1], 2));
 
-    }
-
-    function T_STRING_DOUBLE($t) {
-        return array(
-            array(
-                T_CONSTANT_ENCAPSED_STRING,
-                '"' . $t['value'] . '"',
-                2
-            ),
-        );
-    }
-
-    function T_STRING_SINGLE($t) {
-        return array(
-            array(
-                T_CONSTANT_ENCAPSED_STRING,
-                "'" . $t['value'] . "'",
-                2
-            ),
-        );
     }
 }
 Snowscript_Lexer::init_named_tokenmap();

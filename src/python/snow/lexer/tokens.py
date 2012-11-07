@@ -479,16 +479,23 @@ def html_mode_string(f):
     
     return _
     
+INDENTION_CHARS = "    "
 
 def add_to_string(t, value):
     """Adds a value to the lexers string_content variable."""
-    t.lexer.string_content += value
+    # For double quoted strings, remove the whitespace on each beginning line
+    # matching one more than the current indention level.
+    if t.lexer.current_state() in ('INDOUBLEQUOTEDSTRING', 'INTRIPPLEDOUBLEQUOTEDSTRING'):
+        indention = INDENTION_CHARS * (t.lexer.indent_level+1)
+        value = value.replace("\n%s" % indention, "\n")
+    t.lexer.string_content += value 
 
 
 def get_string_token(t, type='STRING'):
     """Returns a string token with the value of the lexers
     string_content variable which is then reset to ''."""
-    t.value = t.lexer.string_content
+    # Remove escaped linebreaks.
+    t.value = t.lexer.string_content.replace("\\\n", "")
     t.lexer.string_content = ''
     t.type = type
     return t
@@ -540,6 +547,7 @@ def t_INTRIPPLEDOUBLEQUOTEDSTRING_STRING(t):
 @html_mode_string
 def t_INTRIPPLEDOUBLEQUOTEDSTRING_STRING_END(t):
         r'"""'
+        t.lexer.string_content = t.lexer.string_content.replace('"', r'\"')
         return string_end(t, 'INTRIPPLEDOUBLEQUOTEDSTRING')
 
 @html_mode_string
@@ -610,14 +618,15 @@ def t_INTRIPPLESINGLEQUOTEDSTRING_ESCAPE(t):
 
 
 def t_INTRIPPLESINGLEQUOTEDSTRING_STRING(t):
-        r"[^'\\]+"
-        # All that are normal string chars.
-        add_to_string(t, t.value)
+    r"[^'\\]+"
+    # All that are normal string chars.
+    add_to_string(t, t.value)
 
 
 def t_INTRIPPLESINGLEQUOTEDSTRING_STRING_END(t):
-        r"'''"
-        return string_end(t, 'INTRIPPLESINGLEQUOTEDSTRING')
+    r"'''"
+    t.lexer.string_content = t.lexer.string_content.replace("'", r"\'")
+    return string_end(t, 'INTRIPPLESINGLEQUOTEDSTRING')
 
 
 def t_INTRIPPLESINGLEQUOTEDSTRING_SINGLEQUOTE(t):

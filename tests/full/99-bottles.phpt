@@ -15,17 +15,19 @@ fn pluralize(i)
         default
             <- "{i} bottles of beer"
 
+fn stop(i)
+    <- if i == 1 then "!" else "."
 
 for i in 99 downto 1
     bottles = pluralize(i)
-    echo "{bottles} on the wall, {bottles}.\n"
-    echo "Take one down, pass it around, {pluralize(i-1)} on the wall"
-    echo if i == 1 then "!" else "."
-    echo "\n--\n"
+    echo """\
+        {bottles} on the wall, {bottles}.
+        Take one down, pass it around, {pluralize(i-1)} on the wall{stop(i)}
+        --
+        """
     
 SNOW
 , 0, 1);
-
 eval($php);
 
 --EXPECT--

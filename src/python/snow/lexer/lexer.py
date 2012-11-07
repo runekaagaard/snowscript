@@ -33,6 +33,7 @@ class SnowLexer(object):
     Extends the default PLY lexer by adding rules for indentation and other
     whitespace stuff.
     """
+    
     def __init__(self, lexer=None):
         if lexer is None:
             lexer = lex.lex().clone()

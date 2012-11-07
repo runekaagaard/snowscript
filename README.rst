@@ -123,7 +123,7 @@ Arrays are defined using square brackets "[]". Items are separated by ",". A
 trailing "," is allowed.
 
 Arrays can contain key/value pairs seperated with "=". The keys can be omitted
-and running integers will be assigned. Keys are always interpreted stringy. 
+and running integers will be assigned. Keys are always interpreted stringy.
 Keys not matching the regex "[a-zA-Z_][a-zA-Z0-9_]+" can be made by surrounding
 the key with quotes.
 
@@ -142,7 +142,7 @@ snowscript::
             seasons = 2,
         ],
     ]
-    
+
 php::
 
     $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
@@ -316,7 +316,7 @@ expression along as the first argument to the function.
 
 snowscript::
 
-    "peter"->ucfirst()->str_rot13();
+    "peter"->ucfirst()->str_rot13()
 
 php::
 
@@ -433,7 +433,6 @@ snowscript::
         improvise()
     else
         run()
-
 
 php::
 
@@ -616,12 +615,11 @@ snowscript::
     FOO
     
     bar.foo
-    bar.foo()
-    bar.FOO
-    Bar.foo
-    Bar.FOO
+    bar::foo
+    bar::FOO
+    Bar::foo
+    Bar::FOO
      
-    
 php::
 
     $foo;
@@ -630,7 +628,7 @@ php::
     FOO;
     
     $bar->foo;
-    $bar->foo();
+    $bar::$foo;
     $bar::FOO;
     Bar::$foo;
     Bar::FOO;
@@ -641,8 +639,7 @@ Classes
 Declaration
 -----------
 
-The arguments to the class is given after the class name and are available to 
-use to set properties as well as in the constructor method ``__construct()``.
+The arguments to the class is given after the class name.
 
 The "." is used to access the class instance.
 
@@ -653,24 +650,23 @@ snowscript::
         title = title
         _filehandle = null
         
-        # Constants. #
+        # Constant by convention.
         VERSION = 0.4
-        
-        # Constructor. #
-        fn __construct
-            .check_filesystem(filesystem)
-            .init_file(path)
             
         # Methods. #
         fn check_filesystem(filesystem)
-            if not filesystems()[filesystem]->?
+            if not filesystems()[filesystem]?
                 throw UnsupportedFilesystemError()
-
+        
         fn init_file(path)
             if not file_exists(path)
                 throw FileMissingError()
             else
                 ._filehandle = open_file(path)
+
+        # Initialize object.
+        check_filesystem(filesystem)
+        init_file(path)
 
 php::
 
@@ -685,11 +681,6 @@ php::
          * Constants.
          */        
         const VERSION = 0.4;
-        
-        /**
-         * Static members.
-         */
-        static filesystem = null;
 
         /**
          * Constructor.
@@ -723,13 +714,14 @@ php::
             }
         }
     }
-    TabularWriter::$filesystem = Filesystem().get()
     
 Protected and private visibility using "private" and "protected" is supported 
 but not considered very "snowy", after all "we're all consenting adults here". 
 Instead it's recommended to prefix members with a "_" to mark them as a 
 implementation detail. The "public", "final", "static" and "abstract" keywords 
 are supported as well, but not recommended.
+
+"::" is used to access the class.
 
 Functions and properties can be indented below modifier keywords.
 
@@ -750,7 +742,7 @@ snowscript::
             version = 1.0
 
         public static fn getInstance(factoryClassName)
-            <- self.factories[factoryClassName]
+            <- ::factories[factoryClassName]
 
 php::
 
@@ -783,7 +775,7 @@ php::
     new Bicycle(new Rider));
 
 Properties and methods on instantiated classes is accessed with the "."
-operator. Using "." after a ClassName accesses static members.
+operator. Using "::" accesses static members.
 
 snowscript::
 
@@ -791,9 +783,9 @@ snowscript::
     wind.blow()
     Newspaper().read()
     
-    Player.register("Ronaldo")
-    Player.MALE
-    Player.genders
+    Player::register("Ronaldo")
+    Player::MALE
+    Player::genders
 
 php::
 
@@ -998,6 +990,27 @@ Scoping rules
 =============
 
 Stub.
+
+my_var = 42
+
+fn foo()
+    # Outputs 42.
+    echo my_var
+
+    # Compile error.
+    my_var = 42
+
+    # Compile error.
+    bar(&my_var)
+
+fn foo2()
+    mutates my_var
+
+    # OK.
+    my_var = 43
+
+    # OK.
+    bar(&my_var)
 
 Traits
 ======

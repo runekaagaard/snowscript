@@ -25,27 +25,6 @@ def t_error(t):
     "Error token."
     raise_syntax_error("invalid syntax", t)
 
-##### Keep track of indentation state
-
-# I implemented INDENT / DEDENT generation as a post-processing filter
-
-# The original lex token stream contains WS and NEWLINE characters.
-# WS will only occur before any other tokens on a line.
-
-# I have three filters.  One tags tokens by adding two attributes.
-# "must_indent" is True if the token must be indented from the
-# previous code.  The other is "at_line_start" which is True for WS
-# and the first non-WS/non-NEWLINE on a line.  It flags the check so
-# see if the new line has changed indication level.
-
-# Python's syntax has three INDENT states
-#  0) no colon hence no need to indent
-#  1) "if 1: go()" - simple statements have a COLON but no need for an indent
-#  2) "if 1:\n  go()" - complex statements have a COLON NEWLINE and must indent
-NO_INDENT = 0
-MAY_INDENT = 1
-MUST_INDENT = 2
-
 
 def trim_beginning_newlines(token_stream):
     still_trim = True
@@ -138,6 +117,16 @@ def inject_indent_tokens(lexer, token_stream):
     except StopIteration:
         for level in range(0, len(levels) - 1):
             yield build_token('DEDENT', '', t)
+
+def mark_indentation_level(lexer, token_stream):
+    lexer.indent_level = 0
+    for t in token_stream:
+        if t.type == 'INDENT':
+            lexer.indent_level += 1
+        elif t.type == 'DEDENT':
+            lexer.indent_level -= 1
+
+        yield t
 
 
 def add_endmarker(token_stream):
@@ -314,11 +303,11 @@ def debug(token_stream):
 
 
 def make_token_stream(lexer, add_endmarker=True):
-    
     token_stream = iter(lexer.token, None)
     token_stream = trim_beginning_newlines(token_stream)
     token_stream = inject_case_tokens(token_stream)
     token_stream = inject_indent_tokens(lexer, token_stream)
+    token_stream = mark_indentation_level(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
     token_stream = nuke_newlines_around_indent(token_stream)
     token_stream = insert_missing_new(token_stream)
@@ -330,7 +319,7 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = add_missing_parenthesis_after_functions(token_stream)
     token_stream = delete_multiple_newlines(token_stream)
     token_stream = add_missing_this(token_stream)
-    # token_stream = debug(token_stream)
+    #token_stream = debug(token_stream)
 
     if add_endmarker:
         token_stream = _add_endmarker(token_stream)
