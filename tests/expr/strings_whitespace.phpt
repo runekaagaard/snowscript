@@ -4,18 +4,21 @@ Advanced strings
 <?php
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
-pp_php(<<<EOT
+snowscript_to_php(<<<'EOD'
+fn foo()
+    echo """
+        This is base\
 
-"yo";
-'yo';
-
-EOT);
-snowscript_to_php(<<<EOT
-"\n"
-'\n'
-EOT
-, 1);
+        And I like this!
+        """
+EOD
+, 0);
 --EXPECT--
 <?php
-"\n"
-'\n'
+function foo()
+{
+    echo "
+This is base
+And I like this!
+";
+}

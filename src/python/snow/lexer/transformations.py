@@ -147,7 +147,8 @@ def remove_empty_concats(token_stream):
             except StopIteration:
                 yield t
                 raise StopIteration
-            if not(t2.type == "STRING" and t2.value == ""):
+            if not(t2.type in ("STRING_SINGLE", "STRING_DOUBLE") 
+            and t2.value == ""):
                 yield t
                 yield t2
         else:

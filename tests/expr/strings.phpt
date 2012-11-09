@@ -59,26 +59,37 @@ EOT
 --EXPECT--
 <?php
 'single1';
-'single2';
+"single2";
 'multi
    1
 x';
-'multi
+"multi
    2
-x';
+x";
 'single1';
-'single2';
+"single2";
 'multi
    1
 x';
-'multi
+"multi
    2
-x';
+x";
 '"';
-'\'';
+"'";
 '""\'\'""';
-'\'\'""\'\'';
-'';
+"''\"\"''";
+"";
+"foo";
+" foo ";
+"multi
+line
+s";
+"";
+"foo";
+" foo ";
+"multi
+line
+s";
 'foo';
 ' foo ';
 'multi
@@ -90,20 +101,9 @@ s';
 'multi
 line
 s';
-'foo';
-' foo ';
-'multi
-line
-s';
-'';
-'foo';
-' foo ';
-'multi
-line
-s';
-call_me('');
-call_you('');
+call_me("");
+call_you("");
 call_us('');
 call_her('');
-echo '';
-$a['X']['y'];
+echo "";
+$a["X"]['y'];

@@ -625,7 +625,6 @@ def t_INTRIPPLESINGLEQUOTEDSTRING_STRING(t):
 
 def t_INTRIPPLESINGLEQUOTEDSTRING_STRING_END(t):
     r"'''"
-    t.lexer.string_content = t.lexer.string_content.replace("'", r"\'")
     return string_end(t, 'INTRIPPLESINGLEQUOTEDSTRING')
 
 

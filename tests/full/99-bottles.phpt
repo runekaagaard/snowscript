@@ -15,14 +15,15 @@ fn pluralize(i)
         default
             <- "{i} bottles of beer"
 
-fn stop(i)
+fn punctuation(i)
     <- if i == 1 then "!" else "."
 
 for i in 99 downto 1
     bottles = pluralize(i)
     echo """\
         {bottles} on the wall, {bottles}.
-        Take one down, pass it around, {pluralize(i-1)} on the wall{stop(i)}
+        Take one down, pass it around, {pluralize(i-1)} on the wall\
+        {punctuation(i)}
         --
         """
     

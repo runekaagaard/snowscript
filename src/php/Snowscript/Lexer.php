@@ -196,7 +196,7 @@ class Snowscript_Lexer extends PHPParser_Lexer {
     function T_STRING_WITH_CONCAT($t) {
         return array(
             array(
-                T_STRING_SINGLE,
+                T_STRING_DOUBLE,
                 $t['value'],
                 2
             ),
