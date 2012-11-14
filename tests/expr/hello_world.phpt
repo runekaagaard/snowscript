@@ -9,4 +9,4 @@ echo "Hello, Snowscript World!"
 ');
 --EXPECT--
 <?php
-echo 'Hello, Snowscript World!';
+echo "Hello, Snowscript World!";

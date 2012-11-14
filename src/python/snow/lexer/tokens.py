@@ -29,6 +29,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
      'DOUBLE_ARROW', 'QUESTION_MARK', 'THEN', 'STRING_DOUBLE', 'STRING_SINGLE',
+     'PARENT',
 ]
 
 token_groups = {
@@ -48,7 +49,7 @@ token_groups = {
             'STATIC', 'SWITCH', 'THROW', 
             'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 
             'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-            'QUESTION_MARK', 'THEN',
+            'QUESTION_MARK', 'THEN', 'PARENT'
             ],
     # Strings.
     'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING_DOUBLE', 'STRING_SINGLE'],
@@ -143,6 +144,7 @@ def t_INLINE_HTML(t):
 NEXT_LINE = re.compile(r'\n([ ]*)(.*)')
 def t_COMMENT(t):
     r"[ ]*\043[^\n]*"  # \043 is '#' ; otherwise PLY thinks it's an re comment
+    return t
     def next_line_indents_in(t):
         """
         Checks if the next line has a greater indention than current.

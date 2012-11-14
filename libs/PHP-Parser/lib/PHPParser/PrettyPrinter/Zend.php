@@ -480,16 +480,16 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     public function pStmt_Class(PHPParser_Node_Stmt_Class $node) {
         return $this->pModifiers($node->type)
              . 'class ' . $node->name
-             . (null !== $node->extends ? ' extends ' . $this->p($node->extends) : '')
+             . ($node->extends ? ' extends ' . $this->p($node->extends) : '')
              . (!empty($node->implements) ? ' implements ' . $this->pCommaSeparated($node->implements) : '')
              . "\n" . '{' . "\n" . $this->pStmts($node->stmts) .  "\n" . 
              $this ->noIndentToken . "\n" .
-             $this->indent_more('public function __construct(' . 
+             (($node->constructor || $node->props) ? $this->indent_more('public function __construct(' . 
                 (($node->parameter_list) ? $this->pCommaSeparated($node->parameter_list) : '') .
                 ') {' . "\n" .
-                    $this->pStmts($node->props) . 
-             "\n" . $this->pStmts($node->constructor) . "\n" 
-             . '}') . "\n\n" . '}';
+                    ($node->props ? $this->pStmts($node->props) . "\n" : '') . 
+                    ($node->constructor ? $this->pStmts($node->constructor) . "\n" : '') 
+             . '}') : '') . "\n\n" . '}';
     }
 
     public function pStmt_Trait(PHPParser_Node_Stmt_Trait $node) {

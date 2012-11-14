@@ -88,7 +88,12 @@ function resolveNodes($code) {
                 $paramCode .= $param . ', ';
             }
 
-            return 'new PHPParser_Node_' . $matches['name'] . '(' . $paramCode . '$line, $docComment)';
+            if (substr($matches['name'], 0, 5) === 'Snow_') {
+                $name = 'Snowscript_Node_' . substr($matches['name'], 5);
+            } else {
+                $name = 'PHPParser_Node_' . $matches['name'];
+            }
+            return 'new ' . $name . '(' . $paramCode . '$line, $docComment)';
         },
         $code
     );

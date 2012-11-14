@@ -261,10 +261,11 @@ def add_missing_parenthesis(token_stream):
         else:
             bracket_level = 0
         if not inside_expression and t.type in MISSING_PARENTHESIS:
-            start_bracket_level = 0
+            start_bracket_level = t.lexer.bracket_level
             inside_expression = True
             yield t
             yield build_token('LPAR', '(', t)
+
             continue
 
         if (inside_expression and t.type in ('INDENT', 'COLON', 'THEN')
@@ -290,8 +291,17 @@ def add_missing_parenthesis_after_functions(token_stream):
 
 def add_missing_this(token_stream):
     for t in token_stream:
-        if t.type == 'DOT' and prev_t.type not in ('PHP_STRING', 'NAME'):
+        if t.type == 'DOT' and prev_t.type not in ('PHP_STRING', 'NAME', 'CLASS_NAME'):
             yield build_token("NAME", "this", t)
+
+        yield t
+        prev_t = t
+
+def add_missing_self(token_stream):
+    for t in token_stream:
+        if t.type == 'DOUBLE_COLON' and prev_t.type not in (
+        'PHP_STRING', 'NAME', 'CLASS_NAME') and prev_t.value != 'parent':
+            yield build_token("PHP_STRING", "self", t)
 
         yield t
         prev_t = t
@@ -320,6 +330,7 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = add_missing_parenthesis_after_functions(token_stream)
     token_stream = delete_multiple_newlines(token_stream)
     token_stream = add_missing_this(token_stream)
+    token_stream = add_missing_self(token_stream)
     #token_stream = debug(token_stream)
 
     if add_endmarker:

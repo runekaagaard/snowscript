@@ -17,16 +17,18 @@ Todo 0.4
 
 - Webpage.
 - Documentation.
+- Scoping rules.
 - Classes part2.
 - Command line compile tool.
 - Full examples.
-- Some bugs in strings and comments.
+- Some bugs in comments.
 - Tolerable error messages.
 - Code cleanup.
 
 Done
 ==== 
 
+- Strings.
 - Ternary operator.
 - Control structures.
 - For loops.

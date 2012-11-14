@@ -6,6 +6,7 @@ require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 $php = snowscript_to_php(<<<'SNOW'
 
+# Returns the "... bottles of beer" string. #
 fn pluralize(i)
     switch i
         0
@@ -15,18 +16,23 @@ fn pluralize(i)
         default
             <- "{i} bottles of beer"
 
+# Returns "!" if it is the last bottle, otherwise ".". #
 fn punctuation(i)
     <- if i == 1 then "!" else "."
 
-for i in 99 downto 1
-    bottles = pluralize(i)
-    echo """\
-        {bottles} on the wall, {bottles}.
-        Take one down, pass it around, {pluralize(i-1)} on the wall\
-        {punctuation(i)}
-        --
-        """
-    
+# Echos out the text for n bottles of beer. #
+fn bottles_of_beer(n)
+    for i in n downto 1
+        bottles = pluralize(i)
+        echo """\
+            {bottles} on the wall, {bottles}.
+            Take one down, pass it around, {pluralize(i-1)} on the wall\
+            {punctuation(i)}
+            --
+            """
+
+bottles_of_beer(99)
+
 SNOW
 , 0, 1);
 eval($php);

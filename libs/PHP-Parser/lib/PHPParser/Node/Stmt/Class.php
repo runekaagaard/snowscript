@@ -6,8 +6,10 @@ class PHPParser_Node_Stmt_Class_Traverse extends PHPParser_NodeVisitorAbstract {
 
     public function __construct($class_node) {
         $this->class_node = $class_node;
-        foreach ($class_node->parameter_list as $node) {
-            $this->parameter_names [$node->name]= true;
+        if ($class_node->parameter_list !== null) {
+            foreach ($class_node->parameter_list as $node) {
+                $this->parameter_names[$node->name] = true;
+            }
         }
     }
 
@@ -88,7 +90,7 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 throw new PHPParser_Error(sprintf('Cannot use "%s" as interface name as it is reserved', $interface));
             }
         }
-        list($this->stmts, $this->props, $this->constructor) = 
+        list($this->stmts, $this->props, $this->constructor, $this->extends, $this->implements) = 
             $this->splitStmtsAndProps($this->stmts);
     }
 
@@ -96,6 +98,8 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
         $stmts = array();
         $props = array();
         $constructor = false;
+        $extends = false;
+        $implements = array();
         $this->prop_names = array();
         $traverser = new PHPParser_NodeTraverser;
         $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse($this));
@@ -108,14 +112,20 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
             } elseif ($stmt instanceof PHPParser_Node_Stmt_ClassMethod
             && $stmt->name == '__construct') {
                 if ($constructor !== false) throw new PHPParser_Error(
-                    "Only one __construct method allow per class.");
+                    "Only one __construct method allowed per class.");
                 $constructor = $stmt->stmts;
+            } elseif ($stmt instanceof Snowscript_Node_Stmt_Extends) {
+                if ($extends !== false) throw new PHPParser_Error(
+                    "Only one extend allow per class.");
+                $extends = $stmt->name;
+            } elseif ($stmt instanceof Snowscript_Node_Stmt_Implements) {
+                foreach($stmt->names as $name) $implements []= $name;
             } else {
                 $stmts[] = $stmt;
             }
         }
         $this->prop_names = array();
-        return array($stmts, $props, $constructor);
+        return array($stmts, $props, $constructor, $extends, $implements);
     }
 
     public static function verifyModifier($a, $b) {

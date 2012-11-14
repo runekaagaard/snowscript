@@ -1,0 +1,143 @@
+
+snow_token_names = ['T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 
+                    'T_STRING_SINGLE', 'T_STRING_DOUBLE']
+
+i = 1001
+global snow_tokens
+snow_tokens = []
+for token_name in snow_token_names
+    define(token_name, i)
+    snow_tokens[i] = token_name
+    i += 1
+
+fn snow_token_name(i)
+    global snow_tokens
+    <- if isset(snow_tokens[i]) then snow_tokens[i] else token_name(i)
+
+
+class Snowscript_Lexer(code)
+    extends PHPParser_Lexer
+
+    tokens = []
+    debug = []
+
+    transform_token_value = ['T_VARIABLE': '$%s']
+
+    literal_tokens = [
+        'T_PLUS': 1, 'T_GREATER': 1, 'T_LPAR': 1, 'T_RPAR': 1,
+        'T_MINUS': 1, 'T_STAR': 1, 'T_SLASH': 1, 'T_EQUAL': 1,
+        'T_AMPER': 1, 'T_COMMA': 1, 'T_LSQB': 1, 'T_RSQB': 1, 
+        'T_QUESTION_MARK': 1, 'T_COLON': 1,
+    ]
+
+    translated_tokens = [
+        'T_NEWLINE': ';', 'T_INDENT': '{', 'T_DEDENT': '}',
+        'T_BAND': '&', 'T_BXOR': '^', 'T_PERCENT': '.', 'T_MOD': '%',
+        'T_BNOT': '~', 'T_BOR': '|', 'T_LBRACE': '{',
+        'T_RBRACE': '}', 'T_LESS': '<', 'T_NOT': '!',
+    ]
+
+    ignored_tokens = ['T_ENDMARKER': 1, 'T_PASS': 1,]
+
+    token_types_map = [
+        'T_NAME': 'T_VARIABLE',
+        'T_PHP_STRING': 'T_STRING',
+        'T_BLEFT': 'T_SL', 'T_BRIGHT': 'T_SR',
+        'T_FN': 'T_FUNCTION',
+        'T_DOUBLE_COLON': 'T_PAAMAYIM_NEKUDOTAYIM',
+        'T_CALLABLE': 'T_STRING',
+        'T_TRUE': 'T_STRING',
+        'T_FALSE': 'T_STRING',
+        'T_ELIF': 'T_ELSEIF',
+        'T_ISA': 'T_INSTANCEOF',
+        'T_DIE': 'T_EXIT',
+        'T_OR': 'T_BOOLEAN_OR',
+        'T_XOR': 'T_LOGICAL_XOR',
+        'T_AND': 'T_BOOLEAN_AND',
+        'T__OR_': 'T_LOGICAL_OR',
+        'T__AND_': 'T_LOGICAL_AND',
+        'T_DOT': 'T_OBJECT_OPERATOR',
+        'T_NULL': 'T_STRING',
+        'T_CONSTANT_NAME': 'T_STRING',
+        'T_CLASS_NAME': 'T_STRING',
+        'T_FLOAT_CAST': 'T_DOUBLE_CAST',
+        'T_STRINGTYPE_CAST': 'T_STRING_CAST',
+        'T_NEXT': 'T_CONTINUE', 'T_PARENT': 'T_STRING',
+    ]
+
+    token_callback = ['T_STRING_WITH_CONCAT': 1, 'T_NUMBER': 1, ]
+
+    fn __construct
+        tmp_file = "/tmp/.snowcode"
+        file_put_contents(tmp_file, code)
+        parent::__construct("")
+        [.tokens, .debug] = .get_tokens(tmp_file)
+        unlink(tmp_file)
+
+    fn alter_token_type(t)
+        type = "T_{t['type']}"
+        if isset(.token_types_map[type])
+            type = .token_types_map[type]
+        <- type
+
+    fn alter_token_value(t, altered_type)
+        value = t['value']
+        if isset(.transform_token_value[altered_type])
+            value = sprintf(.transform_token_value[altered_type],
+                            value)
+        <- value
+
+    fn translate_token(t)
+        type = .alter_token_type(t)
+        value = .alter_token_value(t, type)
+        if not empty(::named_tokenmap[type])
+            token_number = ::named_tokenmap[type]
+            result = if is_array(value) then value[1] else value
+            <- [[token_number, result, 2]]
+        elif not empty(.literal_tokens[type])
+            <- value
+        elif not empty(.translated_tokens[type])
+            <- .translated_tokens[type]
+        elif not empty(.ignored_tokens[type])
+            <- null
+        elif isset(.token_callback[type])
+            <- call_user_func([this, type], t)
+        else
+            echo "Unknown token:\n"
+            var_dump(t, type, value)
+            die
+
+    fn get_tokens(tmp_file)
+        py_file = "{dirname(__FILE__)}/../../python/snow/lexer/lex-to-json.py"
+        json = shell_exec("python {py_file} {tmp_file}")
+        python_tokens = json_decode(json, true)
+        if not python_tokens
+            var_dump(json)
+            exit
+        debug = []
+
+        php_tokens = [[T_OPEN_TAG, '<?php ', 1]]
+        for t in python_tokens
+            first = true
+            for php_token in array(.translate_token(t))
+                if php_token !== null
+                    php_tokens []= php_token
+                    out_type = if is_array(php_token) then snow_token_name(php_token[0]) else 'LITERAL'
+                    out_value = if is_array(php_token) then php_token[1] else php_token
+                    debug []= [
+                        'in_type': if first then t['type'] else '',
+                        'in_value': if first then t['value'] else '',
+                        'out_type': out_type,
+                        'out_value': out_value,
+                    ]
+                    first = false
+        <- [php_tokens, debug]
+
+    fn T_STRING_WITH_CONCAT(t)
+        <- [[T_STRING_DOUBLE, t['value'], 2], ".",]
+
+    fn T_NUMBER(t)
+        if is_float(t['value'][0])
+            <- [[T_DNUMBER, t['value'][1], 2]]
+        else
+            <- [[T_LNUMBER, t['value'][1], 2]]

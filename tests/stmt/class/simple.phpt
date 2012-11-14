@@ -6,8 +6,13 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
 
-class A(array a, MyClass b, c=42, ds) extends B implements C,D 
+class A(array a, MyClass b, c=42, ds) 
+    extends B
+    implements C
+    
     FOO_BAR = 1
+
+    implements D
 
     y = a
     a = my_func(a)
@@ -15,7 +20,7 @@ class A(array a, MyClass b, c=42, ds) extends B implements C,D
     d = x*2 * a * b
     ds = []
 
-    fn __construct
+    fn __construct()
         for d in ds
             .ds[] = do_stuff_to(d)
         .x.y.z.v.f = 2000
