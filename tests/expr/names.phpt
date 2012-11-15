@@ -8,9 +8,9 @@ snowscript_to_php("
 AClass()
 a.b.c
 a.b.CAP
-A::prop
-a::func()
-A::A_KONST
+A..prop
+a..func()
+A..A_KONST
 avar
 afunccall()
 A_KONST

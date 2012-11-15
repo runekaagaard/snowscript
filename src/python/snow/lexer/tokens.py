@@ -12,7 +12,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'BAND', 'BLEFT', 'BNOT', 'BOOL', 'BOR', 'BOX', 'BREAK', 'BRIGHT', 'BXOR',
      'CALLABLE', 'CASE', 'CATCH', 'CIRCUMFLEX', 'CLASS', 'CLASS_NAME', 'CLONE',
      'COLON', 'COMMA', 'COMMENT', 'CONCAT_EQUAL', 'CONST', 'CONSTANT_NAME',
-     'DEC', 'DECLARE', 'DEFAULT', 'DIE', 'DIV_EQUAL', 'DOT',
+     'DEC', 'DECLARE', 'DEFAULT', 'DIE', 'DIV_EQUAL', 'DOUBLE_DOT', 'DOT',
      'DOUBLE_COLON', 'DOWNTO', 'ECHO', 'ELIF', 'ELSE', 'EMPTY', 'END',
      'EQUAL', 'ESCAPE', 'EXIT', 'EXTENDS', 'FALLTHRU', 'FALSE', 'FINAL',
      'FLOAT', 'FN', 'FOR', 'GLOBAL', 'GREATER', 'IF', 'IMPLEMENTS', 'IN',
@@ -68,7 +68,7 @@ token_groups = {
             'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL',
             'CONCAT_EQUAL', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER',
             'DOUBLE_COLON', 'COLON', 'COMMA', 'SEMI', 'PLUS', 'MINUS', 'STAR',
-            'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOT',
+            'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOUBLE_DOT', 'DOT',
             'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR',
             'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'DOUBLE_ARROW', 
             'AND_EQUAL', 'COMMENT', 'IS_SMALLER_OR_EQUAL', 'SL', 'SL_EQUAL', 
@@ -91,7 +91,8 @@ CASTS = ('ARRAY', 'BOOL', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', )
 # Keywords where parenthensis can be omitted.
 MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH', 'CASE')
 
-SYMBOLIC = token_groups['pun']
+# For some super weird reason, having this line breaks everything. Hmm :)
+#SYMBOLIC = token_groups['pun']
 
 ## Token definitions ##
 t_INC = r'\+\+'
@@ -111,6 +112,7 @@ t_POW = r'\*\*'
 t_RETURN = r'\<\-'
 t_INNER_RETURN = r'\<\-\-'
 t_RECEIVER = r'\-\>'
+t_DOUBLE_DOT = r'\.\.'
 t_DOUBLE_COLON = r'\:\:'
 t_COLON = r'\:'
 t_COMMA = r'\,'

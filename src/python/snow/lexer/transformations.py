@@ -299,7 +299,7 @@ def add_missing_this(token_stream):
 
 def add_missing_self(token_stream):
     for t in token_stream:
-        if t.type == 'DOUBLE_COLON' and prev_t.type not in (
+        if t.type == 'DOUBLE_DOT' and prev_t.type not in (
         'PHP_STRING', 'NAME', 'CLASS_NAME') and prev_t.value != 'parent':
             yield build_token("PHP_STRING", "self", t)
 

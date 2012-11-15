@@ -1,40 +1,55 @@
 <?php
 
-$snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE');
-$i = 1001;
-global $snow_tokens;
-$snow_tokens = array();
-foreach ($snow_token_names as $token_name) {
-    define($token_name, $i);
-    $snow_tokens[$i] = $token_name;
-    $i += 1;
+function get_snow_tokens()
+{
+    $i = 1001;
+    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE');
+    $snow_tokens = array();
+    foreach ($snow_token_names as $token_name) {
+        define($token_name, $i);
+        $snow_tokens[$i] = $token_name;
+        $i += 1;
+    }
+    unset($token_name);
+    return $snow_tokens;
 }
-unset($token_name);
+global $snow_tokens;
+$snow_tokens = get_snow_tokens();
 function snow_token_name($i)
 {
     global $snow_tokens;
     return isset($snow_tokens[$i]) ? $snow_tokens[$i] : token_name($i);
 }
+function get_named_tokenmap_cb($x)
+{
+    return str_replace("PHPParser_Parser::", "", $x);
+}
+function get_named_tokenmap()
+{
+    $named_tokenmap = array();
+    for ($i = 256; $i <= 1100; ++$i) {
+        if ($i === T_DOUBLE_COLON) {
+            $named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
+        } elseif ($i === T_OPEN_TAG_WITH_ECHO) {
+            $named_tokenmap[$i] = PHPParser_Parser::T_ECHO;
+        } elseif ($i === T_CLOSE_TAG) {
+            $named_tokenmap[$i] = ord(';');
+        } else {
+            $name = snow_token_name($i);
+            if ($name !== 'UNKNOWN') {
+                $const_name = "PHPParser_Parser::" . $name;
+                if (defined($const_name)) {
+                    $named_tokenmap[$i] = $name;
+                }
+            }
+        }
+    }
+    unset($i);
+    return array_flip(array_map('get_named_tokenmap_cb', $named_tokenmap));
+}
 class Snowscript_Lexer extends PHPParser_Lexer
 {
     
-
-    public function __construct($code) {
-        $this->tokens = array();
-        $this->debug = array();
-        $this->transform_token_value = array('T_VARIABLE' => '$%s');
-        $this->literal_tokens = array('T_PLUS' => 1, 'T_GREATER' => 1, 'T_LPAR' => 1, 'T_RPAR' => 1, 'T_MINUS' => 1, 'T_STAR' => 1, 'T_SLASH' => 1, 'T_EQUAL' => 1, 'T_AMPER' => 1, 'T_COMMA' => 1, 'T_LSQB' => 1, 'T_RSQB' => 1, 'T_QUESTION_MARK' => 1, 'T_COLON' => 1);
-        $this->translated_tokens = array('T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}', 'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%', 'T_BNOT' => '~', 'T_BOR' => '|', 'T_LBRACE' => '{', 'T_RBRACE' => '}', 'T_LESS' => '<', 'T_NOT' => '!');
-        $this->ignored_tokens = array('T_ENDMARKER' => 1, 'T_PASS' => 1);
-        $this->token_types_map = array('T_NAME' => 'T_VARIABLE', 'T_PHP_STRING' => 'T_STRING', 'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR', 'T_FN' => 'T_FUNCTION', 'T_DOUBLE_COLON' => 'T_PAAMAYIM_NEKUDOTAYIM', 'T_CALLABLE' => 'T_STRING', 'T_TRUE' => 'T_STRING', 'T_FALSE' => 'T_STRING', 'T_ELIF' => 'T_ELSEIF', 'T_ISA' => 'T_INSTANCEOF', 'T_DIE' => 'T_EXIT', 'T_OR' => 'T_BOOLEAN_OR', 'T_XOR' => 'T_LOGICAL_XOR', 'T_AND' => 'T_BOOLEAN_AND', 'T__OR_' => 'T_LOGICAL_OR', 'T__AND_' => 'T_LOGICAL_AND', 'T_DOT' => 'T_OBJECT_OPERATOR', 'T_NULL' => 'T_STRING', 'T_CONSTANT_NAME' => 'T_STRING', 'T_CLASS_NAME' => 'T_STRING', 'T_FLOAT_CAST' => 'T_DOUBLE_CAST', 'T_STRINGTYPE_CAST' => 'T_STRING_CAST', 'T_NEXT' => 'T_CONTINUE', 'T_PARENT' => 'T_STRING');
-        $this->token_callback = array('T_STRING_WITH_CONCAT' => 1, 'T_NUMBER' => 1);
-        $tmp_file = "/tmp/.snowcode";
-        file_put_contents($tmp_file, $code);
-        parent::__construct("");
-        list($this->tokens, $this->debug) = $this->get_tokens($tmp_file);
-        unlink($tmp_file);
-    }
-
     public function alter_token_type($t)
     {
         $type = "T_" . $t['type'];
@@ -43,7 +58,7 @@ class Snowscript_Lexer extends PHPParser_Lexer
         }
         return $type;
     }
-
+    
     public function alter_token_value($t, $altered_type)
     {
         $value = $t['value'];
@@ -52,14 +67,13 @@ class Snowscript_Lexer extends PHPParser_Lexer
         }
         return $value;
     }
-
-
+    
     public function translate_token($t)
     {
         $type = $this->alter_token_type($t);
         $value = $this->alter_token_value($t, $type);
-        if (!empty(self::$named_tokenmap[$type])) {
-            $token_number = self::$named_tokenmap[$type];
+        if (!empty($this->named_tokenmap[$type])) {
+            $token_number = $this->named_tokenmap[$type];
             $result = is_array($value) ? $value[1] : $value;
             return array(array($token_number, $result, 2));
         } elseif (!empty($this->literal_tokens[$type])) {
@@ -76,8 +90,7 @@ class Snowscript_Lexer extends PHPParser_Lexer
             die;
         }
     }
-
-
+    
     public function get_tokens($tmp_file)
     {
         $py_file = dirname(__FILE__) . "/../../python/snow/lexer/lex-to-json.py";
@@ -105,43 +118,7 @@ class Snowscript_Lexer extends PHPParser_Lexer
         unset($t);
         return array($php_tokens, $debug);
     }
-
-
-
-    /**
-     * Verbatim copy of initTokenMap from PHP-Parser's PHPParser_Lexer, only
-     * using the token name as key, instead of the token number.
-     */
-
-    static $named_tokenmap = array();
-    static function init_named_tokenmap() {
-        // 256 is the minimum possible token number, as everything below
-        // it is an ASCII value
-        for ($i = 256; $i < 1100; ++$i) {
-            // T_DOUBLE_COLON is equivalent to T_PAAMAYIM_NEKUDOTAYIM
-            if (T_DOUBLE_COLON === $i) {
-                self::$named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
-            // T_OPEN_TAG_WITH_ECHO with dropped T_OPEN_TAG results in T_ECHO
-            } elseif(T_OPEN_TAG_WITH_ECHO === $i) {
-                self::$named_tokenmap[$i] = PHPParser_Parser::T_ECHO;
-            // T_CLOSE_TAG is equivalent to ';'
-            } elseif(T_CLOSE_TAG === $i) {
-                self::$named_tokenmap[$i] = ord(';');
-            // and the others can be mapped directly
-            } elseif ('UNKNOWN' !== ($name = snow_token_name($i))
-                      && defined($name = 'PHPParser_Parser::' . $name)
-            ) {
-                self::$named_tokenmap[$i] = $name;
-            }
-        }
-
-        self::$named_tokenmap = array_flip(array_map(function($x) {
-            return str_replace("PHPParser_Parser::", "", $x);
-        }, self::$named_tokenmap));
-
-
-    }
-
+    
     public function T_STRING_WITH_CONCAT($t)
     {
         return array(array(T_STRING_DOUBLE, $t['value'], 2), ".");
@@ -156,6 +133,21 @@ class Snowscript_Lexer extends PHPParser_Lexer
         }
     }
 
+    public function __construct($code) {
+        $this->tokens = array();
+        $this->debug = array();
+        $this->named_tokenmap = get_named_tokenmap();
+        $this->transform_token_value = array('T_VARIABLE' => '$%s');
+        $this->literal_tokens = array('T_PLUS' => 1, 'T_GREATER' => 1, 'T_LPAR' => 1, 'T_RPAR' => 1, 'T_MINUS' => 1, 'T_STAR' => 1, 'T_SLASH' => 1, 'T_EQUAL' => 1, 'T_AMPER' => 1, 'T_COMMA' => 1, 'T_LSQB' => 1, 'T_RSQB' => 1, 'T_QUESTION_MARK' => 1, 'T_COLON' => 1);
+        $this->translated_tokens = array('T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}', 'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%', 'T_BNOT' => '~', 'T_BOR' => '|', 'T_LBRACE' => '{', 'T_RBRACE' => '}', 'T_LESS' => '<', 'T_NOT' => '!');
+        $this->ignored_tokens = array('T_ENDMARKER' => 1, 'T_PASS' => 1);
+        $this->token_types_map = array('T_NAME' => 'T_VARIABLE', 'T_PHP_STRING' => 'T_STRING', 'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR', 'T_FN' => 'T_FUNCTION', 'T_DOUBLE_DOT' => 'T_PAAMAYIM_NEKUDOTAYIM', 'T_CALLABLE' => 'T_STRING', 'T_TRUE' => 'T_STRING', 'T_FALSE' => 'T_STRING', 'T_ELIF' => 'T_ELSEIF', 'T_ISA' => 'T_INSTANCEOF', 'T_DIE' => 'T_EXIT', 'T_OR' => 'T_BOOLEAN_OR', 'T_XOR' => 'T_LOGICAL_XOR', 'T_AND' => 'T_BOOLEAN_AND', 'T__OR_' => 'T_LOGICAL_OR', 'T__AND_' => 'T_LOGICAL_AND', 'T_DOT' => 'T_OBJECT_OPERATOR', 'T_NULL' => 'T_STRING', 'T_CONSTANT_NAME' => 'T_STRING', 'T_CLASS_NAME' => 'T_STRING', 'T_FLOAT_CAST' => 'T_DOUBLE_CAST', 'T_STRINGTYPE_CAST' => 'T_STRING_CAST', 'T_NEXT' => 'T_CONTINUE', 'T_PARENT' => 'T_STRING');
+        $this->token_callback = array('T_STRING_WITH_CONCAT' => 1, 'T_NUMBER' => 1);
+        $tmp_file = "/tmp/.snowcode";
+        file_put_contents($tmp_file, $code);
+        parent::__construct("");
+        list($this->tokens, $this->debug) = $this->get_tokens($tmp_file);
+        unlink($tmp_file);
+    }
+
 }
-Snowscript_Lexer::init_named_tokenmap();
-#var_dump(Snowscript_Lexer::$named_tokenmap); die;

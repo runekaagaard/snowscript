@@ -7,7 +7,7 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 snowscript_to_php(<<<EOT
 fn a(b = null, 
      c = 'foo',
-     d = A::B,     
+     d = A..B,     
      e = +1,
      f = -1.0,
      g = [],

@@ -16,10 +16,10 @@ class B
         e as private
     
     use E, F, G
-        E::a insteadof F, G
-        E::b as protected c
-        E::d as e
-        E::f as private
+        E..a insteadof F, G
+        E..b as protected c
+        E..d as e
+        E..f as private
 ', 0);
 --EXPECT--
 <?php

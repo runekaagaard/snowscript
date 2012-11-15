@@ -8,14 +8,14 @@ snowscript_to_php("
 
 class A 
     fn __construct()
-        ::foo
+        ..foo
         .foo
-        parent::bos()
+        parent..bos()
 
     fn baz
-        ::baz
+        ..baz
         .baz
-        parent::baz()
+        parent..baz()
 
 ", 0);
 --EXPECT--

@@ -1,25 +1,50 @@
 
-snow_token_names = ['T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 
+fn get_snow_tokens
+    i = 1001
+    snow_token_names = ['T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 
                     'T_STRING_SINGLE', 'T_STRING_DOUBLE']
+    snow_tokens = []
+    for token_name in snow_token_names
+        define(token_name, i)
+        snow_tokens[i] = token_name
+        i += 1
+    <- snow_tokens
 
-i = 1001
 global snow_tokens
-snow_tokens = []
-for token_name in snow_token_names
-    define(token_name, i)
-    snow_tokens[i] = token_name
-    i += 1
+snow_tokens = get_snow_tokens()
 
 fn snow_token_name(i)
     global snow_tokens
     <- if isset(snow_tokens[i]) then snow_tokens[i] else token_name(i)
 
+fn get_named_tokenmap_cb(x)
+    <- str_replace("PHPParser_Parser::", "", x)
+
+fn get_named_tokenmap()
+    named_tokenmap = []
+    for i in 256 to 1100
+        if i === T_DOUBLE_COLON
+            named_tokenmap[i] = 'T_PAAMAYIM_NEKUDOTAYIM'
+        elif i === T_OPEN_TAG_WITH_ECHO
+            named_tokenmap[i] = PHPParser_Parser..T_ECHO
+        elif i === T_CLOSE_TAG
+            named_tokenmap[i] = ord(';')
+        else
+            name = snow_token_name(i)
+            if name !== 'UNKNOWN'
+                const_name = "PHPParser_Parser::{name}"
+                if defined(const_name)
+                    named_tokenmap[i] = name
+
+    <- array_flip(array_map('get_named_tokenmap_cb', named_tokenmap))
 
 class Snowscript_Lexer(code)
     extends PHPParser_Lexer
 
     tokens = []
     debug = []
+
+    named_tokenmap = get_named_tokenmap()
 
     transform_token_value = ['T_VARIABLE': '$%s']
 
@@ -44,7 +69,7 @@ class Snowscript_Lexer(code)
         'T_PHP_STRING': 'T_STRING',
         'T_BLEFT': 'T_SL', 'T_BRIGHT': 'T_SR',
         'T_FN': 'T_FUNCTION',
-        'T_DOUBLE_COLON': 'T_PAAMAYIM_NEKUDOTAYIM',
+        'T_DOUBLE_DOT': 'T_PAAMAYIM_NEKUDOTAYIM',
         'T_CALLABLE': 'T_STRING',
         'T_TRUE': 'T_STRING',
         'T_FALSE': 'T_STRING',
@@ -70,7 +95,7 @@ class Snowscript_Lexer(code)
     fn __construct
         tmp_file = "/tmp/.snowcode"
         file_put_contents(tmp_file, code)
-        parent::__construct("")
+        parent..__construct("")
         [.tokens, .debug] = .get_tokens(tmp_file)
         unlink(tmp_file)
 
@@ -90,8 +115,8 @@ class Snowscript_Lexer(code)
     fn translate_token(t)
         type = .alter_token_type(t)
         value = .alter_token_value(t, type)
-        if not empty(::named_tokenmap[type])
-            token_number = ::named_tokenmap[type]
+        if not empty(.named_tokenmap[type])
+            token_number = .named_tokenmap[type]
             result = if is_array(value) then value[1] else value
             <- [[token_number, result, 2]]
         elif not empty(.literal_tokens[type])
