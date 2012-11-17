@@ -320,6 +320,8 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = inject_indent_tokens(lexer, token_stream)
     token_stream = mark_indentation_level(lexer, token_stream)
     token_stream = remove_empty_concats(token_stream)
+    # TODO: Fix nuke_... so it is not neccessary to double call it.
+    token_stream = nuke_newlines_around_indent(token_stream)
     token_stream = nuke_newlines_around_indent(token_stream)
     token_stream = insert_missing_new(token_stream)
     token_stream = correct_class_accessor_names(token_stream)

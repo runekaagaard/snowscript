@@ -11,7 +11,7 @@ MODE = 0
 tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'BAND', 'BLEFT', 'BNOT', 'BOOL', 'BOR', 'BOX', 'BREAK', 'BRIGHT', 'BXOR',
      'CALLABLE', 'CASE', 'CATCH', 'CIRCUMFLEX', 'CLASS', 'CLASS_NAME', 'CLONE',
-     'COLON', 'COMMA', 'COMMENT', 'CONCAT_EQUAL', 'CONST', 'CONSTANT_NAME',
+     'COLON', 'COMMA', 'COMMENT', 'COMMENT_MULTILINE', 'CONCAT_EQUAL', 'CONST', 'CONSTANT_NAME',
      'DEC', 'DECLARE', 'DEFAULT', 'DIE', 'DIV_EQUAL', 'DOUBLE_DOT', 'DOT',
      'DOUBLE_COLON', 'DOWNTO', 'ECHO', 'ELIF', 'ELSE', 'EMPTY', 'END',
      'EQUAL', 'ESCAPE', 'EXIT', 'EXTENDS', 'FALLTHRU', 'FALSE', 'FINAL',
@@ -71,7 +71,7 @@ token_groups = {
             'SLASH', 'PIPE', 'AMPER', 'LESS', 'GREATER', 'EQUAL', 'DOUBLE_DOT', 'DOT',
             'PERCENT', 'BACKQUOTE', 'CIRCUMFLEX', 'TILDE', 'AT', 'LPAR',
             'RPAR', 'LBRACE', 'RBRACE', 'LSQB', 'RSQB', 'DOUBLE_ARROW', 
-            'AND_EQUAL', 'COMMENT', 'IS_SMALLER_OR_EQUAL', 'SL', 'SL_EQUAL', 
+            'AND_EQUAL', 'COMMENT', 'COMMENT_MULTILINE', 'IS_SMALLER_OR_EQUAL', 'SL', 'SL_EQUAL', 
             'SR', 'SR_EQUAL'],
 }
 
@@ -135,83 +135,28 @@ t_TILDE = r'\~'
 t_AT = r'\@'
 t_QUESTION_MARK = r'\?'
 
-def t_INLINE_HTML(t):
-    r"(?sm)%>(?:.*<%|.*$)"
-    # Strip leading and trailing %> / <%
-    t.value = t.value[2:]
-    if t.value[-2:] == '<%':
-        t.value = t.value[:-2]
-    #t.value = t.value.strip()
-    return t
 
-NEXT_LINE = re.compile(r'\n([ ]*)(.*)')
-def t_COMMENT(t):
-    r"[ ]*\043[^\n]*"  # \043 is '#' ; otherwise PLY thinks it's an re comment
-    return t
-    def next_line_indents_in(t):
-        """
-        Checks if the next line has a greater indention than current.
-        """
-        ms = NEXT_LINE.search(t.lexer.lexdata, t.lexer.lexpos)
-        return False if not ms else len(ms.group(1)) > t.lexer.comment_indent
+def t_COMMENT_MULTILINE(t):
+    r"\#\#\#"
+    t.lexer.push_state('MULTILINECOMMENT')
 
-    def comment_indent(t):
-        """
-        Traverses back until it reaches a new line or start of file and sets
-        the variable t.lexer.comment_indent that tells how far the current
-        line is indented.
-        """
-        pos = t.lexpos
-        while pos > 0:
-            if t.lexer.lexdata[pos] == "\n":
-                t.lexer.comment_indent = t.lexpos - pos - 1
-                break
-            pos -= 1
-        else:
-            t.lexer.comment_indent = 0
+def t_MULTILINECOMMENT_END(t):
+    r"\#\#\#"
+    t.lexer.pop_state()
 
-    comment_indent(t)
+def t_MULTILINECOMMENT_INSIDE(t):
+    r"[^\#]+"
 
-    # If the next line has a greater indention it's a comment so we change
-    # the state. Then the t_COMMENT_INSIDE_COMMENT token uses the value set in
-    # t.lexer.comment_indent to collect all lines that are indented deeper than
-    # this one.
-    #
-    # However, we collects the content of the COMMENT state from a clone of the
-    # lexer and returns one master token.
-    if next_line_indents_in(t):
-        cloned_lexer = t.lexer.clone()
-        cloned_lexer.begin('COMMENT')
-        t.lexer.begin('COMMENT')  # Make sure real lexer follows suit.
-        for cloned_t in cloned_lexer:
-            t.lexer.next()  # Increment real lexer to keep it alligned.
-            t.value += cloned_t.value
-            if cloned_t.lexer.current_state() == 'INITIAL':
-                return t
-                
-    return t
+def t_MULTILINECOMMENT_ESCAPE(t):
+    r"\#"
 
-
-def t_COMMENT_error(t):
+def t_MULTILINECOMMENT_error(t):
+    print t
     raise_syntax_error("invalid syntax", t)
 
-
-def t_COMMENT_INSIDE_COMMENT(t):
-    r"\n([ ]*).*"
-    # Empty lines are still comments, so we wont switch state back to INITIAL.
-    if t.value.strip() == '':
-        return t
-    # Looks a head and changes the state back to INITIAL if the next line is
-    # not indented further than the first comment line.
-    lexer = t.lexer.clone()
-    next = lexer.token()
-    if next:
-        next_line_indent = len(next.lexer.lexmatch.group(2))
-        if next_line_indent <= t.lexer.comment_indent:
-            t.lexer.begin('INITIAL')
-    return t
-
-
+def t_comment(t):
+    r"[ ]?\#[^\n]*"
+    
 def t_MOD_EQUAL(t):
     r'mod\='
     t.type = RESERVED.get(t.value, "MOD_EQUAL")

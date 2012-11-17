@@ -16,13 +16,13 @@ tokens = tuple(tokens) + ("NEWLINE", "NUMBER", "NAME", "WS",
 # The different states the lexer can operate in. Token names in non-initial
 # states are written as "t_[STATE]_[TOKENNAME]".
 states = (
-    ("COMMENT", "exclusive"),
     ('INSIDEARRAY', 'inclusive'),
     ('INDOUBLEQUOTEDSTRING', 'exclusive'),
     ('INSINGLEQUOTEDSTRING', 'exclusive'),
     ('INTRIPPLEDOUBLEQUOTEDSTRING', 'exclusive'),
     ('INTRIPPLESINGLEQUOTEDSTRING', 'exclusive'),
     ('SNOWINANYDOUBLEQUOTEDSTRING', 'inclusive'),
+    ('MULTILINECOMMENT', 'exclusive'),
 )
 
 
