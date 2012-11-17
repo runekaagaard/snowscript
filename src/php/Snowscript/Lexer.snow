@@ -2,7 +2,8 @@
 fn get_snow_tokens
     i = 1001
     snow_token_names = ['T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 
-                    'T_STRING_SINGLE', 'T_STRING_DOUBLE']
+                    'T_STRING_SINGLE', 'T_STRING_DOUBLE', 
+                    'T_DOUBLE_QUESTION_MARK']
     snow_tokens = []
     for token_name in snow_token_names
         define(token_name, i)
@@ -15,7 +16,7 @@ snow_tokens = get_snow_tokens()
 
 fn snow_token_name(i)
     global snow_tokens
-    <- if isset(snow_tokens[i]) then snow_tokens[i] else token_name(i)
+    <- if snow_tokens[i]? then snow_tokens[i] else token_name(i)
 
 fn get_named_tokenmap_cb(x)
     <- str_replace("PHPParser_Parser::", "", x)
@@ -101,13 +102,13 @@ class Snowscript_Lexer(code)
 
     fn alter_token_type(t)
         type = "T_{t['type']}"
-        if isset(.token_types_map[type])
+        if .token_types_map[type]?
             type = .token_types_map[type]
         <- type
 
     fn alter_token_value(t, altered_type)
         value = t['value']
-        if isset(.transform_token_value[altered_type])
+        if .transform_token_value[altered_type]?
             value = sprintf(.transform_token_value[altered_type],
                             value)
         <- value
@@ -115,17 +116,17 @@ class Snowscript_Lexer(code)
     fn translate_token(t)
         type = .alter_token_type(t)
         value = .alter_token_value(t, type)
-        if not empty(.named_tokenmap[type])
+        if .named_tokenmap[type]?
             token_number = .named_tokenmap[type]
             result = if is_array(value) then value[1] else value
             <- [[token_number, result, 2]]
-        elif not empty(.literal_tokens[type])
+        elif .literal_tokens[type]?
             <- value
-        elif not empty(.translated_tokens[type])
+        elif .translated_tokens[type]?
             <- .translated_tokens[type]
-        elif not empty(.ignored_tokens[type])
+        elif .ignored_tokens[type]?
             <- null
-        elif isset(.token_callback[type])
+        elif .token_callback[type]?
             <- call_user_func([this, type], t)
         else
             echo "Unknown token:\n"

@@ -89,7 +89,9 @@ function resolveNodes($code) {
             }
 
             if (substr($matches['name'], 0, 5) === 'Snow_') {
+                #var_dump($matches['name']);
                 $name = 'Snowscript_Node_' . substr($matches['name'], 5);
+                #var_dump($name);
             } else {
                 $name = 'PHPParser_Node_' . $matches['name'];
             }

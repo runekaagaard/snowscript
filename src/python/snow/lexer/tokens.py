@@ -5,8 +5,8 @@ from error import raise_syntax_error
 import tokenize
 from ply import lex
 
-MODES = {'PHP':0, 'HTML': 1}
-MODE = MODES['PHP']
+#MODES = {'PHP':0, 'HTML': 1}
+MODE = 0
 
 tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'BAND', 'BLEFT', 'BNOT', 'BOOL', 'BOR', 'BOX', 'BREAK', 'BRIGHT', 'BXOR',
@@ -28,8 +28,8 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'STAR', 'STATIC', 'STRINGTYPE', 'STRING_WITH_CONCAT', 'SWITCH', 'THROW',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-     'DOUBLE_ARROW', 'QUESTION_MARK', 'THEN', 'STRING_DOUBLE', 'STRING_SINGLE',
-     'PARENT',
+     'DOUBLE_ARROW', 'DOUBLE_QUESTION_MARK', 'QUESTION_MARK', 'THEN', 
+     'STRING_DOUBLE', 'STRING_SINGLE', 'PARENT',
 ]
 
 token_groups = {
@@ -49,7 +49,7 @@ token_groups = {
             'STATIC', 'SWITCH', 'THROW', 
             'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 
             'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-            'QUESTION_MARK', 'THEN', 'PARENT'
+            'DOUBLE_QUESTION_MARK', 'QUESTION_MARK', 'THEN', 'PARENT'
             ],
     # Strings.
     'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING_DOUBLE', 'STRING_SINGLE'],
@@ -114,6 +114,7 @@ t_INNER_RETURN = r'\<\-\-'
 t_RECEIVER = r'\-\>'
 t_DOUBLE_DOT = r'\.\.'
 t_DOUBLE_COLON = r'\:\:'
+t_DOUBLE_QUESTION_MARK = r'\?\?'
 t_COLON = r'\:'
 t_COMMA = r'\,'
 t_SEMI = r'\;'
@@ -317,7 +318,7 @@ def t_WS(t):
         n = 8 - (pos % 8)
         value = value[:pos] + " " * n + value[pos + 1:]
     
-    if MODE == MODES['PHP']:
+    if MODE == 0:
         if t.lexer.at_line_start and t.lexer.bracket_level == 0:
             return t
     elif MODE == MODES['HTML']:
@@ -339,7 +340,7 @@ def t_newline(t):
     # Don't return newlines while I'm inside of ()s.
     t.lexer.lineno += len(t.value)
     t.type = "NEWLINE"
-    if MODE == MODES['PHP']:
+    if MODE == 0:
         if t.lexer.bracket_level == 0:
             return t
     elif MODE == MODES['HTML']:
@@ -472,7 +473,7 @@ def html_mode_string(f):
     def _(t):
         orig_value = t.value
         t2 = f(t)
-        if MODE == MODES['PHP']:
+        if MODE == 0:
             return t2
         elif MODE == MODES['HTML']:
             t.type = "STRING"

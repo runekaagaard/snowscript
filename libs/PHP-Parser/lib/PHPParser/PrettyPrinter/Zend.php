@@ -447,6 +447,26 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . ': ' . $this->p($node->else);
     }
 
+    public function p_Expr_ExistenceIsset($node) {
+        if ($node->default === false) {
+            return 'isset(' . $this->p($node->test_for) . ')';    
+        } else {
+            return '(isset(' . $this->p($node->test_for) . ') ? ' . $this->p($node->test_for) 
+                   . ' : ' . $this->p($node->default) . ')'; 
+        }
+        
+    }
+
+    public function p_Expr_ExistenceNotEmpty($node) {
+        if ($node->default === false) {
+            return '!empty(' . $this->p($node->test_for) . ')';    
+        } else {
+            return '(empty(' . $this->p($node->test_for) . ') ? ' . $this->p($node->test_for) 
+                   . ' : ' . $this->p($node->default) . ')'; 
+        }
+        
+    }
+
     public function pExpr_Exit(PHPParser_Node_Expr_Exit $node) {
         return 'die' . (null !== $node->expr ? '(' . $this->p($node->expr) . ')' : '');
     }

@@ -3,7 +3,7 @@
 function get_snow_tokens()
 {
     $i = 1001;
-    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE');
+    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE', 'T_DOUBLE_QUESTION_MARK');
     $snow_tokens = array();
     foreach ($snow_token_names as $token_name) {
         define($token_name, $i);
@@ -28,20 +28,25 @@ function get_named_tokenmap()
 {
     $named_tokenmap = array();
     for ($i = 256; $i <= 1100; ++$i) {
-        if ($i === T_DOUBLE_COLON) {
-            $named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
-        } elseif ($i === T_OPEN_TAG_WITH_ECHO) {
-            $named_tokenmap[$i] = PHPParser_Parser::T_ECHO;
-        } elseif ($i === T_CLOSE_TAG) {
-            $named_tokenmap[$i] = ord(';');
-        } else {
-            $name = snow_token_name($i);
-            if ($name !== 'UNKNOWN') {
-                $const_name = "PHPParser_Parser::" . $name;
-                if (defined($const_name)) {
-                    $named_tokenmap[$i] = $name;
+        switch ($i) {
+            case T_DOUBLE_COLON:
+                $named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
+                break;
+            case T_OPEN_TAG_WITH_ECHO:
+                $named_tokenmap[$i] = PHPParser_Parser::T_ECHO;
+                break;
+            case T_CLOSE_TAG:
+                $named_tokenmap[$i] = ord(';');
+                break;
+            default:
+                $name = snow_token_name($i);
+                if ($name !== 'UNKNOWN') {
+                    $const_name = "PHPParser_Parser::" . $name;
+                    if (defined($const_name)) {
+                        $named_tokenmap[$i] = $name;
+                    }
                 }
-            }
+                break;
         }
     }
     unset($i);
@@ -72,15 +77,15 @@ class Snowscript_Lexer extends PHPParser_Lexer
     {
         $type = $this->alter_token_type($t);
         $value = $this->alter_token_value($t, $type);
-        if (!empty($this->named_tokenmap[$type])) {
+        if (isset($this->named_tokenmap[$type])) {
             $token_number = $this->named_tokenmap[$type];
             $result = is_array($value) ? $value[1] : $value;
             return array(array($token_number, $result, 2));
-        } elseif (!empty($this->literal_tokens[$type])) {
+        } elseif (isset($this->literal_tokens[$type])) {
             return $value;
-        } elseif (!empty($this->translated_tokens[$type])) {
+        } elseif (isset($this->translated_tokens[$type])) {
             return $this->translated_tokens[$type];
-        } elseif (!empty($this->ignored_tokens[$type])) {
+        } elseif (isset($this->ignored_tokens[$type])) {
             return null;
         } elseif (isset($this->token_callback[$type])) {
             return call_user_func(array($this, $type), $t);
