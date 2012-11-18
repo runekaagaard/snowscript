@@ -5,13 +5,14 @@ from error import raise_syntax_error
 import tokenize
 from ply import lex
 
-#MODES = {'PHP':0, 'HTML': 1}
+MODES = {'PHP':0, 'HTML': 1}
 MODE = 0
 
 tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'BAND', 'BLEFT', 'BNOT', 'BOOL', 'BOR', 'BOX', 'BREAK', 'BRIGHT', 'BXOR',
      'CALLABLE', 'CASE', 'CATCH', 'CIRCUMFLEX', 'CLASS', 'CLASS_NAME', 'CLONE',
-     'COLON', 'COMMA', 'COMMENT', 'COMMENT_MULTILINE', 'CONCAT_EQUAL', 'CONST', 'CONSTANT_NAME',
+     'COLON', 'COMMA', 'COMMENT', 'COMMENT_MULTILINE', 'CONCAT_EQUAL', 'CONST', 
+     'CONSTANT_NAME',
      'DEC', 'DECLARE', 'DEFAULT', 'DIE', 'DIV_EQUAL', 'DOUBLE_DOT', 'DOT',
      'DOUBLE_COLON', 'DOWNTO', 'ECHO', 'ELIF', 'ELSE', 'EMPTY', 'END',
      'EQUAL', 'ESCAPE', 'EXIT', 'EXTENDS', 'FALLTHRU', 'FALSE', 'FINAL',
@@ -92,7 +93,7 @@ CASTS = ('ARRAY', 'BOOL', 'FLOAT', 'INT', 'OBJECT', 'STRINGTYPE', )
 MISSING_PARENTHESIS = ('IF', 'ELIF', 'FOR', 'SWITCH', 'WHILE', 'CATCH', 'CASE')
 
 # For some super weird reason, having this line breaks everything. Hmm :)
-#SYMBOLIC = token_groups['pun']
+SYMBOLIC = token_groups['pun']
 
 ## Token definitions ##
 t_INC = r'\+\+'
@@ -263,7 +264,7 @@ def t_WS(t):
         n = 8 - (pos % 8)
         value = value[:pos] + " " * n + value[pos + 1:]
     
-    if MODE == 0:
+    if MODE == MODES['PHP']:
         if t.lexer.at_line_start and t.lexer.bracket_level == 0:
             return t
     elif MODE == MODES['HTML']:
@@ -285,7 +286,7 @@ def t_newline(t):
     # Don't return newlines while I'm inside of ()s.
     t.lexer.lineno += len(t.value)
     t.type = "NEWLINE"
-    if MODE == 0:
+    if MODE == MODES['PHP']:
         if t.lexer.bracket_level == 0:
             return t
     elif MODE == MODES['HTML']:
@@ -414,18 +415,18 @@ def html_mode_string(f):
     Decorator that returns a unaltered string token if the mode is set to
     HTML, otherwise keeps the original return.
     """
+    if MODE == MODES['PHP']:
+       return f
+    if MODE != MODES['HTML']:
+        raise NotImplementedError()
+    
     @wraps(f)
     def _(t):
         orig_value = t.value
         t2 = f(t)
-        if MODE == 0:
-            return t2
-        elif MODE == MODES['HTML']:
-            t.type = "STRING"
-            t.value = orig_value
-            return t
-        else:
-            raise NotImplementedError()
+        t.type = "STRING"
+        t.value = orig_value
+        return t
     
     return _
     

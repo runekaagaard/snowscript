@@ -36,7 +36,7 @@ class SnowLexer(object):
     
     def __init__(self, lexer=None):
         if lexer is None:
-            lexer = lex.lex().clone()
+            lexer = lex.lex()
         self.lexer = lexer
         self._reset()
         self.lexer.filename = None
@@ -56,13 +56,6 @@ class SnowLexer(object):
         self.lexer.bracket_level = 0
         self.lexer.is_raw = False
         self.lexer.string_been_concat = False
-
-    def token(self):
-        try:
-            t = self.token_stream.next()
-            return t
-        except StopIteration:
-            return None
 
     def __iter__(self):
         return self.token_stream
