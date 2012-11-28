@@ -25,6 +25,15 @@ class Foo
     which is long
     ###
     a = false
-', 1);
+', 0);
 --EXPECT--
 <?php
+class Foo
+{
+    
+
+    public function __construct() {
+        $this->a = false;
+    }
+
+}

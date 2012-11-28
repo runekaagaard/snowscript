@@ -646,7 +646,7 @@ The arguments to the class is given after the class name.
 The "." is used to access the class instance.
 
 snowscript::
-
+    
     class TabularWriter(File path, filesystem, title)
         # Properties. #
         title = title
