@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+error_reporting(E_ALL|E_STRICT);
+ini_set('display_errors', 1);
+
+require dirname(__FILE__) . '/../libs/PHP-Parser/lib/bootstrap.php';
+require dirname(__FILE__) . '/../src/php/bootstrap.php';
+
+function snowscript_to_php($code) {
+    $lexer = new Snowscript_Lexer($code . "\n");
+    $parser = new PHPParser_Parser;
+    $prettyPrinter = new PHPParser_PrettyPrinter_Zend;
+    $stmts = $parser->parse($lexer);
+    return "<?php\n\n" . $prettyPrinter->prettyPrint($stmts) . "\n";
+}
+
+echo snowscript_to_php(file_get_contents($argv[1]));

@@ -9,3 +9,4 @@ tests/*/*.php
 tests/*/*/*.php
 y.output
 libs/PHP-Parser/lib/PHPParser/Parser/
+libs/kmyacc-forked

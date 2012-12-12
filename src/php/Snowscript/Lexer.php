@@ -28,25 +28,20 @@ function get_named_tokenmap()
 {
     $named_tokenmap = array();
     for ($i = 256; $i <= 1100; ++$i) {
-        switch ($i) {
-            case T_DOUBLE_COLON:
-                $named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
-                break;
-            case T_OPEN_TAG_WITH_ECHO:
-                $named_tokenmap[$i] = PHPParser_Parser::T_ECHO;
-                break;
-            case T_CLOSE_TAG:
-                $named_tokenmap[$i] = ord(';');
-                break;
-            default:
-                $name = snow_token_name($i);
-                if ($name !== 'UNKNOWN') {
-                    $const_name = "PHPParser_Parser::" . $name;
-                    if (defined($const_name)) {
-                        $named_tokenmap[$i] = $name;
-                    }
+        if ($i === T_DOUBLE_COLON) {
+            $named_tokenmap[$i] = 'T_PAAMAYIM_NEKUDOTAYIM';
+        } elseif ($i === T_OPEN_TAG_WITH_ECHO) {
+            $named_tokenmap[$i] = PHPParser_Parser::T_ECHO;
+        } elseif ($i === T_CLOSE_TAG) {
+            $named_tokenmap[$i] = ord(';');
+        } else {
+            $name = snow_token_name($i);
+            if ($name !== 'UNKNOWN') {
+                $const_name = "PHPParser_Parser::" . $name;
+                if (defined($const_name)) {
+                    $named_tokenmap[$i] = $name;
                 }
-                break;
+            }
         }
     }
     unset($i);

@@ -34,8 +34,6 @@ function php_to_php($code, $debug=false) {
 	$stmts = $parser->parse($lexer);
 	$nodeDumper = new PHPParser_NodeDumper;
 	echo $nodeDumper->dump($stmts);
-	#var_dump($stmts);
-	#$prettyPrinter->prettyPrint($stmts) . "\n";
 }
 
 function debug_lexer($lexer) {

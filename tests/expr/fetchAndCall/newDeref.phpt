@@ -5,10 +5,10 @@ New expression dereferencing
 require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
-(Ab()).b
-(Ab()).b()
-(Ab())['b']
-(Ab())['b']['c']
+Ab().b
+Ab().b()
+Ab()['b']
+Ab()['b']['c']
 ", 0);
 --EXPECT--
 <?php

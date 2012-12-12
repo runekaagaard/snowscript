@@ -118,6 +118,7 @@ def inject_indent_tokens(lexer, token_stream):
         for level in range(0, len(levels) - 1):
             yield build_token('DEDENT', '', t)
 
+
 def mark_indentation_level(lexer, token_stream):
     lexer.indent_level = 0
     for t in token_stream:
@@ -291,7 +292,7 @@ def add_missing_parenthesis_after_functions(token_stream):
 
 def add_missing_this(token_stream):
     for t in token_stream:
-        if t.type == 'DOT' and prev_t.type not in ('PHP_STRING', 'NAME', 'CLASS_NAME'):
+        if t.type == 'DOT' and prev_t.type not in ('PHP_STRING', 'NAME', 'CLASS_NAME', 'RPAR'):
             yield build_token("NAME", "this", t)
 
         yield t
@@ -311,7 +312,7 @@ def debug(token_stream):
     for t in token_stream:
         print t
         yield t
-
+        
 
 def make_token_stream(lexer, add_endmarker=True):
     token_stream = iter(lexer.token, None)
