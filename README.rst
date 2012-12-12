@@ -10,7 +10,8 @@ Roadmap
 
 The current status as of October 3rd, 2012 is that both the lexer and parser
 actually works. A lot of Snowscript can be compiled to PHP. But there is still
-tons of work until it's usable. Come join the fun!
+tons of work until it's usable. Version 0.4 will be the first release and will
+be of alpha quality. Come join the fun!
 
 Todo 0.4
 ========
@@ -18,22 +19,21 @@ Todo 0.4
 - Webpage.
 - Documentation.
 - Scoping rules.
-- Classes part2.
-- Command line compile tool.
+- Command line compile tools.
 - Full examples.
-- Some bugs in comments.
 - Tolerable error messages.
 - Code cleanup.
 
 Done
 ==== 
 
+- Comments.
 - Strings.
 - Ternary operator.
 - Control structures.
 - For loops.
 - Function style casts.
-- Classes part1.
+- Classes part1 + 2.
 - Destructuring.
 - Parsing of basic syntax.
 - Transformations for the non LALR(1) compatible features of Snowscript like
@@ -101,22 +101,18 @@ Comments
 snowscript::
 
     # Single line.
-    # Single line as docblock. #
-    # This is a docblock,
-
-      spanning multiple lines.
+    ###
+    Multiple
+    Lines.
+    ###
 
 php::
 
     // Single line.
-    /**
-     * Single line as docblock. 
-     */
-    /**
-     * This is a docblock,
-     *
-     * spanning multiple lines. 
-     */
+    /*
+    Multiple
+    Lines.
+    */
 
 Arrays
 ======
@@ -124,24 +120,22 @@ Arrays
 Arrays are defined using square brackets "[]". Items are separated by ",". A
 trailing "," is allowed.
 
-Arrays can contain key/value pairs seperated with "=". The keys can be omitted
-and running integers will be assigned. Keys are always interpreted stringy.
-Keys not matching the regex "[a-zA-Z_][a-zA-Z0-9_]+" can be made by surrounding
-the key with quotes.
+Arrays can contain key/value pairs seperated with ":". The keys can be omitted
+and running integers will be assigned.
 
 snowscript::
 
     pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
     series = [
-        Heroes = [
-            genre = "Science Fiction",
-            creator = "Tim Kring",
-            seasons = 4,
+        "Heroes": [
+            "genre": "Science Fiction",
+            "creator": Tim Kring",
+            "seasons": = 4,
         ],
-        "Game Of Thrones" = [
-            genre = "Medieval fantasy",
-            creator = "David Benioff",
-            seasons = 2,
+        "Game Of Thrones": [
+            "genre": "Medieval fantasy",
+            "creator": "David Benioff",
+            "seasons": 2,
         ],
     ]
 
@@ -192,8 +186,8 @@ Strings
 
 There are four kind of strings: """, ", ''' and ', all multiline.
 
-Whitespace before the current indentation level is stripped. All empty lines
-ending in "\\" is stripped.
+Whitespace before the current indentation level is stripped. A newline can be
+cancelled by ending the previous line with "\\".
 
 Quoted
 ------
@@ -205,8 +199,8 @@ snowscript::
     fn travel
         echo "\
             The {animal} went to {world.place()}
-            with his {NUM} friends. 
-        \"
+            with his {NUM} friends.\ 
+        "
 
     """<a href="https://snowscript.org">Snowscript</a>\n"""
 
