@@ -65,6 +65,13 @@ Todo 0.8
 
 - Macros.
 
+Quickstart
+++++++++++
+
+Stub.
+
+See "USAGE.rst" and "INSTALL.rst" in this folder.
+
 Documentation
 +++++++++++++
 
@@ -109,10 +116,10 @@ snowscript::
 php::
 
     // Single line.
-    /*
-    Multiple
-    Lines.
-    */
+    /**
+     * Multiple
+     * Lines.
+     */
 
 Arrays
 ======
@@ -120,8 +127,8 @@ Arrays
 Arrays are defined using square brackets "[]". Items are separated by ",". A
 trailing "," is allowed.
 
-Arrays can contain key/value pairs seperated with ":". The keys can be omitted
-and running integers will be assigned.
+Arrays can contain key/value pairs separated with ":". Keys can be omitted and 
+running integers will be assigned.
 
 snowscript::
 
@@ -130,7 +137,7 @@ snowscript::
         "Heroes": [
             "genre": "Science Fiction",
             "creator": Tim Kring",
-            "seasons": = 4,
+            "seasons": 4,
         ],
         "Game Of Thrones": [
             "genre": "Medieval fantasy",
@@ -595,39 +602,6 @@ php::
         }
     }
     unset($samurai, $villain);
-
-Naming conventions
-==================
-
-Snowscript uses naming conventions to strip out some of PHP's operators. 
-Classes are PascalCase, constants are ALL_CAPS while variables, methods and
-functions are whats left.
-
-snowscript::
-    
-    foo    
-    foo()
-    Foo()
-    FOO
-    
-    bar.foo
-    bar::foo
-    bar::FOO
-    Bar::foo
-    Bar::FOO
-     
-php::
-
-    $foo;
-    foo();
-    new Foo;
-    FOO;
-    
-    $bar->foo;
-    $bar::$foo;
-    $bar::FOO;
-    Bar::$foo;
-    Bar::FOO;
     
 Classes
 =======
@@ -717,7 +691,7 @@ Instead it's recommended to prefix members with a "_" to mark them as a
 implementation detail. The "public", "final", "static" and "abstract" keywords 
 are supported as well, but not recommended.
 
-"::" is used to access the class.
+".." is used to access the class.
 
 Functions and properties can be indented below modifier keywords.
 
@@ -771,7 +745,7 @@ php::
     new Bicycle(new Rider));
 
 Properties and methods on instantiated classes is accessed with the "."
-operator. Using "::" accesses static members.
+operator. Using ".." accesses static members.
 
 snowscript::
 
@@ -779,9 +753,9 @@ snowscript::
     wind.blow()
     Newspaper().read()
     
-    Player::register("Ronaldo")
-    Player::MALE
-    Player::genders
+    Player..register("Ronaldo")
+    Player..MALE
+    Player..genders
 
 php::
 
@@ -825,9 +799,6 @@ Namespaces
 
 Stub.
 
-General
--------
-
 A namespace is defined by adding an empty file called "__namespace.snow" in the 
 folder which should be the root of the namespace. So given a directory structure
 as::
@@ -839,174 +810,56 @@ as::
         ├── galaxy.snow
         └── settings.snow
 
-the file "battle.snow" would have the namespace "starwars.battle". If no
+the file "battle.snow" would be given the namespace "starwars.battle". If no
 "__namespace.snow" file is found in the same folder or above, the namespace will 
 be that of the file itself.
 
-Classes, interfaces, traits, functions, constants and variables can be imported 
-from a namespace. Sub-namespaces are separated with ":".
+Classes, interfaces, traits, functions, constants, variables and namespaces
+can be imported.
 
 If any member is prefixed with "_" it is a warning that it should not be 
 accessed from outside its file.
 
-snowscript::
-
-    # Import a class, function, variable, constant and namespace respectively.
-    from starwars:battle use (XFighter(), set_trap(), fighters, WHAT_TO_TRUST, 
-                              deathstar:)
- 
-    # Aliasing.
-    from Starwars use XFighter() as X(), set_trap() as st()
-    use Db:Fields as F
-
-Namespaces (importing)
-----------------------
-
-Namespaces can be imported and must be postfixed with a ":".
-
-snowscript::
-
-    from Db use Fields:, Transaction:
-
-php::
-
-    use \Db\Fields;
-    use \Db\Transaction;
-
-Classes, interfaces and traits
-------------------------------
-
-Classes, interfaces and traits can be imported from other namespaces. Their 
-names must be PascalCase and postfixed with "()".
-
-snowscript::
-
-    # In the file battle.snow.
-    from starwars:galaxy use Dagobah(), Alderaan(), Sullust()
-    planet = Dagobah()
-
-php::
-
-    namespace \starwars\battle;
-
-    use \starwars\galaxy\Dagobah;
-    use \starwars\galaxy\Alderaan;
-    use \starwars\galaxy\Sullust;
-    $planet = new Dagobah();
-
-Functions
+Importing
 ---------
 
-Functions can opposed to PHP be imported too.
-
-Their names must not be PascalCase nor ALL_CAPS. They must be postfixed with 
-"()".
-
-snowscript::
-    
-    # In the file galaxy.snow.
-    from starwars:battle use attack()
-    attack()
-
-php::
-    
-    namespace \starwars\galaxy;
-
-    use \starwars\battle;
-    battle.attack();
-
-Constants
----------
-
-Constants must be ALL_CAPS.
+Members from other namespaces are imported by the ``use()`` function that must 
+be called before any other statements. It takes an array of what to import.
 
 snowscript::
 
-    from starwars:settings use NUMBER_OF_OCEANS
-    echo NUMBER_OF_OCEANS
+    use([
+        'FancyFramework.Db': [
+            'class': ['Retry', 'Transaction'],
+            'interface': ['Model_Interface'],
+            'trait': ['DateStampable'],
+            'fn': ['model_from_array'],
+            'constant': ['SUCCES', 'FAILURE'],
+            'variable': ['db_types'],
+            'namespace': ['Fields': 'F'],
+
+            '.Backends': [
+                'class': ['Mongo', 'Postgres', 'Datomic']
+            ]
+        ],
+        '__global': [
+            'class': ['SplStack'],
+            'interface': ['Countable'],
+            'fn': ['mb_strlen': 's_len', 'trim'],
+            'constant': 'E_ALL',
+        ]
+    ])
 
 php::
 
-    use \starwars\settings\NUMBER_OF_OCEANS;
-    echo NUMBER_OF_OCEANS;
+    Stub.
 
-Variables
----------
-
-Opposed to PHP, variables assigned in the body of a file belongs to the
-namespace of that file, not in the global namespace. Their names must not be
-PascalCase nor ALL_CAPS.
-
-snowscript::
-    
-    # In the file settings.snow.
-    jedis = ['Luke', 'Obi-Wan', 'Yoda']
-
-php::
-
-    namespace \starwars\settings;
-    global $starwars_settings_jedis = array('Luke', 'Obi-Wan', 'Yoda');
-
-This means that variables can be imported.
-
-snowscript::
-
-    # In the file battle.snow.
-    from starwars:settings use jedis
-
-    fn print_jedis
-        <- ["<li>{jedi}</li>" for jedi in jedis]->implode()
-
-php::
-
-    namespace \starwars\battle;
-
-    function print_jedis();
-        global $starwars_settings_jedis;
-        $result_ = array();
-        foreach ($starwars_settings_jedis as $jedi) {
-            $result_[] = '<li>' . $jedi . '</li>'; 
-        }
-        return implode($result_);
-
-Global Space
-------------
-
-The global namespace can be accessed directly with a prefixing ":".
-
-snowscript::
-
-    :trim(" A string")
-
-php::
-
-    \trim(" A string")
+Stub.
 
 Scoping rules
 =============
 
 Stub.
-
-my_var = 42
-
-fn foo()
-    # Outputs 42.
-    echo my_var
-
-    # Compile error.
-    my_var = 42
-
-    # Compile error.
-    bar(&my_var)
-
-fn foo2()
-    mutates my_var
-
-    # OK.
-    my_var = 43
-
-    # OK.
-    bar(&my_var)
 
 Traits
 ======
