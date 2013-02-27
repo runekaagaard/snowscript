@@ -309,7 +309,7 @@ php::
         echo $template->render($options_['allow_html'], $options_['klingon']);
     }
 
-    render("index.html", array('klingon'=> true);
+    render("index.html", array('klingon'=> true));
 
 Chaining
 --------
@@ -378,18 +378,18 @@ php::
 
     $use_me = get_use_me();
     $little_helper = function($input) use ($use_me) {
-        return polish(input, $use_me);
+        return polish($input, $use_me);
     }
 
     little_helper(new Lamp);
     
     takes_functions(
-        function(x) {
+        function($x) {
             $y = give_me_a_y($x);
-            return array(x * 2, $y);
+            return array($x * 2, $y);
         },
-        function(y, c) {
-            return y * c;
+        function($y, $c) {
+            return $y * $c;
         }
     )
 
@@ -538,11 +538,11 @@ php::
     }
     unset($n);
 
-    for ($i=1, $i <= 10, $i+=2) {
+    for ($i=1; $i <= 10; $i+=2) {
         echo $i;
     }
     unset($i);
-    for ($i=10, $i >= 0, --$i) {
+    for ($i=10; $i >= 0; --$i) {
         echo $i;
     }
     unset($i);
@@ -655,10 +655,10 @@ php::
         /**
          * Constructor.
          */
-        public function __construct(File path, title) {
+        public function __construct(File $path, $title) {
             $this->title = $title;
             $filesystem_ = new Filesystem;
-            self::$filesystem = $filesystem_.get();
+            self::$filesystem = $filesystem_->get();
             unset($filesystem_);
             $this->check_filesystem();
             $this->init_file($path);
