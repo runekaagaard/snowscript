@@ -823,13 +823,13 @@ accessed from outside its file.
 Importing
 ---------
 
-Members from other namespaces are imported by the ``use()`` function that must 
-be called before any other statements. It takes an array of what to import.
+Members from other namespaces are imported by the ``import()`` function that 
+must be called before any other statements. It takes an array of what to import.
 
 snowscript::
 
-    use([
-        'FancyFramework.Db': [
+    import([
+        'FancyFramework/Db': [
             'class': ['Retry', 'Transaction'],
             'interface': ['Model_Interface'],
             'trait': ['DateStampable'],
@@ -838,7 +838,7 @@ snowscript::
             'variable': ['db_types'],
             'namespace': ['Fields': 'F'],
 
-            '.Backends': [
+            '/Backends': [
                 'class': ['Mongo', 'Postgres', 'Datomic']
             ]
         ],
@@ -850,9 +850,49 @@ snowscript::
         ]
     ])
 
+    Retry()
+    model_from_array()
+    SUCCES
+
+    fn do_it()
+        db_types
+
+    F.Integer()
+
+    s_len("yo")
+
 php::
 
-    Stub.
+    use FancyFramework\Db\Retry;
+    use FancyFramework\Db\Transaction;
+    use FancyFramework\Db\Model_Interface;
+    use FancyFramework\Db\DateStampable;
+    use FancyFramework\Db\SUCCES;
+    use FancyFramework\Db\FAILURE;
+    use FancyFramework\Db;
+    use FancyFramework\Backends\Mongo;
+    use FancyFramework\Backends\Postgres;
+    use FancyFramework\Backends\Datomic;
+    use FancyFramework\Db\Retry\Fields as F;
+
+    use SplStack;
+    use Countable;
+    use mb_strlen;
+    use trim;
+    use E_ALL;
+
+    new Retry();
+    \FancyFramework\Db\model_from_array();
+    \FancyFramework\Db\SUCCES;
+
+    function do_it() {
+        global $fancyframework_db__db_types_;
+        $fancyframework_db__db_types_;
+    }
+
+    new F\Integer();
+
+    mb_strlen("yo");
 
 Stub.
 
