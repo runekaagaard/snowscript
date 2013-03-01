@@ -797,8 +797,6 @@ $a .= $b          a %= b
 Namespaces
 ==========
 
-Stub.
-
 A namespace is defined by adding an empty file called "__namespace.snow" in the 
 folder which should be the root of the namespace. So given a directory structure
 as::
@@ -806,16 +804,19 @@ as::
     .
     └── starwars
         ├── __namespace.snow
+        ├── __import.snow
         ├── battle.snow
         ├── galaxy.snow
         └── settings.snow
 
-the file "battle.snow" would be given the namespace "starwars.battle". If no
+the file "battle.snow" would be assigned the namespace "starwars.battle". If no
 "__namespace.snow" file is found in the same folder or above, the namespace will 
-be that of the file itself.
+be that of the filename itself.
 
-Classes, interfaces, traits, functions, constants, variables and namespaces
-can be imported.
+Classes, interfaces, traits, functions, constants, variables can belong to a
+namespace.
+
+To make a member exportable it must be defined in the root scope of the file.
 
 If any member is prefixed with "_" it is a warning that it should not be 
 accessed from outside its file.
@@ -825,6 +826,10 @@ Importing
 
 Members from other namespaces are imported by the ``import()`` function that 
 must be called before any other statements. It takes an array of what to import.
+Imports can be aliased with key/value pairs.
+
+There is no namespace operator, so everything needed must be explicitly 
+imported.
 
 snowscript::
 
@@ -836,7 +841,6 @@ snowscript::
             'fn': ['model_from_array'],
             'constant': ['SUCCES', 'FAILURE'],
             'variable': ['db_types'],
-            'namespace': ['Fields': 'F'],
 
             '/Backends': [
                 'class': ['Mongo', 'Postgres', 'Datomic']
@@ -857,8 +861,6 @@ snowscript::
     fn do_it()
         db_types
 
-    F.Integer()
-
     s_len("yo")
 
 php::
@@ -875,26 +877,29 @@ php::
     use FancyFramework\Backends\Datomic;
     use FancyFramework\Db\Retry\Fields as F;
 
-    use SplStack;
-    use Countable;
-    use mb_strlen;
-    use trim;
-    use E_ALL;
+    use \SplStack;
+    use \Countable;
+    use \mb_strlen;
+    use \trim;
+    use \E_ALL;
 
     new Retry();
     \FancyFramework\Db\model_from_array();
     \FancyFramework\Db\SUCCES;
 
     function do_it() {
-        global $fancyframework_db__db_types_;
-        $fancyframework_db__db_types_;
+        global $fancyframework_db__db_types;
+        $fancyframework_db__db_types;
     }
-
-    new F\Integer();
 
     mb_strlen("yo");
 
-Stub.
+Global imports
+--------------
+
+If a file named "__import.snow" containing an ``import()`` call is found in the 
+same folder as "__namespace.snow", it's imports are available for all ".snow"
+files in and below that directory.
 
 Scoping rules
 =============
