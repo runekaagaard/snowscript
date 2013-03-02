@@ -18,6 +18,7 @@ Todo 0.4
 
 - Webpage.
 - Documentation.
+- New array syntax.
 - Scoping rules.
 - Command line compile tools.
 - Full examples.
@@ -121,77 +122,10 @@ php::
      * Lines.
      */
 
-Arrays
-======
-
-Arrays are defined using square brackets "[]". Items are separated by ",". A
-trailing "," is allowed.
-
-Arrays can contain key/value pairs separated with ":". Keys can be omitted and 
-running integers will be assigned.
-
-snowscript::
-
-    pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
-    series = [
-        "Heroes": [
-            "genre": "Science Fiction",
-            "creator": Tim Kring",
-            "seasons": 4,
-        ],
-        "Game Of Thrones": [
-            "genre": "Medieval fantasy",
-            "creator": "David Benioff",
-            "seasons": 2,
-        ],
-    ]
-
-php::
-
-    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
-    
-    $series = array(
-        'Heroes' => array(
-            'genre' => "Science Fiction",
-            'creator' => "Tim Kring",
-            'seasons' => 4,
-        ),
-        "Game Of Thrones" => array(
-            'genre' => "Medieval fantasy",
-            'creator' => "David Benioff",
-            'seasons' => 2,
-        ),
-    );
-
-Accessing items is done using square brackets "[]".
-
-snowscript::
-
-    echo answers[0]['options'][0]['help_text']
-
-php::
-
-    echo $answers[0]['options'][0]['help_text'];
-
-Outside of bracket "[]()" context arrays can be defined without "[]".
-
-snowscript::
-
-    fn phone_home
-        <- dial(NUMBER), 0
-    message, status = phone_home()
-
-php::
-
-    function phone_home() {
-        return array(dial(NUMBER), 0);
-    }
-    list($message, $status) = phone_home();
-
 Strings
 =======
 
-There are four kind of strings: """, ", ''' and ', all multiline.
+There are five kind of strings: """, ", ''', ' and symbols, all multiline.
 
 Whitespace before the current indentation level is stripped. A newline can be
 cancelled by ending the previous line with "\\".
@@ -233,6 +167,20 @@ php::
     'No {magic} here\n';
     '''{nor()} here.''';
 
+Symbols
+-------
+
+A special kind of string is the symbol. It evaluates to itself, and is defined
+by the regex ":[a-z][a-z_]+".
+
+snowscript::
+
+    print_page([:horisontal true, :black_white false])
+
+php::
+
+    print_page(array('horisontal' => TRUE, 'black_white' => FALSE));
+
 Concatenation
 -------------
 
@@ -246,6 +194,83 @@ snowscript::
 php::
 
     echo 'I am' . ' legend!';
+
+Arrays
+======
+
+Arrays are defined using square brackets "[]". They can be defined in two
+different ways, either as a list of values or a dictionary of key/value pairs. 
+The two defintion types can not be mixed.
+
+Each value or key/value pair are separated by ",". A trailing "," is allowed.
+
+List
+----
+
+snowscript::
+
+    pianists = ["McCoy Tyner", "Fred Hersch", "Bill Evans"]
+
+php::
+
+    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
+
+The values are assigned running integers and can be accessed with "[]".
+
+snowscript::
+    
+    # Fred Hersch
+    echo pianists[1]
+
+php::
+
+    # Fred Hersch
+    echo $pianists[1];
+
+Dictionary
+----------
+
+The key and value of each key/value pair is separated by whitespace.
+
+snowscript::
+
+    series = [
+        "Heroes" [
+            :genre "Science Fiction",
+            :creator Tim Kring",
+            :seasons 4,
+        ],
+        "Game Of Thrones" [
+            :genre "Medieval fantasy",
+            :creator "David Benioff",
+            :seasons 2,
+        ],
+    ]
+
+php::
+
+    $series = array(
+        "Heroes" => array(
+            'genre' => "Science Fiction",
+            'creator' => "Tim Kring",
+            'seasons' => 4,
+        ),
+        "Game Of Thrones" => array(
+            'genre' => "Medieval fantasy",
+            'creator' => "David Benioff",
+            'seasons' => 2,
+        ),
+    );
+
+Accessing dictionaries is done using square brackets "[]".
+
+snowscript::
+
+    echo series['Heroes'][:genre]
+
+php::
+
+    echo $series['Heroes']['genre'];
 
 Functions
 =========
@@ -915,3 +940,10 @@ Macros
 ======
 
 Stub.
+
+myar = [
+    :yo :cool,
+    :looks :ok,
+    :this,
+    :is :nice,
+]
