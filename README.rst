@@ -769,7 +769,7 @@ snowscript::
     abstract class FactoryFactory
         extends AbstractBuilder 
         implements IFactoryFactory, IBuilder
-        use FactoryBehaviour, LoggingBehaviour
+        uses FactoryBehaviour, LoggingBehaviour
 
         DEFAULT_FACTORY = "DefaultFactory"
 
@@ -918,7 +918,7 @@ snowscript::
             'class': ['SplStack'],
             'interface': ['Countable'],
             'fn': ['mb_strlen': 's_len', 'trim',],
-            'constant': ['E_ALL'],
+            'constant': ['!E_ALL'],
         ]
     ])
 
@@ -1011,14 +1011,16 @@ php::
 
     $Places__GUYS = array('Adam', 'John', 'Michael');
 
-    function add_guy($name):
+    function add_guy($name) {
         global $Places__GUYS;
         $Places__GUYS []= $name;
 
-    function drink_beer($guy_number)
+    }
+
+    function drink_beer($guy_number) {
         global $Places__GUYS;
         (new Beer).drink($Places__GUYS[$guy_number]);
-
+    }
 
 Traits
 ======
