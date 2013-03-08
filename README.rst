@@ -983,12 +983,12 @@ letter and classes with an uppercase one.
 Scoping rules
 =============
 
-Everything assigned or imported above, in the same or an outer scope is 
+Everything assigned above or imported, in the same or an outer scope is 
 available for reading. For writing, members not assigned in the same scope must 
 be marked as mutable. This goes for imported members too. Classes has their own 
 scoping rules.
 
-snowscript:
+snowscript::
     
     # In the namespace "Places".
     imports(['Bar': [
