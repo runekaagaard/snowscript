@@ -89,19 +89,75 @@ snowscript::
 
     fn how_big_is_it(number)
         if number < 100
-            <- NOT_VERY_BIG
+            <- "small"
         else
-            <- BIG
+            <- "big"
 
 php::
 
     function how_big_is_it($number) {
         if ($number < 100) {
-            return NOT_VERY_BIG;
+            return "small";
         } else {
-            return BIG;
+            return "big";
         } 
     }
+
+Variables
+=========
+
+A variable matches the regular expression "[a-zA-Z][a-zA-Z0-9_]+".
+
+snowscript::
+
+    fungus = "Sarcoscypha coccinea"
+
+php::
+
+    $fungus = "Sarcoscypha coccinea";
+
+Constants
+=========
+
+A constant has a prefixed "!" and supports assignment. The same goes for class
+constants.
+
+snowscript::
+
+    !DB_ENGINE = 'mysql'
+
+php::
+
+    define('DB_ENGINE', 'mysql');
+
+The use of of constants in snowscript is not recommended. This is because PHP 
+constants are limited to scalar values and thus breaks the symmetry when you
+all of a sudden need to have a constant that is, say an array. All caps
+variables are recommended instead.
+
+Comparison
+==========
+
+All comparison operators are strong and there are no weak versions. The
+supported operators are "==", "!=", "<", ">", "<=" and ">=".
+
+snowscript::
+
+    a == b and c != d
+
+    if my_feet() > average_feet:
+        echo "BIGFOOT"
+
+php::
+
+    $a === $b && c !== $d;
+
+    $tmp_ = this_get();
+    if (gettype($tmp_) === gettype($average_feet) && $tmp_ > $average_feet) {
+        echo "BIGFOOT";
+    }
+    unset($tmp_);
+
 
 Comments
 ========
@@ -125,7 +181,7 @@ php::
 Strings
 =======
 
-There are five kind of strings: """, ", ''', ' and symbols, all multiline.
+There are four kind of strings: """, ", ''', and ', all multiline.
 
 Whitespace before the current indentation level is stripped. A newline can be
 cancelled by ending the previous line with "\\".
@@ -167,20 +223,6 @@ php::
     'No {magic} here\n';
     '''{nor()} here.''';
 
-Symbols
--------
-
-A special kind of string is the symbol. It evaluates to itself, and is defined
-by the regex ":[a-z][a-z_]+".
-
-snowscript::
-
-    print_page([:horisontal true, :black_white false])
-
-php::
-
-    print_page(array('horisontal' => TRUE, 'black_white' => FALSE));
-
 Concatenation
 -------------
 
@@ -200,7 +242,6 @@ Arrays
 
 Arrays are defined using square brackets "[]". They can be defined in two
 different ways, either as a list of values or a dictionary of key/value pairs. 
-The two defintion types can not be mixed.
 
 Each value or key/value pair are separated by ",". A trailing "," is allowed.
 
@@ -230,20 +271,20 @@ php::
 Dictionary
 ----------
 
-The key and value of each key/value pair is separated by whitespace.
+The key and value of each key/value pair are separated by ":".
 
 snowscript::
 
     series = [
-        "Heroes" [
-            :genre "Science Fiction",
-            :creator Tim Kring",
-            :seasons 4,
+        'Heroes': [
+            'genre': 'Science Fiction',
+            'creator': 'Tim Kring',
+            'seasons': 4,
         ],
-        "Game Of Thrones" [
-            :genre "Medieval fantasy",
-            :creator "David Benioff",
-            :seasons 2,
+        'Game Of Thrones': [
+            'genre': 'Medieval fantasy',
+            'creator': 'David Benioff',
+            'seasons': 2,
         ],
     ]
 
@@ -266,7 +307,7 @@ Accessing dictionaries is done using square brackets "[]".
 
 snowscript::
 
-    echo series['Heroes'][:genre]
+    echo series['Heroes']['genre']
 
 php::
 
@@ -490,14 +531,15 @@ Existence
 =========
 
 There are two existence operators "?" and "??". The first checks with 
-``isset(expr)``, the second with ``!empty(expr)``.
+``isset(expr)``, the second with ``!empty(expr)``. When chained it safely tries 
+each expression in turn, until a valid one is found. 
 
 snowscript::
 
     if field['title']?
         do_stuff()
 
-    stuff = try_this() ?? that ?? "Default"
+    stuff = try_this() ?? that['girl'] ?? "Default"
 
 php::
 
@@ -509,8 +551,8 @@ php::
     $tmp_ = try_this();
     if ($tmp_) {
         $stuff = $tmp_;
-    } elseif(!empty($that)) {
-        $stuff = $that;
+    } elseif(!empty($that['girl'])) {
+        $stuff = $that['girl'];
     } else {
         $stuff = "Default";
     }
@@ -645,8 +687,7 @@ snowscript::
         title = title
         _filehandle = null
         
-        # Constant by convention.
-        VERSION = 0.4
+        !VERSION = 0.4
             
         # Methods. #
         fn check_filesystem(filesystem)
@@ -779,7 +820,7 @@ snowscript::
     Newspaper().read()
     
     Player..register("Ronaldo")
-    Player..MALE
+    Player..!MALE
     Player..genders
 
 php::
@@ -851,42 +892,46 @@ Importing
 
 Members from other namespaces are imported by the ``import()`` function that 
 must be called before any other statements. It takes an array of what to import.
-Imports can be aliased with key/value pairs.
+Imports can be aliased using a key/value pair.
 
 There is no namespace operator, so everything needed must be explicitly 
-imported.
+imported. When using an imported namespace, the type of what follows the 
+namespace is inferred. See "Naming conventions".
 
 snowscript::
 
     import([
-        'FancyFramework/Db': [
+        'FancyFramework.Db': [
             'class': ['Retry', 'Transaction'],
             'interface': ['Model_Interface'],
             'trait': ['DateStampable'],
             'fn': ['model_from_array'],
-            'constant': ['SUCCES', 'FAILURE'],
+            'constant': ['!SUCCES', '!FAILURE'],
             'variable': ['db_types'],
+            'namespace': ['Fields'],
 
-            '/Backends': [
+            '.Backends': [
                 'class': ['Mongo', 'Postgres', 'Datomic']
             ]
         ],
         '__global': [
             'class': ['SplStack'],
             'interface': ['Countable'],
-            'fn': ['mb_strlen': 's_len', 'trim'],
-            'constant': 'E_ALL',
+            'fn': ['mb_strlen': 's_len', 'trim',],
+            'constant': ['E_ALL'],
         ]
     ])
 
     Retry()
     model_from_array()
-    SUCCES
+    !SUCCES
 
     fn do_it()
         db_types
 
     s_len("yo")
+
+    Fields.Integer()
 
 php::
 
@@ -900,7 +945,7 @@ php::
     use FancyFramework\Backends\Mongo;
     use FancyFramework\Backends\Postgres;
     use FancyFramework\Backends\Datomic;
-    use FancyFramework\Db\Retry\Fields as F;
+    use FancyFramework\Db\Retry\Fields;
 
     use \SplStack;
     use \Countable;
@@ -919,6 +964,8 @@ php::
 
     mb_strlen("yo");
 
+    new Fields\Integer();
+
 Global imports
 --------------
 
@@ -926,8 +973,17 @@ If a file named "__import.snow" containing an ``import()`` call is found in the
 same folder as "__namespace.snow", it's imports are available for all ".snow"
 files in and below that directory.
 
+Naming conventions
+==================
+
+Sometimes snowscript needs to guess a type to differentiate between functions 
+and classes. The single rule is that functions must start with a lowercase
+letter and classes with an uppercase one.
+
 Scoping rules
 =============
+
+
 
 Stub.
 
@@ -940,10 +996,3 @@ Macros
 ======
 
 Stub.
-
-myar = [
-    :yo :cool,
-    :looks :ok,
-    :this,
-    :is :nice,
-]
