@@ -958,8 +958,8 @@ php::
     \FancyFramework\Db\SUCCES;
 
     function do_it() {
-        global $fancyframework_db__db_types;
-        $fancyframework_db__db_types;
+        global $Fancyframework_Db__db_types;
+        $Fancyframework_Db__db_types;
     }
 
     mb_strlen("yo");
@@ -983,9 +983,42 @@ letter and classes with an uppercase one.
 Scoping rules
 =============
 
+Everything assigned or imported above, in the same or an outer scope is 
+available for reading. For writing, members not assigned in the same scope must 
+be marked as mutable. This goes for imported members too. Classes has their own 
+scoping rules.
 
+snowscript:
+    
+    # In the namespace "Places".
+    imports(['Bar': [
+        'class': 'Beer',
+    ]])
 
-Stub.
+    GUYS = ['Adam', 'John', 'Michael']
+
+    fn add_guy(name)
+        mutates GUYS
+        GUYS []= name
+
+    fn drink_beer(guy_number)
+        Beer().drink(GUYS[guy_number])
+
+php::
+
+    namespace Places;
+    use Bar\Beer;
+
+    $Places__GUYS = array('Adam', 'John', 'Michael');
+
+    function add_guy($name):
+        global $Places__GUYS;
+        $Places__GUYS []= $name;
+
+    function drink_beer($guy_number)
+        global $Places__GUYS;
+        (new Beer).drink($Places__GUYS[$guy_number]);
+
 
 Traits
 ======
