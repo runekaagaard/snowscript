@@ -17,11 +17,9 @@ Todo 0.4
 ========
 
 - Webpage.
-- Documentation.
-- New array syntax.
 - Scoping rules.
+- Namespaces.
 - Command line compile tools.
-- Full examples.
 - Tolerable error messages.
 - Code cleanup.
 
@@ -106,7 +104,7 @@ php::
 Variables
 =========
 
-A variable matches the regular expression "[a-zA-Z][a-zA-Z0-9_]+".
+A variable matches the regular expression ``[a-zA-Z][a-zA-Z0-9_]+``.
 
 snowscript::
 
@@ -478,12 +476,12 @@ Snowscript has simple destructuring.
 
 snowscript::
 
-    a, b, c = b, c, a
+    [a, b, c] = [b, c, a]
     [a, b, [c, d]] = letters
 
 php::
 
-    list($a, $b, $c) = [$b, $c, $a];
+    list($a, $b, $c) = array($b, $c, $a);
     list($a, $b, list($c, $d)) = $letters;
 
 Control structures
@@ -525,7 +523,6 @@ snowscript::
 php::
 
     echo ($height > 199 ? "tall" : "small");
-
 
 Existence
 =========
@@ -984,9 +981,9 @@ Scoping rules
 =============
 
 Everything assigned above or imported, in the same or an outer scope is 
-available for reading. For writing, members not assigned in the same scope must 
-be marked as mutable. This goes for imported members too. Classes has their own 
-scoping rules.
+available for reading. For writing, variables not assigned in the same scope 
+must be marked as mutable. This goes for imported variables too. Classes has 
+their own scoping rules.
 
 snowscript::
     
@@ -1008,6 +1005,7 @@ php::
 
     namespace Places;
     use Bar\Beer;
+    global $Places__GUYS;
 
     $Places__GUYS = array('Adam', 'John', 'Michael');
 
