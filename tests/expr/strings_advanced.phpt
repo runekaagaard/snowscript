@@ -5,7 +5,7 @@ Advanced strings
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 snowscript_to_php(<<<'EOT'
-mystring = "I am {A_CONSTANT} with {a_string} and {func_tion("foo")}"
+mystring = "I am {!A_CONSTANT} with {a_string} and {func_tion("foo")}"
 'fo \ \{ \' x'
 '''fo \ \{ \' x'''
 "fo \ \{ \""

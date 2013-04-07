@@ -23,7 +23,7 @@ for b in 1 to 10 step 2
     echo b
 for b in 10 downto 1 step 2
     echo b
-for b in Foo..getIt() downto func() step YES_WE_CAN
+for b in Foo..getIt() downto func() step !YES_WE_CAN
     echo b
 ', 0);
 --EXPECT--

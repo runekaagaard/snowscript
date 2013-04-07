@@ -10,7 +10,7 @@ class A(array a, MyClass b, c=42, ds)
     extends B
     implements C
     
-    FOO_BAR = 1
+    !FOO_BAR = 1
 
     implements D
 

@@ -1,0 +1,2 @@
+pear run-tests $1.phpt
+cat $1.out

@@ -10,10 +10,11 @@ a.b.c
 a.b.CAP
 A..prop
 a..func()
-A..A_KONST
+A..!A_KONST
 avar
 afunccall()
-A_KONST
+A_VAR
+!A_CONST
 foo(&a, &b)
 fn foo(MyClass bar, array fox, zup)
 	pass	
@@ -28,7 +29,8 @@ $a::func();
 A::A_KONST;
 $avar;
 afunccall();
-A_KONST;
+$A_VAR;
+A_CONST;
 foo(&$a, &$b);
 function foo(MyClass $bar, array $fox, $zup)
 {

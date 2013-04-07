@@ -91,7 +91,11 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     // Assignments
 
     public function pExpr_Assign(PHPParser_Node_Expr_Assign $node) {
-        return $this->p($node->var) . ' = ' . $this->p($node->expr);
+        $global = "";
+        if ($node->is_global) {
+            $global = "global " . $this->p($node->var) . ";\n";
+        }
+        return $global . $this->p($node->var) . ' = ' . $this->p($node->expr);
     }
 
     public function pExpr_AssignClassProperty(PHPParser_Node_Expr_AssignClassProperty $node) {
@@ -561,7 +565,8 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . 'function ' . ($node->byRef ? '&' : '') . $node->name
              . '(' . $this->pCommaSeparated($node->params) . ')'
              . (null !== $node->stmts
-                ? "\n" . '{' . "\n" . $this->pStmts($node->stmts) . "\n" . '}'
+                ? "\n" . '{' 
+                . "\n" . $this->pStmts($node->stmts) . "\n" . '}'
                 : ';');
     }
 
@@ -572,7 +577,8 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     public function pStmt_Function(PHPParser_Node_Stmt_Function $node) {
         return 'function ' . ($node->byRef ? '&' : '') . $node->name
              . '(' . $this->pCommaSeparated($node->params) . ')'
-             . "\n" . '{' . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
+             . "\n" . '{' . "\n" 
+             . $this->pStmts($node->stmts) . "\n" . '}';
     }
 
     public function pStmt_Const(PHPParser_Node_Stmt_Const $node) {

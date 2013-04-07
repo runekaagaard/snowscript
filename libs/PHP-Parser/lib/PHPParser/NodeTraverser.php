@@ -49,7 +49,7 @@ class PHPParser_NodeTraverser
     }
 
     protected function traverseNode(PHPParser_Node $node) {
-        $node = clone $node;
+        $node = $node;
 
         foreach ($node->getSubNodeNames() as $name) {
             $subNode =& $node->$name;

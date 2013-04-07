@@ -431,7 +431,7 @@ snowscript::
     takes_functions(
         (fn(x)
             y = give_me_a_y(x)
-            <- x * 2, y
+            <- [x * 2, y]
         ),
         (fn(y, c)
             <- y * c
@@ -680,13 +680,9 @@ The "." is used to access the class instance.
 snowscript::
     
     class TabularWriter(File path, filesystem, title)
-        # Properties. #
         title = title
-        _filehandle = null
-        
-        !VERSION = 0.4
+        _filehandle = null    
             
-        # Methods. #
         fn check_filesystem(filesystem)
             if not filesystems()[filesystem]?
                 throw UnsupportedFilesystemError()
@@ -704,33 +700,15 @@ snowscript::
 php::
 
     class TabularWriter {
-        /**
-         * Properties.
-         */
         public $title;
         public $_filehandle;
-        
-        /**
-         * Constants.
-         */        
-        const VERSION = 0.4;
 
-        /**
-         * Constructor.
-         */
         public function __construct(File $path, $title) {
             $this->title = $title;
-            $filesystem_ = new Filesystem;
-            self::$filesystem = $filesystem_->get();
-            unset($filesystem_);
             $this->check_filesystem();
             $this->init_file($path);
         }
 
-        /**
-         * Methods.
-         */
-         
         public function check_filesystem() {
             $tmp_ = supported_filesystems();
             if (!isset($tmp_[self::$filesystem])) {
@@ -768,14 +746,14 @@ snowscript::
         implements IFactoryFactory, IBuilder
         uses FactoryBehaviour, LoggingBehaviour
 
-        DEFAULT_FACTORY = "DefaultFactory"
+        !DEFAULT_FACTORY = "DefaultFactory"
 
         protected static 
             factories = []
             version = 1.0
 
         public static fn getInstance(factoryClassName)
-            <- ::factories[factoryClassName]
+            <- ..factories[factoryClassName]
 
 php::
 

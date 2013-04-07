@@ -211,7 +211,27 @@ def t_SR(t):
     t.type = RESERVED.get(t.value, "SR")
     return t
 
+MAGIC_CONSTS = (
+    '__CLASS',
+    '__DIR',
+    '__FILE',
+    '__FUNCTION',
+    '__LINE',
+    '__METHOD',
+    '__NAMESPACE',
+    '__TRAIT',
+)
 
+GLOBALS = (
+    '__SERVER',
+    '__GET',
+    '__POST',
+    '__FILES',
+    '__COOKIE',
+    '__SESSION',
+    '__REQUEST',
+    '__ENV',
+)
 def t_VARIABLE_NAME(t):
     r"[_]*[a-z][a-zA-Z0-9_]*"
     t.type = RESERVED.get(t.value, "NAME")
@@ -221,12 +241,23 @@ def t_VARIABLE_NAME(t):
 def t_CLASS_NAME(t):
     r"[A-Z_][a-zA-Z0-9_]*"
     if t.value == t.value.upper() and len(t.value) > 1:
-        t.type = 'CONSTANT_NAME'
+        if t.value in MAGIC_CONSTS:
+            t.value += "__"
+            t.type = "CONSTANT_NAME"
+        elif t.value == "__GLOBALS":
+            t.value = "GLOBALS"
+            t.type = "NAME"
+        elif t.value in GLOBALS:
+            t.value = t.value[1:]
+            t.type = "NAME"
+        else:
+            t.type = RESERVED.get(t.value, "NAME")
     return t
 
 
 def t_CONSTANT_NAME(t):
-    r"[A-Z_][A-Z0-9_]*"
+    "\![A-Z_][A-Z0-9_]*"
+    t.value = t.value[1:]
     return t
 
 
