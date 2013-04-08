@@ -91,11 +91,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     // Assignments
 
     public function pExpr_Assign(PHPParser_Node_Expr_Assign $node) {
-        $global = "";
-        if ($node->is_global) {
-            $global = "global " . $this->p($node->var) . ";\n";
-        }
-        return $global . $this->p($node->var) . ' = ' . $this->p($node->expr);
+        return $this->p($node->var) . ' = ' . $this->p($node->expr);
     }
 
     public function pExpr_AssignClassProperty(PHPParser_Node_Expr_AssignClassProperty $node) {
