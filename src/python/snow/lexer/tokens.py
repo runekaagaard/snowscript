@@ -164,12 +164,6 @@ def t_MOD_EQUAL(t):
     return t
 
 
-def t_MOD(t):
-    r'mod'
-    t.type = RESERVED.get(t.value, "MOD")
-    return t
-
-
 def t_SL_EQUAL(t):
     r'bleft\='
     t.type = RESERVED.get(t.value, "SL_EQUAL")
