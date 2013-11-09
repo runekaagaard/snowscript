@@ -207,7 +207,7 @@ Formatting
 ----------
 
 There are deliberately no expansion of code or variables inside strings. The
-idiomatic way is to use the ``fmt`` function from the snowscript stdlib.
+idiomatic way is to use the snowscript builtin ``fmt``.
 
 snowscript::
 
@@ -623,12 +623,12 @@ PHP               Snow
 &&                and
 !                 not
 ||                or
-and               _and_ (Not recommended)
-or                _or_ (Not recommended)
+and               N/A
+or                N/A
 %                 mod
-$a  %= $b         a mod= b
+$a  %= $b         N/A
 .                 %
-$a .= $b          a %= b
+$a .= $b          N/A
 &                 band
 \|                 bor
 ^                 bxor
@@ -667,9 +667,8 @@ accessed from outside its file.
 Importing
 ---------
 
-Members from other namespaces are imported by the ``import()`` function that 
-must be called before any other statements. It takes an array of what to import.
-Imports can be aliased using a key/value pair.
+Members from other namespaces are imported by the ``import`` keyword that 
+must be called before any other statements.
 
 There is no namespace operator, so everything needed must be explicitly 
 imported. When using an imported namespace, the type of what follows the 
@@ -677,27 +676,23 @@ namespace is inferred. See "Naming conventions".
 
 snowscript::
 
-    import([
-        'FancyFramework.Db': [
-            class: ['Retry', 'Transaction'],
-            interface' ['Model_Interface'],
-            trait: ['DateStampable'],
-            fn: ['model_from_array'],
-            constant: ['!SUCCES', '!FAILURE'],
-            variable: ['db_types'],
-            'namespace': ['Fields'],
-
-            '.Backends': [
-                'class': ['Mongo', 'Postgres', 'Datomic']
-            ]
-        ],
-        '__global': [
-            'class': ['SplStack'],
-            'interface': ['Countable'],
-            'fn': ['mb_strlen': 's_len', 'trim',],
-            'constant': ['!E_ALL'],
-        ]
-    ])
+    import
+        FancyFramework.Db
+            classes: Retry, Transaction
+            objects: Model
+            interfaces: Model_Interface
+            traits: DateStampable
+            fns: model_from_array
+            constants: !SUCCES, !FAILURE
+            variables: db_types
+            namespaces: Fields
+            .Backends
+                classes: Mongo, Postgres, Datomic
+        __global
+            classes: SplStack,
+            interfaces: Countable
+            fns: mb_strlen, s_len, trim
+            constants: E_ALL
 
     Retry()
     model_from_array()
@@ -746,16 +741,9 @@ php::
 Global imports
 --------------
 
-If a file named "__import.snow" containing an ``import()`` call is found in the 
-same folder as "__namespace.snow", it's imports are available for all ".snow"
-files in and below that directory.
-
-Naming conventions
-==================
-
-Sometimes snowscript needs to guess a type to differentiate between functions 
-and classes. The single rule is that functions must start with a lowercase
-letter and classes with an uppercase one.
+If a file named "__import.snow" containing an ``import`` definition is found in 
+the same folder as "__namespace.snow", it's imports are available for all 
+".snow" files in and below that directory.
 
 Scoping rules
 =============
@@ -768,9 +756,9 @@ their own scoping rules.
 snowscript::
     
     # In the namespace "Places".
-    imports(['Bar': [
-        'class': 'Beer',
-    ]])
+    import
+        Bar
+            classes: Beer
 
     GUYS = ['Adam', 'John', 'Michael']
 
@@ -800,6 +788,13 @@ php::
         (new Beer).drink($Places__GUYS[$guy_number]);
     }
 
+Naming conventions
+==================
+
+Sometimes snowscript needs to guess a type to differentiate between functions 
+and classes. The single rule is that functions must start with a lowercase
+letter and classes with an uppercase one.
+
 PHP Compatability Features
 ==========================
 
@@ -828,9 +823,7 @@ Classes
 Declaration
 ^^^^^^^^^^^
 
-The arguments to the class is given after the class name.
-
-The "." is used to access the class instance and ".." to access the class.
+A "." is used to access the class instance and ".." to access the class.
 
 snowscript::
     
@@ -880,8 +873,6 @@ php::
             }
         }
     }
-
-Functions and properties can be indented below modifier keywords.
 
 A class can inherit a single class, implement multiple interfaces and use
 multiple traits.
