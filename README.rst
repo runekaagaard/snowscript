@@ -274,16 +274,16 @@ snowscript::
 php::
 
     $series = new Snow_List([
-        "Heroes" => new Snow_Dict([
+        "Heroes" => new Snow_Dict(array(
             'genre' => "Science Fiction",
             'creator' => "Tim Kring",
             'seasons' => 4,
-        ]),
-        "Game Of Thrones" => new Snow_Dict([
+        )),
+        "Game Of Thrones" => new Snow_Dict(array(
             'genre' => "Medieval fantasy",
             'creator' => "David Benioff",
             'seasons' => 2,
-        ]),
+        )),
     ]);
 
 Accessing dictionaries is done using square brackets "[]".
