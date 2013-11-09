@@ -114,48 +114,54 @@ php::
 
     $fungus = "Sarcoscypha coccinea";
 
-Constants
-=========
-
-A constant has a prefixed "!" and supports assignment. The same goes for class
-constants.
+Declaring a variable in ALL_CAPS marks it as global to the scope its declared 
+in. ALL_CAPS variables declared in the root scope can be accessed from other 
+files.
 
 snowscript::
 
-    !DB_ENGINE = 'mysql'
+    ONE = "first"
+    two = "second"
+
+    fn stuff()
+        echo ONE # Echo's "first"
+        echo two # E_NOTICE
 
 php::
 
-    define('DB_ENGINE', 'mysql');
+    global $Namespace__ONE;
+    $Namespace__ONE = "first";
+    $two = "second";
 
-The use of of constants in snowscript is not recommended. This is because PHP 
-constants are limited to scalar values and thus breaks the symmetry when you
-all of a sudden need to have a constant that is, say an array. All caps
-variables are recommended instead.
+    function stuff() {
+        global $Namespace__ONE;
+        echo $Namespace__ONE; // Echo's "first"
+        echo $two; # E_NOTICE
+    }
 
 Comparison
 ==========
 
 All comparison operators are strong and there are no weak versions. The
-supported operators are "==", "!=", "<", ">", "<=" and ">=".
+supported operators are "==", "!=", "<", ">", "<=" and ">=". If the two
+compared values are not of the same type, an ``TypeComparisonError`` will be
+thrown. Thats also the case when comparing an int to a float.
 
 snowscript::
 
-    a == b and c != d
-
-    if my_feet() > average_feet:
+    if my_feet > average_feet:
         echo "BIGFOOT"
 
 php::
-
-    $a === $b && c !== $d;
-
-    $tmp_ = this_get();
-    if (gettype($tmp_) === gettype($average_feet) && $tmp_ > $average_feet) {
+    
+    if (gettype($my_feet) !== gettype($average_feet)) {
+        throw new TypeComparisonError(sprintf(
+            "Cannot compare type %1 with type %2"), 
+            gettype($my_feet), gettype($average_feet));
+    }
+    if ($my_feet > $average_feet) {
         echo "BIGFOOT";
     }
-    unset($tmp_);
-
 
 Comments
 ========
@@ -179,72 +185,43 @@ php::
 Strings
 =======
 
-There are four kind of strings: """, ", ''', and ', all multiline.
+There are two kind of strings: """ and ", both multiline.
 
 Whitespace before the current indentation level is stripped. A newline can be
 cancelled by ending the previous line with "\\".
 
-Quoted
-------
-
-Code inside "{}" concatenates to the string.
-
-snowscript::
-
-    fn travel
-        echo "\
-            The {animal} went to {world.place()}
-            with his {NUM} friends.\ 
-        "
-
-    """<a href="https://snowscript.org">Snowscript</a>\n"""
-
-php::
-
-    function travel() {
-        echo "The " . $animal . " went to " . $world->place() . "\n"
-        " with his " . NUM  . " friends.";
-        
-    }
-    "<a href=\"https://snowscript.org\">Snowscript</a>";
-
-Unquoted
---------
-
-snowscript::
-
-    'No {magic} here\n'
-    '''{nor()} here.'''
-
-php::
-
-    'No {magic} here\n';
-    '''{nor()} here.''';
-
 Concatenation
 -------------
 
-Strings can be concatenated with the "%" operator, but the 
-``"Hello {current_planet()}"`` form is preferred.
+Strings can be concatenated with the "%" operator.
 
 snowscript::
 
-    echo 'I am' % ' legend!'
+    echo "I am" % " legend!"
 
 php::
 
     echo 'I am' . ' legend!';
 
-Arrays
-======
+Formatting
+----------
 
-Arrays are defined using square brackets "[]". They can be defined in two
-different ways, either as a list of values or a dictionary of key/value pairs. 
+There are deliberately no expansion of code or variables inside strings. The
+idiomatic way is to use the ``fmt`` function from the snowscript stdlib.
 
-Each value or key/value pair are separated by ",". A trailing "," is allowed.
+snowscript::
+
+    "My {0} is {1}"->fmt("name", "rune")
+
+php::
+
+    snow_fmt("My {0} is {1}", "name", "rune");
 
 List
-----
+====
+
+Lists are defined using square brackets "[]" with each value separated by ",". 
+A trailing "," is allowed.
 
 snowscript::
 
@@ -252,9 +229,9 @@ snowscript::
 
 php::
 
-    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
+    $pianists = new Snow_List(array("McCoy Tyner", "Fred Hersch", "Bill Evans"));
 
-The values are assigned running integers and can be accessed with "[]".
+Values are assigned running integers and can be accessed with "[]".
 
 snowscript::
     
@@ -266,50 +243,63 @@ php::
     # Fred Hersch
     echo $pianists[1];
 
+A list is a custom snowscript datatype and has methods inspired by python and
+ruby. 
+
+Stub: Describe usage.
+
 Dictionary
 ----------
 
-The key and value of each key/value pair are separated by ":".
+Use "{}" to define a dictionary. The key and value of each key/value pair are 
+separated by ":".
 
 snowscript::
 
     series = [
-        'Heroes': [
-            'genre': 'Science Fiction',
-            'creator': 'Tim Kring',
-            'seasons': 4,
-        ],
-        'Game Of Thrones': [
-            'genre': 'Medieval fantasy',
-            'creator': 'David Benioff',
-            'seasons': 2,
-        ],
+        {
+            title: 'Heroes',
+            genre: 'Science Fiction',
+            creator: 'Tim Kring',
+            seasons: 4,
+        },
+        {
+            title: 'Game Of Thrones',
+            genre: 'Medieval fantasy',
+            creator: 'David Benioff',
+            seasons: 2,
+        },
     ]
 
 php::
 
-    $series = array(
-        "Heroes" => array(
+    $series = new Snow_List([
+        "Heroes" => new Snow_Dict([
             'genre' => "Science Fiction",
             'creator' => "Tim Kring",
             'seasons' => 4,
-        ),
-        "Game Of Thrones" => array(
+        ]),
+        "Game Of Thrones" => new Snow_Dict([
             'genre' => "Medieval fantasy",
             'creator' => "David Benioff",
             'seasons' => 2,
-        ),
-    );
+        ]),
+    ]);
 
 Accessing dictionaries is done using square brackets "[]".
 
 snowscript::
 
-    echo series['Heroes']['genre']
+    echo series[0]['genre']
 
 php::
 
-    echo $series['Heroes']['genre'];
+    echo $series[0]['genre'];
+
+A dictionary is a custom snowscript datatype and has methods inspired by python 
+and ruby. 
+
+Stub: Describe usage.
 
 Functions
 =========
@@ -327,28 +317,12 @@ php::
         return $fancystring->make_fancy();
     }
     
-Arguments passed as reference must have a prefixing "&".
-
-snowscript::
-
-    fn init_ab(&a, &b)
-        a = 10
-        b = 10
-    init_ab(&a, &b)
-    
-php::
-
-    function init_ab(&$a, &$b) {
-        $a = 10;
-        $b = 10;
-    }
-    init_ab($a, $b);
+Pass by reference is not supported.
 
 Optional parameters
 -------------------
 
-Functions does not allow to be defined with optional parameters. Functions in
-PHP land using optional parameters can of course be called.
+Functions does not allow to be defined with optional parameters.
 
 Named parameters
 ----------------
@@ -523,37 +497,6 @@ snowscript::
 php::
 
     echo ($height > 199 ? "tall" : "small");
-
-Existence
-=========
-
-There are two existence operators "?" and "??". The first checks with 
-``isset(expr)``, the second with ``!empty(expr)``. When chained it safely tries 
-each expression in turn, until a valid one is found. 
-
-snowscript::
-
-    if field['title']?
-        do_stuff()
-
-    stuff = try_this() ?? that['girl'] ?? "Default"
-
-php::
-
-    if (isset($field['title'])) {
-        do_stuff();
-    }
-
-    $stuff = false;
-    $tmp_ = try_this();
-    if ($tmp_) {
-        $stuff = $tmp_;
-    } elseif(!empty($that['girl'])) {
-        $stuff = $that['girl'];
-    } else {
-        $stuff = "Default";
-    }
-    unset($tmp_);
     
 Type casting
 ============
@@ -576,15 +519,12 @@ For
 ---
 
 Two kind of for loops are supported. Iterating over a collection, and iterating
-over a numeric range. Both key and value are local to the loop. An "&" can be 
-used to designate the value as by-reference.
+over a numeric range. Both key and value are local to the loop.
 
 snowscript::
 
     for title, data in flowers
         echo "{data.id}: title"
-    for &n in numbers
-        n *= 2
 
     for i in 1 to 10 step 2
         echo i
@@ -597,10 +537,6 @@ php::
         echo $data->id . ": " . $title;
     }
     unset($title, $data);
-    foreach ($numbers as $n) {
-        $n *= 2;
-    }
-    unset($n);
 
     for ($i=1; $i <= 10; $i+=2) {
         echo $i;
@@ -666,147 +602,13 @@ php::
         }
     }
     unset($samurai, $villain);
-    
-Classes
+
+Objects
 =======
 
-Declaration
------------
+An object is a lightweight class, native to snowscript.
 
-The arguments to the class is given after the class name.
-
-The "." is used to access the class instance.
-
-snowscript::
-    
-    class TabularWriter(File path, filesystem, title)
-        title = title
-        _filehandle = null    
-            
-        fn check_filesystem(filesystem)
-            if not filesystems()[filesystem]?
-                throw UnsupportedFilesystemError()
-        
-        fn init_file(path)
-            if not file_exists(path)
-                throw FileMissingError()
-            else
-                ._filehandle = open_file(path)
-
-        # Initialize object.
-        check_filesystem(filesystem)
-        init_file(path)
-
-php::
-
-    class TabularWriter {
-        public $title;
-        public $_filehandle;
-
-        public function __construct(File $path, $title) {
-            $this->title = $title;
-            $this->check_filesystem();
-            $this->init_file($path);
-        }
-
-        public function check_filesystem() {
-            $tmp_ = supported_filesystems();
-            if (!isset($tmp_[self::$filesystem])) {
-                throw new UnsupportedFilesystemError;
-            }
-            unset($tmp_);
-        }
-
-        public function init_file($path) {
-            if (!file_exists($path)) {
-                throw new FileMissingError;
-            } else {
-                $this->filehandle = open_file($path);
-            }
-        }
-    }
-    
-Protected and private visibility using "private" and "protected" is supported 
-but not considered very "snowy", after all "we're all consenting adults here". 
-Instead it's recommended to prefix members with a "_" to mark them as a 
-implementation detail. The "public", "final", "static" and "abstract" keywords 
-are supported as well, but not recommended.
-
-".." is used to access the class.
-
-Functions and properties can be indented below modifier keywords.
-
-A class can inherit a single class, implement multiple interfaces and use
-multiple traits.
-
-snowscript::
-
-    abstract class FactoryFactory
-        extends AbstractBuilder 
-        implements IFactoryFactory, IBuilder
-        uses FactoryBehaviour, LoggingBehaviour
-
-        !DEFAULT_FACTORY = "DefaultFactory"
-
-        protected static 
-            factories = []
-            version = 1.0
-
-        public static fn getInstance(factoryClassName)
-            <- ..factories[factoryClassName]
-
-php::
-
-    abstract class FactoryFactory extends AbstractBuilder implements FactoryFactoryInterface, IBuilder {
-        use FactoryBehaviour;
-        use LoggingBehaviour;
-
-        const DEFAULT_FACTORY = "DefaultFactory";
-
-        protected static $factories = [];
-        protected static $version = 1.0;
-
-        public static function getInstance($factoryClassName) {
-            return self::factories[$factoryClassName];
-        }
-            
-    }
-
-Usage
------
-
-Class instantiation uses function notation.
-
-snowscript::
-
-    Bicycle(Rider())
-
-php::
-
-    new Bicycle(new Rider));
-
-Properties and methods on instantiated classes is accessed with the "."
-operator. Using ".." accesses static members.
-
-snowscript::
-
-    wind = Wind(52, 12)
-    wind.blow()
-    Newspaper().read()
-    
-    Player..register("Ronaldo")
-    Player..!MALE
-    Player..genders
-
-php::
-
-    $wind = Wind(52, 12);
-    $wind->blow();
-    (new Newspaper())->read();
-    
-    Player::register("Ronaldo");
-    Player::MALE;
-    Player::$genders;
+Stub.
 
 Operators
 =========
@@ -877,12 +679,12 @@ snowscript::
 
     import([
         'FancyFramework.Db': [
-            'class': ['Retry', 'Transaction'],
-            'interface': ['Model_Interface'],
-            'trait': ['DateStampable'],
-            'fn': ['model_from_array'],
-            'constant': ['!SUCCES', '!FAILURE'],
-            'variable': ['db_types'],
+            class: ['Retry', 'Transaction'],
+            interface' ['Model_Interface'],
+            trait: ['DateStampable'],
+            fn: ['model_from_array'],
+            constant: ['!SUCCES', '!FAILURE'],
+            variable: ['db_types'],
             'namespace': ['Fields'],
 
             '.Backends': [
@@ -997,6 +799,161 @@ php::
         global $Places__GUYS;
         (new Beer).drink($Places__GUYS[$guy_number]);
     }
+
+PHP Compatability Features
+==========================
+
+Constants
+---------
+
+The use of of constants in snowscript is not recommended. This is because PHP 
+constants are limited to scalar values and thus breaks the symmetry when you
+all of a sudden need to have a constant that is, say an array. All caps
+variables are recommended instead.
+
+A constant has a prefixed "!" and supports assignment. The same goes for class
+constants.
+
+snowscript::
+
+    !DB_ENGINE = 'mysql'
+
+php::
+
+    define('DB_ENGINE', 'mysql');
+
+Classes
+-------
+
+Declaration
++++++++++++
+
+The arguments to the class is given after the class name.
+
+The "." is used to access the class instance and ".." to access the class.
+
+snowscript::
+    
+    class TabularWriter
+        title = title
+        _filehandle = null    
+        
+        fn __construct(File path, filesystem, title)
+            .check_filesystem(filesystem)
+            .init_file(path)
+
+        fn check_filesystem(filesystem)
+            if not filesystems()[filesystem]?
+                throw UnsupportedFilesystemError()
+        
+        fn init_file(path)
+            if not file_exists(path)
+                throw FileMissingError()
+            else
+                ._filehandle = open_file(path)
+
+php::
+
+    class TabularWriter {
+        public $title;
+        public $_filehandle;
+
+        public function __construct(File $path, $title) {
+            $this->title = $title;
+            $this->check_filesystem();
+            $this->init_file($path);
+        }
+
+        public function check_filesystem() {
+            $tmp_ = supported_filesystems();
+            if (!isset($tmp_[self::$filesystem])) {
+                throw new UnsupportedFilesystemError;
+            }
+            unset($tmp_);
+        }
+
+        public function init_file($path) {
+            if (!file_exists($path)) {
+                throw new FileMissingError;
+            } else {
+                $this->filehandle = open_file($path);
+            }
+        }
+    }
+
+Functions and properties can be indented below modifier keywords.
+
+A class can inherit a single class, implement multiple interfaces and use
+multiple traits.
+
+snowscript::
+
+    abstract class FactoryFactory
+        extends AbstractBuilder 
+        implements IFactoryFactory, IBuilder
+        uses FactoryBehaviour, LoggingBehaviour
+
+        !DEFAULT_FACTORY = "DefaultFactory"
+
+        protected static 
+            factories = []
+            version = 1.0
+
+        public static fn getInstance(factoryClassName)
+            <- ..factories[factoryClassName]
+
+php::
+
+    abstract class FactoryFactory extends AbstractBuilder implements FactoryFactoryInterface, IBuilder {
+        use FactoryBehaviour;
+        use LoggingBehaviour;
+
+        const DEFAULT_FACTORY = "DefaultFactory";
+
+        protected static $factories = [];
+        protected static $version = 1.0;
+
+        public static function getInstance($factoryClassName) {
+            return self::factories[$factoryClassName];
+        }
+            
+    }
+
+Usage
++++++
+
+Class instantiation uses function notation.
+
+snowscript::
+
+    Bicycle(Rider())
+
+php::
+
+    new Bicycle(new Rider));
+
+Properties and methods on instantiated classes is accessed with the "."
+operator. Using ".." accesses static members.
+
+snowscript::
+
+    wind = Wind(52, 12)
+    wind.blow()
+    Newspaper().read()
+    
+    Player..register("Ronaldo")
+    Player..!MALE
+    Player..genders
+
+php::
+
+    $wind = Wind(52, 12);
+    $wind->blow();
+    (new Newspaper())->read();
+    
+    Player::register("Ronaldo");
+    Player::MALE;
+    Player::$genders;
 
 Traits
 ======
