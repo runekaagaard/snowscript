@@ -826,7 +826,7 @@ Classes
 -------
 
 Declaration
-+++++++++++
+^^^^^^^^^^^
 
 The arguments to the class is given after the class name.
 
@@ -920,7 +920,7 @@ php::
     }
 
 Usage
-+++++
+^^^^^
 
 Class instantiation uses function notation.
 
