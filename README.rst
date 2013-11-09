@@ -608,6 +608,26 @@ Objects
 
 An object is a lightweight class, native to snowscript.
 
+snowscript::
+
+    object WebCam(driver, direction=false)
+        extends: Cam, Device
+
+        fn take_pic()
+            super
+            if .direction
+                .driver.rotate(.direction)
+
+            <- .driver.snapshot()
+
+        driver.inititalize()
+
+- Arguments to the object are available as properties.
+- ``super`` always passes the same arguments as the method it's being called 
+  from.
+- Code in the root scope of the object is executed on object instantiation.
+- Has multiple inheritance.
+
 Stub.
 
 Operators
