@@ -1,33 +1,5 @@
 <?php
 
-class PHPParser_Node_Stmt_Class_Traverse extends PHPParser_NodeVisitorAbstract {
-    public $parameter_names = array();
-    public $class_node;
-
-    public function __construct($class_node) {
-        $this->class_node = $class_node;
-        if ($class_node->parameter_list !== null) {
-            foreach ($class_node->parameter_list as $node) {
-                $this->parameter_names[$node->name] = true;
-            }
-        }
-    }
-
-    public function leaveNode(PHPParser_Node $node) {
-        if ($node instanceof PHPParser_Node_Expr_Variable) {
-            $in_props = isset($this->class_node->prop_names[$node->name]);
-            $in_params = isset($this->parameter_names[$node->name]);
-
-            if (!$in_props and $in_params) return;
-            
-            return new PHPParser_Node_Expr_PropertyFetch(
-                new PHPParser_Node_Expr_Variable('this'),
-                $node->name
-            );
-        }
-    }
-}
-
 /**
  * @property int                      $type       Type
  * @property string                   $name       Name
@@ -90,33 +62,18 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 throw new PHPParser_Error(sprintf('Cannot use "%s" as interface name as it is reserved', $interface));
             }
         }
-        list($this->stmts, $this->props, $this->constructor, $this->extends, $this->implements) = 
-            $this->splitStmtsAndProps($this->stmts);
+        list($this->stmts, $this->extends, $this->implements) = 
+            $this->class_settings($this->stmts);
     }
 
-    private function splitStmtsAndProps($stmts_old) {
+    private function class_settings($stmts_old) {
         $stmts = array();
-        $props = array();
-        $constructor = false;
         $extends = false;
         $implements = array();
-        $this->prop_names = array();
-        $traverser = new PHPParser_NodeTraverser;
-        $traverser->addVisitor(new PHPParser_Node_Stmt_Class_Traverse($this));
         foreach ($stmts_old as $stmt) {
-            if ($stmt instanceof PHPParser_Node_Expr_AssignClassProperty) {
-                $stmts_traversed = $traverser->traverse(array($stmt));
-                $stmt = $stmts_traversed[0];
-                $props []= $stmt;
-                $this->prop_names[$stmt->var->name]= true;
-            } elseif ($stmt instanceof PHPParser_Node_Stmt_ClassMethod
-            && $stmt->name == '__construct') {
-                if ($constructor !== false) throw new PHPParser_Error(
-                    "Only one __construct method allowed per class.");
-                $constructor = $stmt->stmts;
-            } elseif ($stmt instanceof Snowscript_Node_Stmt_Extends) {
+            if ($stmt instanceof Snowscript_Node_Stmt_Extends) {
                 if ($extends !== false) throw new PHPParser_Error(
-                    "Only one extend allow per class.");
+                    "Only one extend allowed per class.");
                 $extends = $stmt->name;
             } elseif ($stmt instanceof Snowscript_Node_Stmt_Implements) {
                 foreach($stmt->names as $name) $implements []= $name;
@@ -124,8 +81,7 @@ class PHPParser_Node_Stmt_Class extends PHPParser_Node_Stmt
                 $stmts[] = $stmt;
             }
         }
-        $this->prop_names = array();
-        return array($stmts, $props, $constructor, $extends, $implements);
+        return array($stmts, $extends, $implements);
     }
 
     public static function verifyModifier($a, $b) {

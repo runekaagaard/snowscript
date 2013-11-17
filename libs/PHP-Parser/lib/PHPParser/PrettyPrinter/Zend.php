@@ -95,7 +95,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pExpr_AssignClassProperty(PHPParser_Node_Expr_AssignClassProperty $node) {
-        return '$this->' . $node->var->name . ' = ' . $this->p($node->expr);
+        return 'public ' . $this->p($node->var) . ' = ' . $this->p($node->expr);
     }
 
     public function pExpr_AssignRef(PHPParser_Node_Expr_AssignRef $node) {
@@ -504,12 +504,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . (!empty($node->implements) ? ' implements ' . $this->pCommaSeparated($node->implements) : '')
              . "\n" . '{' . "\n" . $this->pStmts($node->stmts) .  "\n" . 
              $this ->noIndentToken . "\n" .
-             (($node->constructor || $node->props) ? $this->indent_more('public function __construct(' . 
-                (($node->parameter_list) ? $this->pCommaSeparated($node->parameter_list) : '') .
-                ') {' . "\n" .
-                    ($node->props ? $this->pStmts($node->props) . "\n" : '') . 
-                    ($node->constructor ? $this->pStmts($node->constructor) . "\n" : '') 
-             . '}') : '') . "\n\n" . '}';
+             "}";
     }
 
     public function pStmt_Trait(PHPParser_Node_Stmt_Trait $node) {

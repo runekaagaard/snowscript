@@ -6,7 +6,7 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
 
-class A(array a, MyClass b, c=42, ds) 
+class A 
     extends B
     implements C
     
@@ -20,7 +20,7 @@ class A(array a, MyClass b, c=42, ds)
     d = x*2 * a * b
     ds = []
 
-    fn __construct()
+    fn __construct(array a, MyClass b, c=42, ds)
         for d in ds
             .ds[] = do_stuff_to(d)
         .x.y.z.v.f = 2000
@@ -29,30 +29,31 @@ class A(array a, MyClass b, c=42, ds)
     fn x()
         <- 200
 
-", 0);
+", 1);
 --EXPECT--
 <?php
 class A extends B implements C, D
 {
     const FOO_BAR = 1;
+    public $y = $a;
+    public $a = my_func($a);
+    public $x = new MyClass(my_other_func2(), $y, new MyOtherClass());
+    public $d = (($x * 2) * $a) * $b;
+    public $ds = array();
     
-    public function x()
+    public function __construct(array $a, MyClass $b, $c = 42, $ds)
     {
-        return 200;
-    }
-
-    public function __construct(array $a, MyClass $b, $c = 42, $ds) {
-        $this->y = $a;
-        $this->a = my_func($a);
-        $this->x = new MyClass(my_other_func2(), $this->y, new MyOtherClass());
-        $this->d = (($this->x * 2) * $this->a) * $b;
-        $this->ds = array();
         foreach ($ds as $d) {
             $this->ds[] = do_stuff_to($d);
         }
         unset($d);
         $this->x->y->z->v->f = 2000;
         $xs->superman;
+    }
+    
+    public function x()
+    {
+        return 200;
     }
 
 }
