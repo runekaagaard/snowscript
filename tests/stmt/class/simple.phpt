@@ -14,10 +14,7 @@ class A
 
     implements D
 
-    y = a
-    a = my_func(a)
-    x = MyClass(my_other_func2(), y, MyOtherClass())
-    d = x*2 * a * b
+    y = 50
     ds = []
 
     fn __construct(array a, MyClass b, c=42, ds)
@@ -29,16 +26,13 @@ class A
     fn x()
         <- 200
 
-", 1);
+", 0);
 --EXPECT--
 <?php
 class A extends B implements C, D
 {
     const FOO_BAR = 1;
-    public $y = $a;
-    public $a = my_func($a);
-    public $x = new MyClass(my_other_func2(), $y, new MyOtherClass());
-    public $d = (($x * 2) * $a) * $b;
+    public $y = 50;
     public $ds = array();
     
     public function __construct(array $a, MyClass $b, $c = 42, $ds)
