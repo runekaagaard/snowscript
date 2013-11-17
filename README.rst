@@ -77,9 +77,9 @@ Documentation
 Whitespace
 ==========
 
-Snowscript has significant whitespace, meaning that the code structure is 
-managed by indenting/dedenting and not by curly brackets "{}". Whitespace is not
-significant inside strings and brackets "()[]".
+Snowscript has significant whitespace and the code structure is managed by 
+indention, not by curly brackets "{}" or "do/end". Whitespace is not significant 
+inside strings and brackets "()[]{}".
 
 The only allowed indention format is 4 spaces.
 
@@ -93,7 +93,7 @@ snowscript::
 
 php::
 
-    function how_big_is_it($number) {
+    $how_big_is_it = function($number) {
         if ($number < 100) {
             return "small";
         } else {
@@ -114,7 +114,7 @@ php::
 
     $fungus = "Sarcoscypha coccinea";
 
-Declaring a variable in ALL_CAPS marks it as global to the scope its declared 
+Declaring a variable in ALL_CAPS marks it as global to the scope it's declared 
 in. ALL_CAPS variables declared in the root scope can be accessed from other 
 files.
 
@@ -133,7 +133,7 @@ php::
     $Namespace__ONE = "first";
     $two = "second";
 
-    function stuff() {
+    $stuff = function() {
         global $Namespace__ONE;
         echo $Namespace__ONE; // Echo's "first"
         echo $two; # E_NOTICE
@@ -144,7 +144,7 @@ Comparison
 
 All comparison operators are strong and there are no weak versions. The
 supported operators are "==", "!=", "<", ">", "<=" and ">=". If the two
-compared values are not of the same type, an ``TypeComparisonError`` will be
+compared values are not of the same type, a ``TypeComparisonError`` will be
 thrown. Thats also the case when comparing an int to a float.
 
 snowscript::
@@ -206,16 +206,16 @@ php::
 Formatting
 ----------
 
-There are deliberately no expansion of code or variables inside strings. The
-idiomatic way is to use the snowscript builtin ``fmt``.
+There are deliberately no expansion of code or variables inside strings, but 
+chaining a string with sprintf does the job.
 
 snowscript::
 
-    "My {0} is {1}"->fmt("name", "rune")
+    "My favorite %s is %d"->sprintf("number", 42)
 
 php::
 
-    snow_fmt("My {0} is {1}", "name", "rune");
+    sprintf("My favorite %s is %d", "number", 42);
 
 List
 ====
@@ -229,7 +229,7 @@ snowscript::
 
 php::
 
-    $pianists = new Snow_List(array("McCoy Tyner", "Fred Hersch", "Bill Evans"));
+    $pianists = array("McCoy Tyner", "Fred Hersch", "Bill Evans");
 
 Values are assigned running integers and can be accessed with "[]".
 
@@ -243,11 +243,6 @@ php::
     # Fred Hersch
     echo $pianists[1];
 
-A list is a custom snowscript datatype and has methods inspired by python and
-ruby. 
-
-Stub: Describe usage.
-
 Dictionary
 ----------
 
@@ -258,33 +253,33 @@ snowscript::
 
     series = [
         {
-            title: 'Heroes',
-            genre: 'Science Fiction',
-            creator: 'Tim Kring',
+            title: "Heroes",
+            genre: "Science Fiction",
+            creator: "Tim Kring",
             seasons: 4,
         },
         {
-            title: 'Game Of Thrones',
-            genre: 'Medieval fantasy',
-            creator: 'David Benioff',
+            title: "Game Of Thrones",
+            genre: "Medieval fantasy",
+            creator: "David Benioff",
             seasons: 2,
         },
     ]
 
 php::
 
-    $series = new Snow_List([
-        "Heroes" => new Snow_Dict(array(
+    $series = array(
+        "Heroes" => array(
             'genre' => "Science Fiction",
             'creator' => "Tim Kring",
             'seasons' => 4,
-        )),
-        "Game Of Thrones" => new Snow_Dict(array(
+        ),
+        "Game Of Thrones" => array(
             'genre' => "Medieval fantasy",
             'creator' => "David Benioff",
             'seasons' => 2,
         )),
-    ]);
+    );
 
 Accessing dictionaries is done using square brackets "[]".
 
@@ -296,11 +291,6 @@ php::
 
     echo $series[0]['genre'];
 
-A dictionary is a custom snowscript datatype and has methods inspired by python 
-and ruby. 
-
-Stub: Describe usage.
-
 Functions
 =========
 
@@ -308,16 +298,21 @@ The "fn" keyword is used to define functions, and "<-" to return a value.
 
 snowscript::
 
-    fn titlefy(FancyString fancystring)
+    fn titlefy(fancystring)
         <- fancystring.make_fancy()
+    titlefy(so_fancy)
 
 php::
 
-    function titlefy(FancyString $fancystring) {
+    $titlefy = function($fancystring) {
         return $fancystring->make_fancy();
     }
+    $titlefy($so_fancy);
     
-Pass by reference is not supported.
+Functions are first-class citizens.
+
+Pass by reference and type hinting is not supported. A function is available 
+after it's definition, in and below the scope its be defined in.
 
 Optional parameters
 -------------------
@@ -338,7 +333,7 @@ snowscript::
 
 php::
 
-    function render($template, $options_) {
+    $render = function($template, $options_) {
         $defaults_ = array(
             'allow_html' => true, 
             'klingon' => false,
@@ -347,7 +342,7 @@ php::
         echo $template->render($options_['allow_html'], $options_['klingon']);
     }
 
-    render("index.html", array('klingon'=> true));
+    $render("index.html", array('klingon'=> true));
 
 Chaining
 --------
@@ -366,8 +361,7 @@ php::
 Inner functions
 ---------------
 
-Functions inside functions are defined at compile time, and only available
-inside the scope where they are defined. Nesting can go arbitrarily deep.
+Inner functions comes highly recommended.
 
 snowscript::
 
@@ -380,17 +374,21 @@ snowscript::
 
 php::
     
-    function _wash_car_apply_water_($car) {}
-    function _wash_car_dry_($car) {}
     function wash_car(Car $car) {
-        return _wash_car_dry_(_wash_car_apply_water_($car));
+        $apply_water = function($car) {
+
+        }
+        $dry = function($car) {
+
+        }
+        return $dry($apply_water($car));
     }
 
 Closures
 --------
 
 Anonymous functions are declared like a normal function without the function 
-name and surrounded with "()".
+name and surrounded by "()".
 
 A "+" before the variable name binds a variable from the outer scope.
 
@@ -419,7 +417,7 @@ php::
         return polish($input, $use_me);
     }
 
-    little_helper(new Lamp);
+    $little_helper(new Lamp);
     
     takes_functions(
         function($x) {
@@ -524,7 +522,7 @@ over a numeric range. Both key and value are local to the loop.
 snowscript::
 
     for title, data in flowers
-        echo "{data.id}: title"
+        echo [data.id, title]
 
     for i in 1 to 10 step 2
         echo i
@@ -534,7 +532,7 @@ snowscript::
 php::
 
     foreach ($flowers as $title => $data) {
-        echo $data->id . ": " . $title;
+        echo array($data->id, $title);
     }
     unset($title, $data);
 
@@ -606,14 +604,16 @@ php::
 Objects
 =======
 
+Stub.
+
 An object is a lightweight class, native to snowscript.
 
 snowscript::
 
     object WebCam(driver, direction=false)
-        extends: Cam, Device
+        extends = [Cam, Device]
 
-        fn take_pic()
+        fn take_pic(self)
             super
             if .direction
                 .driver.rotate(.direction)
@@ -628,7 +628,14 @@ snowscript::
 - Code in the root scope of the object is executed on object instantiation.
 - Has multiple inheritance.
 
-Stub.
+The typical PSR-1 application structure where everything is a class in its own 
+file is not recommended in Snowscript.
+
+Instead use functions to encapsulate logic and ALL_CAPS variables for global
+state. Signs that using an object is appropriate includes:
+
+- You need more than one type of something
+- ...
 
 Operators
 =========
@@ -687,7 +694,7 @@ accessed from outside its file.
 Importing
 ---------
 
-Members from other namespaces are imported by the ``import`` keyword that 
+Members from other namespaces are imported by the ``import()`` function that 
 must be called before any other statements.
 
 There is no namespace operator, so everything needed must be explicitly 
@@ -696,23 +703,29 @@ namespace is inferred. See "Naming conventions".
 
 snowscript::
 
-    import
-        FancyFramework.Db
-            classes: Retry, Transaction
-            objects: Model
-            interfaces: Model_Interface
-            traits: DateStampable
-            fns: model_from_array
-            constants: !SUCCES, !FAILURE
-            variables: db_types
-            namespaces: Fields
-            .Backends
-                classes: Mongo, Postgres, Datomic
-        __global
-            classes: SplStack,
-            interfaces: Countable
-            fns: mb_strlen, s_len, trim
-            constants: E_ALL
+    import({
+        "FancyFramework.Db": {
+            classes: ["Retry", "Transaction"],
+            objects: ["Model"],
+            interfaces: ["Model_Interface"],
+            traits: ["DateStampable"],
+            fns: ["model_from_array"],
+            constants: ["!SUCCES", "!FAILURE"],
+            variables: ["db_types"],
+            namespaces: ["Fields"],
+            below: {
+                "Backends": {
+                    objects: ["Mongo, Postgres, Datomic"],
+                },
+            },
+        },
+        __global: {
+            classes: ["SplStack"],
+            interfaces: ["Countable"],
+            fns: [["mb_strlen", "s_len"], "trim"],
+            constants: ["!E_ALL"],
+        },
+    })
 
     Retry()
     model_from_array()
@@ -749,7 +762,7 @@ php::
     \FancyFramework\Db\model_from_array();
     \FancyFramework\Db\SUCCES;
 
-    function do_it() {
+    $do_it = function() {
         global $Fancyframework_Db__db_types;
         $Fancyframework_Db__db_types;
     }
@@ -776,11 +789,13 @@ their own scoping rules.
 snowscript::
     
     # In the namespace "Places".
-    import
-        Bar
+    import({
+        "Bar": {
             classes: Beer
+        }
+    })
 
-    GUYS = ['Adam', 'John', 'Michael']
+    GUYS = ["Adam", "John", "Michael"]
 
     fn add_guy(name)
         mutates GUYS
@@ -793,27 +808,29 @@ php::
 
     namespace Places;
     use Bar\Beer;
-    global $Places__GUYS;
+    global $Places__GUYS, $Places_add_guy, $Places_drink_beer;
 
     $Places__GUYS = array('Adam', 'John', 'Michael');
 
-    function add_guy($name) {
+    $Places_add_guy = function($name) {
         global $Places__GUYS;
         $Places__GUYS []= $name;
 
     }
 
-    function drink_beer($guy_number) {
-        global $Places__GUYS;
+    $Places_drink_beer = function($guy_number) {
         (new Beer).drink($Places__GUYS[$guy_number]);
     }
+
+Note that the namespace prefix to root level variables avoids collisions and
+makes them importable from other files. 
 
 Naming conventions
 ==================
 
 Sometimes snowscript needs to guess a type to differentiate between functions 
 and classes. The single rule is that functions must start with a lowercase
-letter and classes with an uppercase one.
+letter and classes with an uppercase.
 
 PHP Compatability Features
 ==========================
@@ -840,16 +857,20 @@ php::
 Classes
 -------
 
+Objects are used instead of classes where possible.
+
 Declaration
 ^^^^^^^^^^^
 
 A "." is used to access the class instance and ".." to access the class.
+Unlike for functions, type hints are allowed in methods. This is necessary to
+be compatible with PHP.
 
 snowscript::
     
     class TabularWriter
         title = title
-        _filehandle = null    
+        private filehandle = null
         
         fn __construct(File path, filesystem, title)
             .check_filesystem(filesystem)
@@ -863,13 +884,13 @@ snowscript::
             if not file_exists(path)
                 throw FileMissingError()
             else
-                ._filehandle = open_file(path)
+                .filehandle = open_file(path)
 
 php::
 
     class TabularWriter {
         public $title;
-        public $_filehandle;
+        private $filehandle;
 
         public function __construct(File $path, $title) {
             $this->title = $title;
