@@ -11,21 +11,17 @@ a <= b
 a > b
 a >= b
 a == b
-a === b
 a != b
-a !== b
 a isa B
 a isa b
 ', 0);
 --EXPECT--
 <?php
-$a < $b;
-$a <= $b;
-$a > $b;
-$a >= $b;
-$a == $b;
-$a === $b;
-$a != $b;
-$a !== $b;
+\snow_lt($a, $b);
+\snow_lte($a, $b);
+\snow_gt($a, $b);
+\snow_gte($a, $b);
+\snow_eq($a, $b);
+\snow_neq($a, $b);
 $a instanceof B;
 $a instanceof $b;

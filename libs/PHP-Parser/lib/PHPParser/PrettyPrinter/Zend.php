@@ -224,36 +224,32 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
         return $this->p($node->left) . ' xor ' . $this->p($node->right);
     }
 
+    private function comp_func($name, $node) {
+        return "\snow_" . $name . "(" . $this->p($node->left) . ", " 
+               . $this->p($node->right) . ")"; 
+    }
     public function pExpr_Equal(PHPParser_Node_Expr_Equal $node) {
-        return $this->p($node->left) . ' == ' . $this->p($node->right);
+        return $this->comp_func('eq', $node);
     }
 
     public function pExpr_NotEqual(PHPParser_Node_Expr_NotEqual $node) {
-        return $this->p($node->left) . ' != ' . $this->p($node->right);
-    }
-
-    public function pExpr_Identical(PHPParser_Node_Expr_Identical $node) {
-        return $this->p($node->left) . ' === ' . $this->p($node->right);
-    }
-
-    public function pExpr_NotIdentical(PHPParser_Node_Expr_NotIdentical $node) {
-        return $this->p($node->left) . ' !== ' . $this->p($node->right);
+        return $this->comp_func('neq', $node);
     }
 
     public function pExpr_Greater(PHPParser_Node_Expr_Greater $node) {
-        return $this->p($node->left) . ' > ' . $this->p($node->right);
+        return $this->comp_func('gt', $node);
     }
 
     public function pExpr_GreaterOrEqual(PHPParser_Node_Expr_GreaterOrEqual $node) {
-        return $this->p($node->left) . ' >= ' . $this->p($node->right);
+        return $this->comp_func('gte', $node);
     }
 
     public function pExpr_Smaller(PHPParser_Node_Expr_Smaller $node) {
-        return $this->p($node->left) . ' < ' . $this->p($node->right);
+        return $this->comp_func('lt', $node);
     }
 
     public function pExpr_SmallerOrEqual(PHPParser_Node_Expr_SmallerOrEqual $node) {
-        return $this->p($node->left) . ' <= ' . $this->p($node->right);
+        return $this->comp_func('lte', $node);
     }
 
     public function pExpr_Instanceof(PHPParser_Node_Expr_Instanceof $node) {

@@ -26,6 +26,7 @@ Todo 0.4
 Done
 ==== 
 
+- Strict comparison operators.
 - Comments.
 - Strings.
 - Ternary operator.
@@ -154,12 +155,7 @@ snowscript::
 
 php::
     
-    if (gettype($my_feet) !== gettype($average_feet)) {
-        throw new TypeComparisonError(sprintf(
-            "Cannot compare type %1 with type %2"), 
-            gettype($my_feet), gettype($average_feet));
-    }
-    if ($my_feet > $average_feet) {
+    if (snow_gt($my_feet, $average_feet)) {
         echo "BIGFOOT";
     }
 
@@ -794,6 +790,17 @@ Naming conventions
 Sometimes snowscript needs to guess a type to differentiate between functions 
 and classes. The single rule is that functions must start with a lowercase
 letter and classes with an uppercase.
+
+Snow Standard Library
+=====================
+
+A single php files needs to be included in your project. For now it only holds
+functions and exceptions used in the compiled PHP code, but the goal is that 
+Snowscript will have a set of builtin functions too.
+
+Include it like:
+
+    require('path/to/snowscript/stdlib/bootstrap.php')
 
 PHP Compatability Features
 ==========================

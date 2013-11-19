@@ -6,7 +6,10 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 
 snowscript_to_php("
 
-class A 
+class A
+    extends B
+    implements C, D
+
     protected foo = 1922222
     final bar = 32
     !MY_CONST = 'HI'
@@ -28,7 +31,7 @@ class A
 ", 0);
 --EXPECT--
 <?php
-class A
+class A extends B implements C, D
 {
     protected $foo = 1922222;
     final $bar = 32;

@@ -6,6 +6,8 @@ require dirname(__FILE__) . '/../bootstrap_tests.php';
 
 $php = snowscript_to_php(<<<'SNOW'
 
+require('../stdlib/bootstrap.php')
+
 # Returns the "... bottles of beer" string. #
 fn pluralize(i)
     switch i
