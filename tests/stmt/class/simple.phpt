@@ -7,15 +7,11 @@ require dirname(__FILE__) . '/../../bootstrap_tests.php';
 snowscript_to_php("
 
 class A 
-    extends B
-    implements C
-    
-    !FOO_BAR = 1
-
-    implements D
-
-    y = 50
-    ds = []
+    protected foo = 1922222
+    final bar = 32
+    !MY_CONST = 'HI'
+    private baz = [1,2,3,4]
+    dapub = 'uber'
 
     fn __construct(array a, MyClass b, c=42, ds)
         for d in ds
@@ -26,14 +22,19 @@ class A
     fn x()
         <- 200
 
+    private static fn why()
+        <- 'Dont know'
+
 ", 0);
 --EXPECT--
 <?php
-class A extends B implements C, D
+class A
 {
-    const FOO_BAR = 1;
-    public $y = 50;
-    public $ds = array();
+    protected $foo = 1922222;
+    final $bar = 32;
+    const MY_CONST = 'HI';
+    private $baz = array(1, 2, 3, 4);
+    public $dapub = 'uber';
     
     public function __construct(array $a, MyClass $b, $c = 42, $ds)
     {
@@ -49,5 +50,9 @@ class A extends B implements C, D
     {
         return 200;
     }
-
+    
+    private static function why()
+    {
+        return 'Dont know';
+    }
 }

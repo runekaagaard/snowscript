@@ -781,49 +781,12 @@ the same folder as "__namespace.snow", it's imports are available for all
 Scoping rules
 =============
 
-Everything assigned above or imported, in the same or an outer scope is 
-available for reading. For writing, variables not assigned in the same scope 
-must be marked as mutable. This goes for imported variables too. Classes has 
-their own scoping rules.
-
-snowscript::
-    
-    # In the namespace "Places".
-    import({
-        "Bar": {
-            classes: Beer
-        }
-    })
-
-    GUYS = ["Adam", "John", "Michael"]
-
-    fn add_guy(name)
-        mutates GUYS
-        GUYS []= name
-
-    fn drink_beer(guy_number)
-        Beer().drink(GUYS[guy_number])
-
-php::
-
-    namespace Places;
-    use Bar\Beer;
-    global $Places__GUYS, $Places_add_guy, $Places_drink_beer;
-
-    $Places__GUYS = array('Adam', 'John', 'Michael');
-
-    $Places_add_guy = function($name) {
-        global $Places__GUYS;
-        $Places__GUYS []= $name;
-
-    }
-
-    $Places_drink_beer = function($guy_number) {
-        (new Beer).drink($Places__GUYS[$guy_number]);
-    }
-
-Note that the namespace prefix to root level variables avoids collisions and
-makes them importable from other files. 
+- Functions, ALL_CAPS variables, objects and constants are available in all 
+  scopes after they are defined.
+- Classes and imported members are available throughout the entire file in all 
+  scopes.
+- Not all_caps variables are limited to after their definition in the scope
+  they are defined in.
 
 Naming conventions
 ==================
@@ -857,7 +820,8 @@ php::
 Classes
 -------
 
-Objects are used instead of classes where possible.
+Objects are used instead of classes. Classes only exists for interoperability
+with PHP code.
 
 Declaration
 ^^^^^^^^^^^

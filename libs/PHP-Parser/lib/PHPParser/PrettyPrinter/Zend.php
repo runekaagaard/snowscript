@@ -503,7 +503,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . ($node->extends ? ' extends ' . $this->p($node->extends) : '')
              . (!empty($node->implements) ? ' implements ' . $this->pCommaSeparated($node->implements) : '')
              . "\n" . '{' . "\n" . $this->pStmts($node->stmts) .  "\n" . 
-             $this ->noIndentToken . "\n" .
+             $this ->noIndentToken .
              "}";
     }
 
@@ -543,6 +543,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_Property(PHPParser_Node_Stmt_Property $node) {
+
         return $this->pModifiers($node->type) . $this->pCommaSeparated($node->props) . ';';
     }
 

@@ -23,17 +23,17 @@ class A
 class A
 {
     
+    public function __construct()
+    {
+        self::$foo;
+        $this->foo;
+        parent::bos();
+    }
+    
     public function baz()
     {
         self::$baz;
         $this->baz;
         parent::baz();
     }
-
-    public function __construct() {
-        self::$foo;
-        $this->foo;
-        parent::bos();
-    }
-
 }

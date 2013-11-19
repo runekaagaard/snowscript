@@ -24,7 +24,4 @@ class A extends StandardController
         $this->hello->say_hi('john');
         echo 5 % 2;
     }
-
-
-
 }

@@ -241,8 +241,8 @@ function_declaration_statement:
 ;
 
 class_declaration_statement:
-      class_entry_type T_STRING optional_parameter_list '{' class_statement_list '}'
-          { $$ = Stmt_Class[$2, [type: $1, stmts: $5, parameter_list: $3]]; }
+      class_entry_type T_STRING '{' class_statement_list '}'
+          { $$ = Stmt_Class[$2, [type: $1, stmts: $4]]; }
     | T_INTERFACE T_STRING interface_extends_list '{' class_statement_list '}'
           { $$ = Stmt_Interface[$2, [extends: $3, stmts: $5]]; }
     | T_TRAIT T_STRING '{' class_statement_list '}'
@@ -397,14 +397,28 @@ class_statement_list:
     | /* empty */                                           { init(); }
 ;
 
+method_modifiers:
+      /* empty */                                           { $$ = Stmt_Class::MODIFIER_PUBLIC; }
+    | non_empty_member_modifiers                            { $$ = $1; }
+
+non_empty_member_modifiers:
+      member_modifier                                       { $$ = $1; }
+    | non_empty_member_modifiers member_modifier            { Stmt_Class::verifyModifier($1, $2); $$ = $1 | $2; }
+;
+
+variable_modifiers:
+      non_empty_member_modifiers                            { $$ = $1; }
+    | T_VAR                                                 { $$ = Stmt_Class::MODIFIER_PUBLIC; }
+;
+
 class_statement:
-      T_FUNCTION T_STRING '(' parameter_list ')' method_body
-          { $$ = Stmt_ClassMethod[$2, [params: $4, stmts: $6]]; }
+      variable_modifiers property_declaration_list ';'      { $$ = Stmt_Property[$1, $2]; }
+    | method_modifiers T_FUNCTION optional_ref T_STRING '(' parameter_list ')' method_body
+          { $$ = Stmt_ClassMethod[$4, [type: $1, byRef: $3, params: $6, stmts: $8]]; }
     | T_EXTENDS name ';'                                    { $$ = Snow_Stmt_Extends[$2]; }
     | T_IMPLEMENTS name_list ';'                            { $$ = Snow_Stmt_Implements[$2]; }
     | T_USE name_list trait_adaptations                     { $$ = Stmt_TraitUse[$2, $3]; }
-    
-    | variable '=' expr ';'                                 { $$ = Expr_AssignClassProperty[$1, $3]; }
+    | variable '=' static_scalar ';'                        { $$ = Expr_AssignClassProperty[$1, $3]; }
     | class_constant_declaration ';'                        { $$ = $1; }
 ;
 

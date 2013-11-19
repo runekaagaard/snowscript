@@ -30,10 +30,5 @@ class Foo
 <?php
 class Foo
 {
-    
-
-    public function __construct() {
-        $this->a = false;
-    }
-
+    public $a = false;
 }
