@@ -17,6 +17,7 @@ tokens = tuple(tokens) + ("NEWLINE", "NUMBER", "NAME", "WS",
 # states are written as "t_[STATE]_[TOKENNAME]".
 states = (
     ('INSIDEARRAY', 'inclusive'),
+    ('INSIDEDICT', 'inclusive'),
     ('INDOUBLEQUOTEDSTRING', 'exclusive'),
     ('INSINGLEQUOTEDSTRING', 'exclusive'),
     ('INTRIPPLEDOUBLEQUOTEDSTRING', 'exclusive'),

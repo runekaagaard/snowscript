@@ -19,8 +19,8 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'FLOAT', 'FN', 'FOR', 'GLOBAL', 'GREATER', 'IF', 'IMPLEMENTS', 'IN',
      'INC', 'INCLUDE', 'INCLUDE_ONCE', 'INLINE_HTML', 'INNER_RETURN',
      'INSIDE_COMMENT', 'INT', 'INTERFACE', 'ISA', 'ISSET', 'IS_EQUAL',
-     'IS_GREATER_OR_EQUAL', 'IS_IDENTICAL', 'IS_NOT_EQUAL', 'IS_NOT_IDENTICAL',
-     'IS_SMALLER_OR_EQUAL', 'LBRACE', 'LESS', 'LIST', 'LPAR', 'LSQB', 'MINUS',
+     'IS_GREATER_OR_EQUAL', 'IS_NOT_EQUAL', 'IS_SMALLER_OR_EQUAL', 
+     'LBRACE', 'LESS', 'LIST', 'LPAR', 'LSQB', 'MINUS',
      'MINUS_EQUAL', 'MOD', 'MOD_EQUAL', 'MUL_EQUAL', 'NAMESPACE', 'NEW',
      'NEXT', 'NOT', 'NULL', 'OBJECT', 'OR', 'OR_EQUAL', 'PASS', 'PERCENT',
      'PIPE', 'PLUS', 'PLUS_EQUAL', 'POW', 'PRINT', 'PRIVATE', 'PROTECTED',
@@ -64,7 +64,7 @@ token_groups = {
     'pln': ['CLASS_NAME', 'CONSTANT_NAME', 'VARIABLE_NAME', 'WS', 'NAME', 
             'NEWLINE'],
     # Punctuation.
-    'pun': ['INC', 'DEC', 'IS_IDENTICAL', 'IS_NOT_IDENTICAL', 'IS_EQUAL',
+    'pun': ['INC', 'DEC', 'IS_EQUAL',
             'IS_NOT_EQUAL', 't_IS_SMALLER_OR_EQUAL', 'IS_GREATER_OR_EQUAL',
             'PLUS_EQUAL', 'MINUS_EQUAL', 'MUL_EQUAL', 'DIV_EQUAL',
             'CONCAT_EQUAL', 'POW', 'RETURN', 'INNER_RETURN', 'RECEIVER',
@@ -98,8 +98,6 @@ SYMBOLIC = token_groups['pun']
 ## Token definitions ##
 t_INC = r'\+\+'
 t_DEC = r'\-\-'
-t_IS_IDENTICAL = r'\=\=\='
-t_IS_NOT_IDENTICAL = r'\!\=\='
 t_IS_EQUAL = r'\=\='
 t_IS_NOT_EQUAL = r'\!\='
 t_IS_SMALLER_OR_EQUAL = r'\<\='
@@ -404,6 +402,7 @@ def t_RPAR(t):
 def t_LBRACE(t):
     r'\{'
     t.lexer.bracket_level += 1
+    t.lexer.push_state('INSIDEDICT')
     return t
 
 
@@ -412,6 +411,10 @@ def t_RBRACE(t):
     t.lexer.bracket_level -= 1
     return t
 
+def t_INSIDEDICT_COLON(t):
+    r'\:'
+    t.type = 'DOUBLE_ARROW'
+    return t
 
 def t_LSQB(t):
     r'\['
