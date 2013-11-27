@@ -4,17 +4,13 @@ Array definitions
 <?php
 require dirname(__FILE__) . '/../bootstrap_tests.php';
 
-#pp_php("array('a' => 'b');");die;
 snowscript_to_php("
-{
-	'a': 42,
-	'b': 52,
-	'hej': [1,2,3],
-}
-", 1);
+[]
+[1, 2, 3]
+[foo, BAR, !BAZ, Boo(), BOS]
+", 0);
 --EXPECT--
 <?php
 array();
 array(1, 2, 3);
-array('a' => 'b');
-array('a', &$b, 'c' => 'd', 'e' => &$f);
+array($foo, $BAR, BAZ, new Boo(), $BOS);

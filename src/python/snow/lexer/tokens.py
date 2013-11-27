@@ -405,10 +405,10 @@ def t_LBRACE(t):
     t.lexer.push_state('INSIDEDICT')
     return t
 
-
 def t_RBRACE(t):
     r'\}'
     t.lexer.bracket_level -= 1
+    t.lexer.pop_state()
     return t
 
 def t_INSIDEDICT_COLON(t):
