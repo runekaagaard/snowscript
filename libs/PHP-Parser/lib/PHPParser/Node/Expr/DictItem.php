@@ -17,6 +17,7 @@ class PHPParser_Node_Expr_DictItem extends PHPParser_Node_Expr
      * @param null|string              $docComment Nearest doc comment
      */
     public function __construct($key, PHPParser_Node_Expr $value, $line = -1, $docComment = null) {
+        var_dump($key, $value);
         parent::__construct(
             array(
                 'key'   => $key,

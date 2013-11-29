@@ -307,18 +307,6 @@ def add_missing_self(token_stream):
         yield t
         prev_t = t
 
-def dict_keys(token_stream):
-    prev_t = None
-    for t in token_stream:
-        try:
-            if prev_t.type == "NAME" and t.type == "DOUBLE_ARROW" and t.lexer.lexstate == 'INSIDEDICT':
-                prev_t.type = "STRING_SINGLE"
-        except AttributeError:
-            pass
-
-        yield t
-        prev_t = t
-
 def debug(token_stream):
     print
     for t in token_stream:
@@ -346,7 +334,6 @@ def make_token_stream(lexer, add_endmarker=True):
     token_stream = delete_multiple_newlines(token_stream)
     token_stream = add_missing_this(token_stream)
     token_stream = add_missing_self(token_stream)
-    token_stream = dict_keys(token_stream)
     #token_stream = debug(token_stream)
 
     if add_endmarker:
