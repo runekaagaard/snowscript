@@ -5,7 +5,6 @@ ini_set('display_errors', 1);
 
 require dirname(__FILE__) . '/../libs/PHP-Parser/lib/bootstrap.php';
 require dirname(__FILE__) . '/../src/php/bootstrap.php';
-require dirname(__FILE__) . '/../stdlib/bootstrap.php';
 
 function line($msg) {
 	echo $msg . "\n";

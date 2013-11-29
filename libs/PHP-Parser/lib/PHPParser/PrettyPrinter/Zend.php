@@ -383,14 +383,6 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
         }
     }
 
-    public function pExpr_Dict(PHPParser_Node_Expr_Dict $node) {
-        return 'array(' . $this->pCommaSeparated($node->items) . ')';
-    }
-
-    public function pExpr_DictItem(PHPParser_Node_Expr_DictItem $node) {
-        return "'$node->key'" . ' => ' . $this->p($node->value);
-    }
-
     public function pExpr_Array(PHPParser_Node_Expr_Array $node) {
         return 'array(' . $this->pCommaSeparated($node->items) . ')';
     }

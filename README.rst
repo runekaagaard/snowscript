@@ -498,7 +498,7 @@ Type casting
 To cast an expression to a type, use the ``array``, ``bool``, ``float``, 
 ``int``, ``object`` or ``str`` functions.
 
-snowscript::
+php::
 
     array(a)
 
@@ -802,7 +802,7 @@ Include it like:
 
     require('path/to/snowscript/stdlib/bootstrap.php')
 
-PHP Compatibility Features
+PHP Compatability Features
 ==========================
 
 Constants
@@ -840,11 +840,10 @@ be compatible with PHP.
 snowscript::
     
     class TabularWriter
-        public title
+        title = title
         private filehandle = null
         
         fn __construct(File path, filesystem, title)
-            .title = title
             .check_filesystem(filesystem)
             .init_file(path)
 
@@ -899,8 +898,9 @@ snowscript::
 
         !DEFAULT_FACTORY = "DefaultFactory"
 
-        protected static factories = []
-        protected static version = 1.0
+        protected static 
+            factories = []
+            version = 1.0
 
         public static fn getInstance(factoryClassName)
             <- ..factories[factoryClassName]
