@@ -1,0 +1,3 @@
+MY_VAR = 42
+fn foo()
+	MY_VAR

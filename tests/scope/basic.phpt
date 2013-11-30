@@ -35,26 +35,26 @@ SNOW
 , 0);
 --EXPECT--
 <?php
-global $InjectMe__XX, $InjectMe__a__YY, $InjectMe__a_b__ZZ, $InjectMe__JJ;
-$InjectMe__XX = 10;
+global $Anonymous__XX, $Anonymous__a__YY, $Anonymous__a_b__ZZ, $Anonymous__JJ;
+$Anonymous__XX = 10;
 $i = 0;
 function a()
 {
-    global $InjectMe__XX;
+    global $Anonymous__XX;
     $i = 1;
-    $InjectMe__XX;
-    $InjectMe__a__YY = 10;
+    $Anonymous__XX;
+    $Anonymous__a__YY = 10;
     (a() + b()) + c();
     function b()
     {
-        global $InjectMe__XX, $InjectMe__a__YY;
-        $InjectMe__XX + $InjectMe__a__YY;
-        $InjectMe__a_b__ZZ = 10;
+        global $Anonymous__XX, $Anonymous__a__YY;
+        $Anonymous__XX + $Anonymous__a__YY;
+        $Anonymous__a_b__ZZ = 10;
         (a() + b()) + c();
         function c()
         {
-            global $InjectMe__XX, $InjectMe__a__YY, $InjectMe__a_b__ZZ;
-            ($InjectMe__XX + $InjectMe__a__YY) + $InjectMe__a_b__ZZ;
+            global $Anonymous__XX, $Anonymous__a__YY, $Anonymous__a_b__ZZ;
+            ($Anonymous__XX + $Anonymous__a__YY) + $Anonymous__a_b__ZZ;
             (a() + b()) + c();
         }
     }
@@ -65,7 +65,7 @@ function d()
 {
     
 }
-$InjectMe__JJ = 10;
-echo $InjectMe__JJ;
+$Anonymous__JJ = 10;
+echo $Anonymous__JJ;
 $k = 10;
 echo $k;

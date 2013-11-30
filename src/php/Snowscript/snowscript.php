@@ -1,13 +1,15 @@
 <?php
 
-function snowscript_to_php($code, $debug=false, $return=false) {
+function snowscript_to_php($code, $debug=false, $return=false, $namespace="Anonymous") {
     $lexer = new Snowscript_Lexer($code . "\n");
     if ($debug) debug_lexer($lexer);
     $parser = new PHPParser_Parser;
     $prettyPrinter = new PHPParser_PrettyPrinter_Zend;
     $stmts = $parser->parse($lexer);
     $traverser = new PHPParser_NodeTraverser;
-    $traverser->addVisitor(new Snowscript_Visitors_Scope);
+    $scope_traverser = new Snowscript_Visitors_Scope;
+    $scope_traverser->namespace = $namespace;
+    $traverser->addVisitor($scope_traverser);
     $stmts = $traverser->traverse($stmts);
     $nodeDumper = new PHPParser_NodeDumper;
     if ($debug) {

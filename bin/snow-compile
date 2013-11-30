@@ -7,4 +7,21 @@ ini_set('display_errors', 1);
 require dirname(__FILE__) . '/../libs/PHP-Parser/lib/bootstrap.php';
 require dirname(__FILE__) . '/../src/php/bootstrap.php';
 
-echo snowscript_to_php(file_get_contents($argv[1]));
+function snow_find_namespace($file) {
+	$dir = $file;
+	while(true) {
+		$dir = dirname(realpath($dir));
+		if ($dir === '/') break;
+		if (file_exists($dir . '/__project.snow')) {
+			$result = str_replace(dirname($dir), "", realpath($file));
+			$result = str_replace(".snow", "", $result);
+			$result = ltrim($result, '/');
+			$result = str_replace("/", "__", $result);
+			return $result;
+		};
+	}
+	return "Anonymous";
+}
+
+echo snowscript_to_php(file_get_contents($argv[1]), 0, 0, 
+	                   snow_find_namespace($argv[1]));
