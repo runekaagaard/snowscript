@@ -3,7 +3,7 @@ fn get_snow_tokens
     i = 1001
     snow_token_names = ['T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 
                     'T_STRING_SINGLE', 'T_STRING_DOUBLE', 
-                    'T_DOUBLE_QUESTION_MARK']
+                    'T_DOUBLE_QUESTION_MARK', 'T_FROM', 'T_IMPORT']
     snow_tokens = []
     for token_name in snow_token_names
         define(token_name, i)
@@ -11,12 +11,10 @@ fn get_snow_tokens
         i += 1
     <- snow_tokens
 
-global snow_tokens
-snow_tokens = get_snow_tokens()
-
+SNOW_TOKENS = get_snow_tokens()
 fn snow_token_name(i)
-    global snow_tokens
-    <- if snow_tokens[i]? then snow_tokens[i] else token_name(i)
+    global SNOW_TOKENS
+    <- if SNOW_TOKENS[i]? then SNOW_TOKENS[i] else token_name(i)
 
 fn get_named_tokenmap_cb(x)
     <- str_replace("PHPParser_Parser::", "", x)
@@ -24,28 +22,26 @@ fn get_named_tokenmap_cb(x)
 fn get_named_tokenmap()
     named_tokenmap = []
     for i in 256 to 1100
-        if i === T_DOUBLE_COLON
+        if i == T_DOUBLE_COLON
             named_tokenmap[i] = 'T_PAAMAYIM_NEKUDOTAYIM'
-        elif i === T_OPEN_TAG_WITH_ECHO
+        elif i == T_OPEN_TAG_WITH_ECHO
             named_tokenmap[i] = PHPParser_Parser..T_ECHO
-        elif i === T_CLOSE_TAG
+        elif i == T_CLOSE_TAG
             named_tokenmap[i] = ord(';')
         else
             name = snow_token_name(i)
-            if name !== 'UNKNOWN'
+            if name != 'UNKNOWN'
                 const_name = "PHPParser_Parser::{name}"
                 if defined(const_name)
                     named_tokenmap[i] = name
 
     <- array_flip(array_map('get_named_tokenmap_cb', named_tokenmap))
 
-class Snowscript_Lexer(code)
+class Snowscript_Lexer
     extends PHPParser_Lexer
 
     tokens = []
     debug = []
-
-    named_tokenmap = get_named_tokenmap()
 
     transform_token_value = ['T_VARIABLE': '$%s']
 
@@ -93,7 +89,8 @@ class Snowscript_Lexer(code)
 
     token_callback = ['T_STRING_WITH_CONCAT': 1, 'T_NUMBER': 1, ]
 
-    fn __construct
+    fn __construct(code)
+        .named_tokenmap = get_named_tokenmap()
         tmp_file = "/tmp/.snowcode"
         file_put_contents(tmp_file, code)
         parent..__construct("")
@@ -146,7 +143,7 @@ class Snowscript_Lexer(code)
         for t in python_tokens
             first = true
             for php_token in array(.translate_token(t))
-                if php_token !== null
+                if php_token != null
                     php_tokens []= php_token
                     out_type = if is_array(php_token) then snow_token_name(php_token[0]) else 'LITERAL'
                     out_value = if is_array(php_token) then php_token[1] else php_token
@@ -167,3 +164,4 @@ class Snowscript_Lexer(code)
             <- [[T_DNUMBER, t['value'][1], 2]]
         else
             <- [[T_LNUMBER, t['value'][1], 2]]
+
