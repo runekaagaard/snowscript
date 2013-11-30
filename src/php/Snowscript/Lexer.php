@@ -3,7 +3,7 @@
 function get_snow_tokens()
 {
     $i = 1001;
-    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE', 'T_DOUBLE_QUESTION_MARK');
+    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE', 'T_DOUBLE_QUESTION_MARK', 'T_FROM', 'T_IMPORT');
     $snow_tokens = array();
     foreach ($snow_token_names as $token_name) {
         define($token_name, $i);

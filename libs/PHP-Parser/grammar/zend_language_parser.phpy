@@ -1,7 +1,7 @@
 %pure_parser
 %expect 2
 
-%left T_INCLUDE T_INCLUDE_ONCE T_EVAL T_REQUIRE T_REQUIRE_ONCE
+%left T_INCLUDE T_INCLUDE_ONCE T_EVAL T_REQUIRE T_REQUIRE_ONCE T_FROM T_IMPORT
 %left ','
 %left T_LOGICAL_OR
 %left T_LOGICAL_XOR
@@ -137,7 +137,24 @@ top_statement:
     | T_NAMESPACE '{' top_statement_list '}'                { $$ = Stmt_Namespace[null,     $3]; }
     | T_USE use_declarations ';'                            { $$ = Stmt_Use[$2]; }
     | T_CONST constant_declaration_list ';'                 { $$ = Stmt_Const[$2]; }
+    | T_FROM import_paths T_IMPORT imports ';'              { $$ = Stmt_Imports[$2, $4]; }
 ;
+
+import_paths:
+  import_paths T_OBJECT_OPERATOR import_path                { push($1, $3); }
+  | import_path                                             { init($1); }
+
+import_path:
+  T_VARIABLE                                                { $$ = Stmt_ImportPath[$1]; }
+  | T_STRING                                                { $$ = Stmt_ImportPath[$1]; }
+
+imports:
+  imports ',' import                                        { push($1, $3); }
+  | import                                                  { init($1); }
+
+import:
+  T_VARIABLE                                                { $$ = Stmt_Import[$1]; }
+  | T_STRING                                                { $$ = Stmt_Import[$1]; }
 
 use_declarations:
       use_declarations ',' use_declaration                  { push($1, $3); }
@@ -824,8 +841,6 @@ non_empty_array_pair_list:
 array_pair:
       expr T_DOUBLE_ARROW expr                              { $$ = Expr_ArrayItem[$3, $1,   false]; }
     | expr                                                  { $$ = Expr_ArrayItem[$1, null, false]; }
-    | expr T_DOUBLE_ARROW '&' variable                      { $$ = Expr_ArrayItem[$4, $1,   true]; }
-    | '&' variable                                          { $$ = Expr_ArrayItem[$2, null, true]; }
 ;
 
 encaps_list:

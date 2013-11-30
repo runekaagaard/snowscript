@@ -30,7 +30,7 @@ tokens = ['ABSTRACT', 'AMPER', 'AND', 'AND_EQUAL', 'ARRAY', 'AT', 'BACKQUOTE',
      'TILDE', 'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 'VARIABLE_NAME',
      'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
      'DOUBLE_ARROW', 'DOUBLE_QUESTION_MARK', 'QUESTION_MARK', 'THEN', 
-     'STRING_DOUBLE', 'STRING_SINGLE', 'PARENT',
+     'STRING_DOUBLE', 'STRING_SINGLE', 'PARENT', 'FROM', 'IMPORT',
 ]
 
 token_groups = {
@@ -50,7 +50,7 @@ token_groups = {
             'STATIC', 'SWITCH', 'THROW', 
             'TO', 'TRAIT', 'TRUE', 'TRY', 'UNSET', 'USE', 
             'WHEN', 'WHILE', 'XOR', 'XOR_EQUAL', '_AND_', '_OR_', 'STEP',
-            'DOUBLE_QUESTION_MARK', 'QUESTION_MARK', 'THEN', 'PARENT'
+            'DOUBLE_QUESTION_MARK', 'QUESTION_MARK', 'THEN', 'PARENT', 'FROM', 'IMPORT',
             ],
     # Strings.
     'str': ['INLINE_HTML', 'STRING_WITH_CONCAT', 'STRING_DOUBLE', 'STRING_SINGLE'],
