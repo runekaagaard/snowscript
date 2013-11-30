@@ -474,23 +474,6 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
              . ' {' . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
     }
 
-    public function pStmt_Imports(PHPParser_Node_Stmt_Imports $node) {
-        $names = array();
-        foreach ($node->import_paths as $import_path) {
-            $names []= trim($import_path->name, '$');
-        }
-        $prefix = "$" . implode('__', $names) . '__';
-        $globals = array();
-        foreach ($node->imports as $import) {
-            $globals []= $prefix . $import->name;
-        }
-        return 'global ' . implode(', ', $globals) . ';';
-    }
-
-    public function pStmt_ImportPath(PHPParser_Node_Stmt_ImportPath $node) {
-        return "";
-    }
-
     public function pStmt_Use(PHPParser_Node_Stmt_Use $node) {
         return 'use ' . $this->pCommaSeparated($node->uses) . ';';
     }
@@ -730,7 +713,6 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_Global(PHPParser_Node_Stmt_Global $node) {
-        var_dump($node->vars);
         return 'global ' . $this->pCommaSeparated($node->vars) . ';';
     }
 

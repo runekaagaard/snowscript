@@ -5,7 +5,6 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract {
     public $fns = null;
     public $names = array(array());
     public $namespace = 'InjectMe';
-    public $in_assign = false;
 
     function beforeTraverse(array $nodes) {
         array_unshift($nodes, new PHPParser_Node_Stmt_Global(array()));
@@ -50,11 +49,40 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract {
                 $name = $this->names[$cur][$node->name];
             }
             foreach ($this->assigns[$cur][$node->name] as $assign_node) {
+                if (!(isset($assign_node->var))) {
+                    $assign_node->var = new StdClass;
+                }
                 $assign_node->var->name = $name;    
             }
             $node->name = $name;
             $this->fns[$cur]->stmts[0]->vars[$name] = new PHPParser_Node_Expr_Variable($node->name);
             $this->fns[0]->vars[$name] = new PHPParser_Node_Expr_Variable($name);
+
+
+        } elseif ($node instanceof PHPParser_Node_Name
+                  && (
+                  ($prev !== false && isset($this->assigns[$prev][$node->parts[0]]))
+                  ||
+                  ($prev === false && isset($this->assigns[$cur][$node->parts[0]])
+                  ))) 
+        {
+            if (empty($this->names[$cur][$node->parts[0]])) {
+                $name = $this->global_var_name($node);
+                $this->names[$cur][$node->parts[0]] = $name;
+            } else {
+                $name = $this->names[$cur][$node->parts[0]];
+            }
+            foreach ($this->assigns[$cur][$node->parts[0]] as $assign_node) {
+                if (!(isset($assign_node->var))) {
+                    $assign_node->var = new StdClass;
+                }
+                $assign_node->var->name = $name;    
+            }
+            $node->parts[0] = $name;
+            $this->fns[$cur]->stmts[0]->vars[$name] = new PHPParser_Node_Expr_Variable($node->parts[0]);
+            $this->fns[0]->vars[$name] = new PHPParser_Node_Expr_Variable($name);
+            return new PHPParser_Node_Expr_Variable($name);
+
         } elseif ($node instanceof PHPParser_Node_Stmt_Imports) {
             $names = array();
             foreach ($node->import_paths as $import_path) {
@@ -65,7 +93,7 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract {
             foreach ($node->imports as $import) {
                 $name = trim($import->name, '$');
                 $variable_node = new PHPParser_Node_Expr_Variable($prefix . $name);
-                $this->fns[0]->vars[$name] = $variable_node;
+                $this->fns[0]->vars[$prefix . $name] = $variable_node;
                 $this->names[$cur][$name] = $prefix . $name;
                 $this->assigns[$cur][$name] []= $variable_node;
             }
