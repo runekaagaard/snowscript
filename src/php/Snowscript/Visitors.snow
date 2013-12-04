@@ -1,0 +1,60 @@
+fn insert(into, item)
+    array_unshift(into, item)
+
+fn rpl(string, search, replace)
+    <- str_replace(search, replace, string)
+
+fn slice(guy, start, stop=null)
+    if not stop
+        if start < 0
+            n = count(guy) -1
+            x = guy[n-start]
+            <- x
+        else
+            throw Exception("todo")    
+    else
+        throw Exception("todo")
+
+fn append(guy, kv, v=null)
+    if v
+        guy[kv] = v
+    else
+        guy []= v
+
+fn lget(guy)
+    pass
+
+class Snowscript_Visitors_Scope
+    extends PHPParser_NodeVisitorAbstract
+    fn __construct()
+        .empty_scope = ['imports': []]
+        .root_scope = []
+        .scopes = [.empty_scope]
+        .scope = .scopes[0]
+
+    fn enterNode(PHPParser_Node node)
+        if node isa PHPParser_Node_Stmt_Imports
+            .add_imports(node)
+        if node isa PHPParser_Node_Expr_Assign
+            .scopes->lget(-1)->append(["hej"])
+            #.scopes->var_dump()
+            
+
+    fn add_imports(node)
+        paths = []
+        for import_path in node.import_paths
+            paths []= import_path.name
+        prefix = paths->join("__")
+
+        for imp in node.imports
+            .scopes[0]['imports'][imp.name] = "{prefix}__{imp.name}"
+
+    fn leaveNode(PHPParser_Node node)
+        if node isa PHPParser_Node_Stmt_Imports
+            <- false
+
+        #node->get_class()->var_dump()
+
+    fn afterTraverse(array nodes)
+        #.scopes->var_dump()
+        <- nodes
