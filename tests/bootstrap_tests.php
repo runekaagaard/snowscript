@@ -32,3 +32,8 @@ function prettyprint_tokens($tokens) {
 function pp_php($code) {
 	prettyprint_tokens(token_get_all("<?php " . $code));
 }
+
+function execute_snow($snow) {
+	$php = snowscript_to_php($snow, 0, 1);
+	eval($php);
+}

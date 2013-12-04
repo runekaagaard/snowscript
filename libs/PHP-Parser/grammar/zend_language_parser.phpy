@@ -8,7 +8,7 @@
 %left T_LOGICAL_AND
 %right T_PRINT
 %left '=' T_PLUS_EQUAL T_MINUS_EQUAL T_MUL_EQUAL T_DIV_EQUAL T_CONCAT_EQUAL T_MOD_EQUAL T_AND_EQUAL T_OR_EQUAL T_XOR_EQUAL T_SL_EQUAL T_SR_EQUAL
-%left '?' T_DOUBLE_QUESTION_MARK
+%left '?' T_DOUBLE_QUESTION_MARK T_RECEIVER
 %token T_THEN
 %left T_BOOLEAN_OR
 %left T_BOOLEAN_AND
@@ -23,7 +23,7 @@
 %right '!'
 %nonassoc T_INSTANCEOF
 %right '~' T_INC T_DEC T_INT_CAST T_DOUBLE_CAST T_STRING_CAST T_ARRAY_CAST T_OBJECT_CAST T_BOOL_CAST T_UNSET_CAST '@'
-%right '['
+%right '[' T_LBRACE
 %nonassoc T_NEW T_CLONE
 %token T_EXIT
 %token T_IF
@@ -109,6 +109,7 @@
 %token T_NS_C
 %token T_DIR
 %token T_NS_SEPARATOR
+%token T_RBRACE
 
 %%
 
@@ -569,6 +570,7 @@ expr:
     | expr '>' expr                                         { $$ = Expr_Greater       [$1, $3]; }
     | expr T_IS_GREATER_OR_EQUAL expr                       { $$ = Expr_GreaterOrEqual[$1, $3]; }
     | expr T_INSTANCEOF class_name_reference                { $$ = Expr_Instanceof    [$1, $3]; }
+    | expr T_RECEIVER function_call                                         { $$ = Snow_Expr_Receiver[$1, $3]; }
     | expr '?' expr                                         { $$ = Snow_Expr_ExistenceIsset[$1, $3]; }
     | expr '?'                                              { $$ = Snow_Expr_ExistenceIsset[$1, false]; }
     | expr T_DOUBLE_QUESTION_MARK expr                      { $$ = Snow_Expr_ExistenceNotEmpty[$1, $3]; }
@@ -594,6 +596,7 @@ expr:
     | scalar                                                { $$ = $1; }
     | T_ARRAY '(' array_pair_list ')'                       { $$ = Expr_Array[$3]; }
     | '[' array_pair_list ']'                               { $$ = Expr_Array[$2]; }
+    | T_LBRACE dict_pair_list T_RBRACE                      { $$ = Snow_Expr_Dict[$2]; }
     | '`' backticks_expr '`'                                { $$ = Expr_ShellExec[$2]; }
     | T_PRINT expr                                          { $$ = Expr_Print[$2]; }
     | T_FUNCTION optional_ref '(' parameter_list ')' lexical_vars '{' inner_statement_list '}'
@@ -839,8 +842,21 @@ non_empty_array_pair_list:
 ;
 
 array_pair:
-      expr T_DOUBLE_ARROW expr                              { $$ = Expr_ArrayItem[$3, $1,   false]; }
-    | expr                                                  { $$ = Expr_ArrayItem[$1, null, false]; }
+     expr                                                  { $$ = Expr_ArrayItem[$1, null, false]; }
+;
+
+dict_pair_list:
+      /* empty */                                           { $$ = array(); }
+    | non_empty_dict_pair_list optional_comma               { $$ = $1; }
+;
+
+non_empty_dict_pair_list:
+      non_empty_dict_pair_list ',' dict_pair                { push($1, $3); }
+    | dict_pair                                             { init($1); }
+;
+
+dict_pair:
+     expr T_DOUBLE_ARROW expr                               { $$ = Snow_Expr_DictItem[$1, $3]; }
 ;
 
 encaps_list:

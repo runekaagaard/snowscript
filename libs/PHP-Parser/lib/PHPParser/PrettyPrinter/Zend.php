@@ -253,7 +253,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pExpr_Instanceof(PHPParser_Node_Expr_Instanceof $node) {
-        return $this->p($node->expr) . ' instanceof ' . $this->p($node->class);
+        return '(' . $this->p($node->expr) . ' instanceof ' . $this->p($node->class) . ')';
     }
 
     // Unary expressions
@@ -384,12 +384,20 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pExpr_Array(PHPParser_Node_Expr_Array $node) {
-        return 'array(' . $this->pCommaSeparated($node->items) . ')';
+        return 'snow_list(array(' . $this->pCommaSeparated($node->items) . '))';
+    }
+
+    public function p_Expr_Dict(Snowscript_Node_Expr_Dict $node) {
+        return 'snow_dict(array(' . $this->pCommaSeparated($node->items) . '))';
     }
 
     public function pExpr_ArrayItem(PHPParser_Node_Expr_ArrayItem $node) {
         return (null !== $node->key ? $this->p($node->key) . ' => ' : '')
              . ($node->byRef ? '&' : '') . $this->p($node->value);
+    }
+
+    public function p_Expr_DictItem(Snowscript_Node_Expr_DictItem $node) {
+        return $this->p($node->key) . ' => ' .  $this->p($node->value);
     }
 
     public function pExpr_ArrayDimFetch(PHPParser_Node_Expr_ArrayDimFetch $node) {
@@ -451,6 +459,13 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
                    . ' : ' . $this->p($node->default) . ')'; 
         }
         
+    }
+
+    public function p_Expr_Receiver($node) {
+        return $this->p($node->fn);
+        var_dump($node->fn);
+        var_dump(get_class($node->after));
+        return $this->p($node->after) . '----' . $this->p($node->before);
     }
 
     public function p_Expr_ExistenceNotEmpty($node) {
@@ -563,10 +578,10 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_Function(PHPParser_Node_Stmt_Function $node) {
-        return 'function ' . ($node->byRef ? '&' : '') . $node->name
+        return '$' . $node->name . ' = function ' . ($node->byRef ? '&' : '')
              . '(' . $this->pCommaSeparated($node->params) . ')'
              . "\n" . '{' . "\n" 
-             . $this->pStmts($node->stmts) . "\n" . '}';
+             . $this->pStmts($node->stmts) . "\n" . '};';
     }
 
     public function pStmt_Const(PHPParser_Node_Stmt_Const $node) {

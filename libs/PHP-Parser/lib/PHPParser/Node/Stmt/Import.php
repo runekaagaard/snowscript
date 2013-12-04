@@ -15,7 +15,7 @@ class PHPParser_Node_Stmt_Import extends PHPParser_Node_Stmt
     public function __construct($name, $line = -1, $docComment = null) {
         parent::__construct(
             array(
-                'name' => $name,
+                'name' => ltrim($name, '$'),
             ),
             $line, $docComment
         );

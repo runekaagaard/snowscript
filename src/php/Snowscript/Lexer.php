@@ -3,7 +3,7 @@
 function get_snow_tokens()
 {
     $i = 1001;
-    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE', 'T_DOUBLE_QUESTION_MARK', 'T_FROM', 'T_IMPORT');
+    $snow_token_names = array('T_IN', 'T_TO', 'T_DOWNTO', 'T_STEP', 'T_THEN', 'T_STRING_SINGLE', 'T_STRING_DOUBLE', 'T_DOUBLE_QUESTION_MARK', 'T_FROM', 'T_IMPORT', 'T_RECEIVER', 'T_LBRACE', 'T_RBRACE');
     $snow_tokens = array();
     foreach ($snow_token_names as $token_name) {
         define($token_name, $i);
@@ -141,7 +141,7 @@ class Snowscript_Lexer extends PHPParser_Lexer
         $this->literal_tokens = array('T_PLUS' => 1, 'T_GREATER' => 1, 'T_LPAR' => 1, 'T_RPAR' => 1, 'T_MINUS' => 1, 'T_STAR' => 1, 'T_SLASH' => 1, 'T_EQUAL' => 1, 'T_AMPER' => 1, 'T_COMMA' => 1, 'T_LSQB' => 1, 'T_RSQB' => 1, 'T_QUESTION_MARK' => 1, 'T_COLON' => 1);
         $this->translated_tokens = array('T_NEWLINE' => ';', 'T_INDENT' => '{', 'T_DEDENT' => '}', 'T_BAND' => '&', 'T_BXOR' => '^', 'T_PERCENT' => '.', 'T_MOD' => '%', 'T_BNOT' => '~', 'T_BOR' => '|', 'T_LBRACE' => '{', 'T_RBRACE' => '}', 'T_LESS' => '<', 'T_NOT' => '!');
         $this->ignored_tokens = array('T_ENDMARKER' => 1, 'T_PASS' => 1);
-        $this->token_types_map = array('T_NAME' => 'T_VARIABLE', 'T_PHP_STRING' => 'T_STRING', 'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR', 'T_FN' => 'T_FUNCTION', 'T_DOUBLE_DOT' => 'T_PAAMAYIM_NEKUDOTAYIM', 'T_CALLABLE' => 'T_STRING', 'T_TRUE' => 'T_STRING', 'T_FALSE' => 'T_STRING', 'T_ELIF' => 'T_ELSEIF', 'T_ISA' => 'T_INSTANCEOF', 'T_DIE' => 'T_EXIT', 'T_OR' => 'T_BOOLEAN_OR', 'T_XOR' => 'T_LOGICAL_XOR', 'T_AND' => 'T_BOOLEAN_AND', 'T__OR_' => 'T_LOGICAL_OR', 'T__AND_' => 'T_LOGICAL_AND', 'T_DOT' => 'T_OBJECT_OPERATOR', 'T_NULL' => 'T_STRING', 'T_CONSTANT_NAME' => 'T_STRING', 'T_CLASS_NAME' => 'T_STRING', 'T_FLOAT_CAST' => 'T_DOUBLE_CAST', 'T_STRINGTYPE_CAST' => 'T_STRING_CAST', 'T_NEXT' => 'T_CONTINUE', 'T_PARENT' => 'T_STRING');
+        $this->token_types_map = array('T_NAME' => 'T_VARIABLE', 'T_PHP_STRING' => 'T_STRING', 'T_BLEFT' => 'T_SL', 'T_BRIGHT' => 'T_SR', 'T_FN' => 'T_FUNCTION', 'T_DOUBLE_DOT' => 'T_PAAMAYIM_NEKUDOTAYIM', 'T_CALLABLE' => 'T_STRING', 'T_TRUE' => 'T_STRING', 'T_FALSE' => 'T_STRING', 'T_ELIF' => 'T_ELSEIF', 'T_ISA' => 'T_INSTANCEOF', 'T_DIE' => 'T_EXIT', 'T_OR' => 'T_BOOLEAN_OR', 'T_XOR' => 'T_LOGICAL_XOR', 'T_AND' => 'T_BOOLEAN_AND', 'T__OR_' => 'T_LOGICAL_OR', 'T__AND_' => 'T_LOGICAL_AND', 'T_DOT' => 'T_OBJECT_OPERATOR', 'T_NULL' => 'T_STRING', 'T_CONSTANT_NAME' => 'T_STRING', 'T_CLASS_NAME' => 'T_STRING', 'T_FLOAT_CAST' => 'T_DOUBLE_CAST', 'T_STRINGTYPE_CAST' => 'T_STRING_CAST', 'T_NEXT' => 'T_CONTINUE', 'T_PARENT' => 'T_STRING', 'T_COLON' => 'T_DOUBLE_ARROW');
         $this->token_callback = array('T_STRING_WITH_CONCAT' => 1, 'T_NUMBER' => 1);
         $tmp_file = "/tmp/.snowcode";
         file_put_contents($tmp_file, $code);

@@ -8,12 +8,7 @@ snowscript_to_php(<<<'SNOW'
 
 from foo.bar import my_fn, MyThing, MY_VAR
 my_fn()
-MyThing
-MY_VAR
-fn x
-    my_fn()
-    MY_VAR
-    MyThing
+ABC = 10
 SNOW
 , 0);
 --EXPECT--
