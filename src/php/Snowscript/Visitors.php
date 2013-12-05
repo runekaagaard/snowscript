@@ -1,56 +1,36 @@
 <?php
-function insert($into, $item)
-{
-    array_unshift($into, $item);
-}
 function rpl($string, $search, $replace)
 {
     return str_replace($search, $replace, $string);
-}
-function slice($guy, $start, $stop = null)
+};
+function sjoin($guys, $separator = ", ")
 {
-    if (!$stop) {
-        if (\snow_lt($start, 0)) {
-            $n = count($guy) - 1;
-            $x = $guy[$n - $start];
-            return $x;
-        } else {
-            throw new Exception("todo");
-        }
-    } else {
-        throw new Exception("todo");
-    }
-}
-function append($guy, $kv, $v = null)
+    return join((array) $guys, $separator);
+};
+function type($guy)
 {
-    if ($v) {
-        $guy[$kv] = $v;
-    } else {
-        $guy[] = $v;
-    }
-}
-function lget($guy)
-{
-    
-}
+    return gettype($guy);
+};
 class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
 {
     
     public function __construct()
     {
-        $this->empty_scope = snow_list(array('imports' => snow_list(array())));
-        $this->root_scope = snow_list(array());
+        $this->empty_scope = snow_dict(array('imports' => snow_dict(array()), 'assigns' => snow_dict(array()), 'fns' => snow_dict(array())));
         $this->scopes = snow_list(array($this->empty_scope));
-        $this->scope = $this->scopes[0];
     }
     
     public function enterNode(PHPParser_Node $node)
     {
+        $this->scope = $this->scopes[-1];
         if (($node instanceof PHPParser_Node_Stmt_Imports)) {
             $this->add_imports($node);
-        }
-        if (($node instanceof PHPParser_Node_Expr_Assign)) {
-            append(lget($this->scopes, -1), snow_list(array("hej")));
+        } elseif (($node instanceof PHPParser_Node_Expr_Assign)) {
+            $this->scopes[-1]['assigns'][$node->var->name] = $node;
+        } elseif (($node instanceof PHPParser_Node_Stmt_Function)) {
+            $last_scope = $this->scopes[-1];
+            $this->scopes->append($last_scope->copy());
+            $this->scopes[-1]['fns'][$node->name] = $node;
         }
     }
     
@@ -61,7 +41,7 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
             $paths[] = $import_path->name;
         }
         unset($import_path);
-        $prefix = join($paths, "__");
+        $prefix = sjoin($paths, "__");
         foreach ($node->imports as $imp) {
             $this->scopes[0]['imports'][$imp->name] = ($prefix . "__") . $imp->name;
         }
@@ -72,6 +52,9 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
     {
         if (($node instanceof PHPParser_Node_Stmt_Imports)) {
             return false;
+        }
+        if (($node instanceof PHPParser_Node_Stmt_Function)) {
+            $this->scopes->pop();
         }
     }
     

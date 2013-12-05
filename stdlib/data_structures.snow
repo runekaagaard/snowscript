@@ -1,0 +1,93 @@
+class SnowList 
+    implements ArrayAccess
+
+    fn __construct(arr)
+        .arr = arr
+
+    fn _assert_int(i)
+        if i->gettype() != 'integer'
+            throw IndexError('Index must be an integer, was ' % i->gettype())
+
+    fn _get_index(i)
+        ._assert_int(i)
+        <- if i < 0 then .arr->count() + i else i
+
+    fn offsetSet(i, x)
+        if i == null
+            throw Exception('[]= operator not supported. Use .append() instead')
+        else
+            .offsetGet(i)
+            i = ._get_index(i)
+            .arr[i] = x
+
+    fn offsetGet(i)
+        i = ._get_index(i)
+        if not .offsetExists(i)
+            throw IndexError('Index does not exist: ' % i)
+        <- .arr[i]
+
+    fn offsetExists(i)
+        i = ._get_index(i)
+        <- isset(.arr[i])
+
+    fn offsetUnset(i)
+        .offsetGet(i)   
+        i = ._get_index(i)
+        unset(.arr[i])
+
+    fn append(x)
+        .arr []= x
+
+
+
+###
+// Add an item to the end of the list
+fn append(x)  parent::append(x) <- this 
+
+
+// Extend the list by appending all the items in the given list
+fn extend(xs)  foreach(xs as x) parent::append(x) <- this 
+
+// Insert an item at a given position. The first argument is the index of 
+// the element before which to insert
+fn insert(i, x) 
+    asrt(gettype(i) === 'integer')
+    throw new Exception("TODO")
+
+
+fn &offsetGet(i) 
+    asrt(gettype(i) === 'integer')
+    if (i < 0) i = .count()+i
+    if (!parent::offsetExists(i)) throw new IndexError("Index i not found.")
+    x = &parent::offsetGet(i)
+    <- x
+
+
+fn offsetSet(i, x) 
+    type = gettype(i)
+    asrt(type === 'integer' || type == 'NULL')
+    <- parent::offsetSet(i, x)
+
+
+fn offsetUnset(i) 
+    asrt(gettype(i) === 'integer')
+    if (i < 0) i = .count()+i
+    if (!parent::offsetExists(i)) throw new IndexError("Index i not found.")
+    <- parent::offsetUnset(i)
+
+
+// Remove the item at the given position in the list, and <- it. If no 
+// index is specified, a.pop() removes and <-s the last item in the list.
+fn pop(i=-1) 
+    asrt(gettype(i) === 'integer')
+    x = .offsetGet(i)
+    unset(this[i])
+    <- x
+
+###
+
+class SnowDict 
+    extends ArrayObject
+
+    fn copy()
+        <- .serialize()->unserialize()

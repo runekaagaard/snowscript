@@ -1,50 +1,34 @@
-fn insert(into, item)
-    array_unshift(into, item)
-
 fn rpl(string, search, replace)
     <- str_replace(search, replace, string)
 
-fn slice(guy, start, stop=null)
-    if not stop
-        if start < 0
-            n = count(guy) -1
-            x = guy[n-start]
-            <- x
-        else
-            throw Exception("todo")    
-    else
-        throw Exception("todo")
+fn sjoin(guys, separator=", ")
+    return join(array(guys), separator)
 
-fn append(guy, kv, v=null)
-    if v
-        guy[kv] = v
-    else
-        guy []= v
-
-fn lget(guy)
-    pass
+fn type(guy)
+    <- gettype(guy)
 
 class Snowscript_Visitors_Scope
     extends PHPParser_NodeVisitorAbstract
     fn __construct()
-        .empty_scope = ['imports': []]
-        .root_scope = []
+        .empty_scope = {'imports': {}, 'assigns': {}, 'fns': {}}
         .scopes = [.empty_scope]
-        .scope = .scopes[0]
 
     fn enterNode(PHPParser_Node node)
+        .scope = .scopes[-1]
         if node isa PHPParser_Node_Stmt_Imports
             .add_imports(node)
-        if node isa PHPParser_Node_Expr_Assign
-            .scopes->lget(-1)->append(["hej"])
-            #.scopes->var_dump()
-            
+        elif node isa PHPParser_Node_Expr_Assign
+            .scopes[-1]['assigns'][node.var.name] = node
+        elif node isa PHPParser_Node_Stmt_Function
+            last_scope = .scopes[-1]
+            .scopes.append(last_scope.copy())
+            .scopes[-1]['fns'][node.name] = node
 
     fn add_imports(node)
         paths = []
         for import_path in node.import_paths
             paths []= import_path.name
-        prefix = paths->join("__")
+        prefix = paths->sjoin("__")
 
         for imp in node.imports
             .scopes[0]['imports'][imp.name] = "{prefix}__{imp.name}"
@@ -52,9 +36,11 @@ class Snowscript_Visitors_Scope
     fn leaveNode(PHPParser_Node node)
         if node isa PHPParser_Node_Stmt_Imports
             <- false
+        if node isa PHPParser_Node_Stmt_Function
+            .scopes.pop()
 
         #node->get_class()->var_dump()
 
     fn afterTraverse(array nodes)
-        #.scopes->var_dump()
+        #array(.scopes)->var_dump()
         <- nodes

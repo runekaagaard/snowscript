@@ -291,8 +291,9 @@ def add_missing_parenthesis_after_functions(token_stream):
                 yield t2
 
 def add_missing_this(token_stream):
+    tks = ('PHP_STRING', 'NAME', 'CLASS_NAME', 'RPAR', 'RSQB')
     for t in token_stream:
-        if t.type == 'DOT' and prev_t.type not in ('PHP_STRING', 'NAME', 'CLASS_NAME', 'RPAR'):
+        if t.type == 'DOT' and prev_t.type not in tks:
             yield build_token("NAME", "this", t)
 
         yield t

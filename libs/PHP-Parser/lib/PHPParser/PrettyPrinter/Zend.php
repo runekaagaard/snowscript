@@ -578,7 +578,7 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_Function(PHPParser_Node_Stmt_Function $node) {
-        return '$' . $node->name . ' = function ' . ($node->byRef ? '&' : '')
+        return 'function ' . ($node->byRef ? '&' : '') . $node->name
              . '(' . $this->pCommaSeparated($node->params) . ')'
              . "\n" . '{' . "\n" 
              . $this->pStmts($node->stmts) . "\n" . '};';
