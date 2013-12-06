@@ -425,18 +425,6 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
         return '`' . $this->pEncapsList($node->parts, '`') . '`';
     }
 
-    public function pExpr_Closure(PHPParser_Node_Expr_Closure $node) {
-        return ($node->static ? 'static ' : '')
-             . 'function ' . ($node->byRef ? '&' : '')
-             . '(' . $this->pCommaSeparated($node->params) . ')'
-             . (!empty($node->uses) ? ' use(' . $this->pCommaSeparated($node->uses) . ')': '')
-             . ' {' . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
-    }
-
-    public function pExpr_ClosureUse(PHPParser_Node_Expr_ClosureUse $node) {
-        return ($node->byRef ? '&' : '') . '$' . $node->var;
-    }
-
     public function pExpr_New(PHPParser_Node_Expr_New $node) {
         return 'new ' . $this->p($node->class) . '(' . $this->pCommaSeparated($node->args) . ')';
     }
@@ -578,10 +566,23 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     }
 
     public function pStmt_Function(PHPParser_Node_Stmt_Function $node) {
-        return 'function ' . ($node->byRef ? '&' : '') . $node->name
+        return '$' . $node->name . ' = function ' . ($node->byRef ? '&' : '')
              . '(' . $this->pCommaSeparated($node->params) . ')'
+             . (!empty($node->uses) ? ' use(' . $this->pCommaSeparated($node->uses) . ')': '')
              . "\n" . '{' . "\n" 
              . $this->pStmts($node->stmts) . "\n" . '};';
+    }
+
+    public function pExpr_Closure(PHPParser_Node_Expr_Closure $node) {
+        return ($node->static ? 'static ' : '')
+             . 'function ' . ($node->byRef ? '&' : '')
+             . '(' . $this->pCommaSeparated($node->params) . ')'
+             . (!empty($node->uses) ? ' use(' . $this->pCommaSeparated($node->uses) . ')': '')
+             . ' {' . "\n" . $this->pStmts($node->stmts) . "\n" . '}';
+    }
+
+    public function pExpr_ClosureUse(PHPParser_Node_Expr_ClosureUse $node) {
+        return ($node->byRef ? '&' : '') . '$' . $node->var;
     }
 
     public function pStmt_Const(PHPParser_Node_Stmt_Const $node) {

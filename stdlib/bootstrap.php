@@ -8,6 +8,7 @@ class KeyError extends Exception {};
 class IndexError extends Exception {};
 
 function assert_type_eq($a, $b) {
+    if ($a === null || $b === null) return;
 	if (gettype($a) !== gettype($b)) {
     throw new TypeComparisonError(sprintf(
         "Cannot compare type %s with type %s",
@@ -17,12 +18,12 @@ function assert_type_eq($a, $b) {
 
 function assert_type_numeric($a, $b) {
 	$type_a = gettype($a);
-	if ($type_a !== "integer" || $type_a !== "float") {
-		throw new TypeComparisonError("Must be numeric.");
+	if ($type_a !== "integer" && $type_a !== "float") {
+		throw new TypeComparisonError("#1 must be numeric, not " . $type_a);
 	}
 	$type_b = gettype($a);
-	if ($type_b !== "integer" || $type_b !== "float") {
-		throw new TypeComparisonError("Must be numeric.");
+	if ($type_b !== "integer" && $type_b !== "float") {
+		throw new TypeComparisonError("#2 must be numeric, not " . $type_b);
 	}
 }
 

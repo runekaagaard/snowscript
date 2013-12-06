@@ -1,34 +1,72 @@
 fn rpl(string, search, replace)
     <- str_replace(search, replace, string)
 
-fn sjoin(guys, separator=", ")
-    return join(array(guys), separator)
+fn sjoin(l, separator=", ")
+    return join(l.arr, separator)
 
 fn type(guy)
     <- gettype(guy)
 
+fn uu(l)
+    <- sjoin(l, '__')
+
 class Snowscript_Visitors_Scope
     extends PHPParser_NodeVisitorAbstract
-    fn __construct()
-        .empty_scope = {'imports': {}, 'assigns': {}, 'fns': {}}
+    fn __construct(ns)
+        .empty_scope = {'imports': {}, 'vars': {}, 'fns': {}, 
+                        'prefixes': [ns]}
         .scopes = [.empty_scope]
+        .func = null
 
     fn enterNode(PHPParser_Node node)
-        .scope = .scopes[-1]
+        scope = .scopes[-1]
         if node isa PHPParser_Node_Stmt_Imports
             .add_imports(node)
         elif node isa PHPParser_Node_Expr_Assign
-            .scopes[-1]['assigns'][node.var.name] = node
+            if not scope.vars.get(node.var.name)
+                scope.vars[node.var.name] = {
+                    'prefix': scope.prefixes->uu(),
+                    'nodes': [],
+                }
+            scope.vars[node.var.name].nodes.append(node)
         elif node isa PHPParser_Node_Stmt_Function
-            last_scope = .scopes[-1]
-            .scopes.append(last_scope.copy())
-            .scopes[-1]['fns'][node.name] = node
+            .func = node
+            scope['fns'][node.name] = node
+
+            .scopes.append(scope.copy())
+            scope = .scopes[-1]
+            scope.prefixes.append(node.name)
+            node.name = scope.prefixes.arr->join('__')
+            
+        elif node isa PHPParser_Node_Expr_Variable
+            try
+                cfg = .scopes[-2].vars[node.name]
+                name = [cfg.prefix, node.name]->uu()
+                for x in cfg.nodes
+                    x.var.name = name
+                node.name = name
+                if .func
+                    .func.uses []= PHPParser_Node_Expr_Variable(name)
+            catch IndexError e
+                pass
+            catch KeyError f
+                pass
+        elif node isa PHPParser_Node_Expr_FuncCall and count(node.name.parts) == 1
+            try
+                node_name = node.name.parts[0]
+                node.name.parts[0] = '$' % .scopes[-1].fns[node_name].name
+            catch IndexError e
+                pass
+            catch KeyError f
+                pass
+        else
+            #node->get_class()->var_dump()
 
     fn add_imports(node)
         paths = []
         for import_path in node.import_paths
             paths []= import_path.name
-        prefix = paths->sjoin("__")
+        prefix = paths->uu()
 
         for imp in node.imports
             .scopes[0]['imports'][imp.name] = "{prefix}__{imp.name}"
@@ -42,5 +80,5 @@ class Snowscript_Visitors_Scope
         #node->get_class()->var_dump()
 
     fn afterTraverse(array nodes)
-        #array(.scopes)->var_dump()
+        #.scopes.arr->var_dump()
         <- nodes

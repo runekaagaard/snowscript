@@ -25,6 +25,7 @@ class PHPParser_Node_Stmt_Function extends PHPParser_Node_Stmt
                 'byRef'  => false,
                 'params' => array(),
                 'stmts'  => array(),
+                'uses' => array(),
             ),
             $line, $docComment
         );

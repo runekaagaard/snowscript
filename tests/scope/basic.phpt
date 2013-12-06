@@ -8,16 +8,10 @@ snowscript_to_php(<<<'SNOW'
 XX = 10
 i = 0
 fn a
-    i = 1
-    XX
-    YY = 10
     a() + b() + c()
     fn b
-        XX + YY
-        ZZ = 10
         a() + b() + c()
         fn c
-            XX + YY + ZZ
             a() + b() + c()
 
     a() + b() + c()

@@ -7,8 +7,7 @@ function snowscript_to_php($code, $debug=false, $return=false, $namespace="Anony
     $prettyPrinter = new PHPParser_PrettyPrinter_Zend;
     $stmts = $parser->parse($lexer);
     $traverser = new PHPParser_NodeTraverser;
-    $scope_traverser = new Snowscript_Visitors_Scope;
-    $scope_traverser->namespace = $namespace;
+    $scope_traverser = new Snowscript_Visitors_Scope($namespace);
     $traverser->addVisitor($scope_traverser);
     $stmts = $traverser->traverse($stmts);
     $nodeDumper = new PHPParser_NodeDumper;
