@@ -133,25 +133,6 @@ class Snowscript_Visitors_Scope
         .add_node_to_cur_scope(node, name, new_name, is_global, global_name)
         .rename_nodes_cur_scope(name, new_name)
 
-    fn add_name(node, name)
-        is_global = false
-        global_name = .make_new_name_cur(name)
-        if .name_in_prev_scope(name)
-            is_global = true
-            if .name_in_prev_is_global(name)
-                new_name = .get_global_name_prev(name)
-            else
-                new_name = .get_global_name_prev(name)
-                .mark_prev_scope_global(name)
-                .rename_nodes_all_scopes(name, new_name)
-        elif .name_in_cur_scope(name)
-            new_name = .new_name_from_cur_scope(name)
-        else
-            throw Exception("Variable doesn't exist: " % name)
-
-        .add_node_to_cur_scope(node, name, new_name, is_global, global_name)
-        .rename_nodes_cur_scope(name, new_name)
-
     fn enterNode(PHPParser_Node node)
         if node isa PHPParser_Node_Expr_Assign
             .create_name(node, node.var.name, false)
