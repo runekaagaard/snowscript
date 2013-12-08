@@ -40,28 +40,19 @@ class Snowscript_Visitors_Scope
         .func = null
         .in_assign = false
 
-    fn name_in_cur_scope(name)
-        <- .scopes[-1].names.get(name)
-
-    fn new_name_from_cur_scope(name)
-        <- .scopes[-1].names[name].new_name
-
-    fn name_in_prev_scope(name)
+    fn scope_has_name(name, index)
         try
-            <- .scopes[-2].names.get(name)
+            <- .scopes[index].names.get(name)
         catch IndexError e
             <- False
 
-    fn make_new_name_cur(name)
+    fn global_name(name)
         if count(.scopes) == 1
             <- [.ns, name]->uu()
         else
             <- [.scopes[-1].prefix->uu(), name]->uu()
 
-    fn make_new_name_prev(name)
-        <- [.scopes[-2].prefix->uu(), name]->uu()
-
-    fn add_node_to_cur_scope(node, name, new_name, is_global, global_name)
+    fn add_node_to_scope(node, name, new_name, is_global, global_name)
         if not .scopes[-1].names.get(name)
             .scopes[-1].names[name] = {
                 'nodes': [],
@@ -86,18 +77,12 @@ class Snowscript_Visitors_Scope
             else
                 throw Exception("Not supported: " % node->get_class())
 
-    fn rename_nodes_cur_scope(name, new_name)
-        .rename_nodes(name, new_name, -1)
-
     fn rename_nodes_all_scopes(name, new_name)
         for k,scope in .scopes
             if scope.names.get(name)
                 .rename_nodes(name, new_name, k)
 
-    fn name_in_prev_is_global(name)
-        <- .scopes[-2].names[name].is_global
-
-    fn mark_prev_scope_global(name)
+    fn mark_name_as_global(name)
         for scope in .scopes
             try
                 scope.names[name].is_global = true
@@ -107,46 +92,49 @@ class Snowscript_Visitors_Scope
     fn get_global_name_prev(name)
         <- .scopes[-2].names[name].global_name
 
-    fn create_name(node, name, locked)
+    fn create_name(node, name, locked, allow_creation)
         is_global = false
-        global_name = .make_new_name_cur(name)
-        if .name_in_prev_scope(name)
+        global_name = .global_name(name)
+        if .scope_has_name(name, -2)
             if locked
                 throw Exception("Cant redefine name from outer scope: " % name)
             is_global = true
-            if .name_in_prev_is_global(name)
+            if .scopes[-2].names[name].is_global
                 new_name = .get_global_name_prev(name)
             else
                 new_name = .get_global_name_prev(name)
-                .mark_prev_scope_global(name)
+                .mark_name_as_global(name)
                 .rename_nodes_all_scopes(name, new_name)
-        elif .name_in_cur_scope(name)
+        elif .scopes[-1].names.get(name)
             if locked
                 throw Exception("Cant redefine name from same scope: " % name)
-            new_name = .new_name_from_cur_scope(name)
+            new_name = .scopes[-1].names[name].new_name
         else
-            if count(.scopes) == 1
-                new_name = [.ns, name]->uu()
+            if allow_creation
+                if count(.scopes) == 1
+                    new_name = [.ns, name]->uu()
+                else
+                    new_name = name
             else
-                new_name = name
+                throw Exception("Variable doesn't exist: " % name)
 
-        .add_node_to_cur_scope(node, name, new_name, is_global, global_name)
-        .rename_nodes_cur_scope(name, new_name)
+        .add_node_to_scope(node, name, new_name, is_global, global_name)
+        .rename_nodes(name, new_name, -1)
 
     fn enterNode(PHPParser_Node node)
         if node isa PHPParser_Node_Expr_Assign
-            .create_name(node, node.var.name, false)
+            .create_name(node, node.var.name, false, true)
             .in_assign = true
         elif node isa PHPParser_Node_Stmt_Function
-            .create_name(node, node.name, true)
+            .create_name(node, node.name, true, true)
             .scopes.append(.scopes[-1].copy())
             .scopes[-1].prefix.append(node.name)
         elif node isa PHPParser_Node_Expr_Variable
             if not .in_assign
-                .create_name(node, node.name, false)
+                .create_name(node, node.name, false, false)
         elif node isa PHPParser_Node_Expr_FuncCall
             if count(node.name.parts) == 1
-                .create_name(node, node.name.parts[0], false)
+                .create_name(node, node.name.parts[0], false, false)
                 node.as_variable = true
 
     fn leaveNode(PHPParser_Node node)

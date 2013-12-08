@@ -51,26 +51,16 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
         $this->in_assign = false;
     }
     
-    public function name_in_cur_scope($name)
-    {
-        return $this->scopes[-1]->names->get($name);
-    }
-    
-    public function new_name_from_cur_scope($name)
-    {
-        return $this->scopes[-1]->names[$name]->new_name;
-    }
-    
-    public function name_in_prev_scope($name)
+    public function scope_has_name($name, $index)
     {
         try {
-            return $this->scopes[-2]->names->get($name);
+            return $this->scopes[$index]->names->get($name);
         } catch (IndexError $e) {
             return False;
         }
     }
     
-    public function make_new_name_cur($name)
+    public function global_name($name)
     {
         if (\snow_eq(count($this->scopes), 1)) {
             return uu(snow_list(array($this->ns, $name)));
@@ -79,12 +69,7 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
         }
     }
     
-    public function make_new_name_prev($name)
-    {
-        return uu(snow_list(array(uu($this->scopes[-2]->prefix), $name)));
-    }
-    
-    public function add_node_to_cur_scope($node, $name, $new_name, $is_global, $global_name)
+    public function add_node_to_scope($node, $name, $new_name, $is_global, $global_name)
     {
         if (!$this->scopes[-1]->names->get($name)) {
             $this->scopes[-1]->names[$name] = snow_dict(array('nodes' => snow_list(array()), 'new_name' => null, 'is_global' => null, 'global_name' => $global_name));
@@ -112,11 +97,6 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
         unset($node);
     }
     
-    public function rename_nodes_cur_scope($name, $new_name)
-    {
-        $this->rename_nodes($name, $new_name, -1);
-    }
-    
     public function rename_nodes_all_scopes($name, $new_name)
     {
         foreach ($this->scopes as $k => $scope) {
@@ -127,12 +107,7 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
         unset($k, $scope);
     }
     
-    public function name_in_prev_is_global($name)
-    {
-        return $this->scopes[-2]->names[$name]->is_global;
-    }
-    
-    public function mark_prev_scope_global($name)
+    public function mark_name_as_global($name)
     {
         foreach ($this->scopes as $scope) {
             try {
@@ -149,76 +124,58 @@ class Snowscript_Visitors_Scope extends PHPParser_NodeVisitorAbstract
         return $this->scopes[-2]->names[$name]->global_name;
     }
     
-    public function create_name($node, $name, $locked)
+    public function create_name($node, $name, $locked, $allow_creation)
     {
         $is_global = false;
-        $global_name = $this->make_new_name_cur($name);
-        if ($this->name_in_prev_scope($name)) {
+        $global_name = $this->global_name($name);
+        if ($this->scope_has_name($name, -2)) {
             if ($locked) {
                 throw new Exception("Cant redefine name from outer scope: " . $name);
             }
             $is_global = true;
-            if ($this->name_in_prev_is_global($name)) {
+            if ($this->scopes[-2]->names[$name]->is_global) {
                 $new_name = $this->get_global_name_prev($name);
             } else {
                 $new_name = $this->get_global_name_prev($name);
-                $this->mark_prev_scope_global($name);
+                $this->mark_name_as_global($name);
                 $this->rename_nodes_all_scopes($name, $new_name);
             }
-        } elseif ($this->name_in_cur_scope($name)) {
+        } elseif ($this->scopes[-1]->names->get($name)) {
             if ($locked) {
                 throw new Exception("Cant redefine name from same scope: " . $name);
             }
-            $new_name = $this->new_name_from_cur_scope($name);
+            $new_name = $this->scopes[-1]->names[$name]->new_name;
         } else {
-            if (\snow_eq(count($this->scopes), 1)) {
-                $new_name = uu(snow_list(array($this->ns, $name)));
+            if ($allow_creation) {
+                if (\snow_eq(count($this->scopes), 1)) {
+                    $new_name = uu(snow_list(array($this->ns, $name)));
+                } else {
+                    $new_name = $name;
+                }
             } else {
-                $new_name = $name;
+                throw new Exception("Variable doesn't exist: " . $name);
             }
         }
-        $this->add_node_to_cur_scope($node, $name, $new_name, $is_global, $global_name);
-        $this->rename_nodes_cur_scope($name, $new_name);
-    }
-    
-    public function add_name($node, $name)
-    {
-        $is_global = false;
-        $global_name = $this->make_new_name_cur($name);
-        if ($this->name_in_prev_scope($name)) {
-            $is_global = true;
-            if ($this->name_in_prev_is_global($name)) {
-                $new_name = $this->get_global_name_prev($name);
-            } else {
-                $new_name = $this->get_global_name_prev($name);
-                $this->mark_prev_scope_global($name);
-                $this->rename_nodes_all_scopes($name, $new_name);
-            }
-        } elseif ($this->name_in_cur_scope($name)) {
-            $new_name = $this->new_name_from_cur_scope($name);
-        } else {
-            throw new Exception("Variable doesn't exist: " . $name);
-        }
-        $this->add_node_to_cur_scope($node, $name, $new_name, $is_global, $global_name);
-        $this->rename_nodes_cur_scope($name, $new_name);
+        $this->add_node_to_scope($node, $name, $new_name, $is_global, $global_name);
+        $this->rename_nodes($name, $new_name, -1);
     }
     
     public function enterNode(PHPParser_Node $node)
     {
         if (($node instanceof PHPParser_Node_Expr_Assign)) {
-            $this->create_name($node, $node->var->name, false);
+            $this->create_name($node, $node->var->name, false, true);
             $this->in_assign = true;
         } elseif (($node instanceof PHPParser_Node_Stmt_Function)) {
-            $this->create_name($node, $node->name, true);
+            $this->create_name($node, $node->name, true, true);
             $this->scopes->append($this->scopes[-1]->copy());
             $this->scopes[-1]->prefix->append($node->name);
         } elseif (($node instanceof PHPParser_Node_Expr_Variable)) {
             if (!$this->in_assign) {
-                $this->create_name($node, $node->name, false);
+                $this->create_name($node, $node->name, false, false);
             }
         } elseif (($node instanceof PHPParser_Node_Expr_FuncCall)) {
             if (\snow_eq(count($node->name->parts), 1)) {
-                $this->create_name($node, $node->name->parts[0], false);
+                $this->create_name($node, $node->name->parts[0], false, false);
                 $node->as_variable = true;
             }
         }

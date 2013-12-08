@@ -55,6 +55,36 @@ fn o
 
 SNOW
 , 0);
+
+try {
+snowscript_to_php(<<<'SNOW'
+a
+SNOW
+);
+} catch (exception $e) {
+	var_dump("caught");
+}
+try {
+snowscript_to_php(<<<'SNOW'
+fn a
+	pass
+fn a
+	pass
+SNOW
+);
+} catch (exception $e) {
+	var_dump("caught");
+}
+try {
+snowscript_to_php(<<<'SNOW'
+fn a
+	fn a
+		pass
+SNOW
+);
+} catch (exception $e) {
+	var_dump("caught");
+}
 --EXPECT--
 <?php
 $Anonymous__a = 1;
@@ -121,3 +151,6 @@ $Anonymous__o = function ()
     $p();
     $Anonymous__o__q();
 };
+string(6) "caught"
+string(6) "caught"
+string(6) "caught"
