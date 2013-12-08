@@ -53,10 +53,13 @@ class SnowList
         <- this
 
     fn pop(i=-1)
-        .offsetGet(i)
-        i = ._get_index(i)
-        splice = array_splice(.arr, i)
-        <- splice[0]
+        if i == -1
+            <- array_pop(.arr)
+        else
+            .offsetGet(i)
+            i = ._get_index(i)
+            splice = array_splice(.arr, i)
+            <- splice[0]
 
     fn extend(xs)
         for x in xs
@@ -65,6 +68,12 @@ class SnowList
 
     fn get(i)
         <- .offsetGet(i)
+
+    fn reversed()
+        <- SnowList(array_reverse(.arr))
+
+    fn copy()
+        <- this->serialize()->unserialize()
 
 class SnowDict 
     implements ArrayAccess, IteratorAggregate, Countable
@@ -95,6 +104,7 @@ class SnowDict
 
     fn offsetUnset(k)
         ._assert_type(k)
+        .offsetGet(k)
         unset(.arr[k])
 
     fn getIterator()

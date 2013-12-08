@@ -81,10 +81,14 @@ class SnowList implements ArrayAccess, IteratorAggregate, Countable
     
     public function pop($i = -1)
     {
-        $this->offsetGet($i);
-        $i = $this->_get_index($i);
-        $splice = array_splice($this->arr, $i);
-        return $splice[0];
+        if (\snow_eq($i, -1)) {
+            return array_pop($this->arr);
+        } else {
+            $this->offsetGet($i);
+            $i = $this->_get_index($i);
+            $splice = array_splice($this->arr, $i);
+            return $splice[0];
+        }
     }
     
     public function extend($xs)
@@ -99,6 +103,16 @@ class SnowList implements ArrayAccess, IteratorAggregate, Countable
     public function get($i)
     {
         return $this->offsetGet($i);
+    }
+    
+    public function reversed()
+    {
+        return new SnowList(array_reverse($this->arr));
+    }
+    
+    public function copy()
+    {
+        return unserialize(serialize($this));
     }
 }
 class SnowDict implements ArrayAccess, IteratorAggregate, Countable
@@ -142,6 +156,7 @@ class SnowDict implements ArrayAccess, IteratorAggregate, Countable
     public function offsetUnset($k)
     {
         $this->_assert_type($k);
+        $this->offsetGet($k);
         unset($this->arr[$k]);
     }
     

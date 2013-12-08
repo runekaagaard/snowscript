@@ -327,7 +327,8 @@ class PHPParser_PrettyPrinter_Zend extends PHPParser_PrettyPrinterAbstract
     // Function calls and similar constructs
 
     public function pExpr_FuncCall(PHPParser_Node_Expr_FuncCall $node) {
-        return $this->p($node->name) . '(' . $this->pCommaSeparated($node->args) . ')';
+        $s = isset($node->as_variable) ? '$' : '';
+        return $s . $this->p($node->name) . '(' . $this->pCommaSeparated($node->args) . ')';
     }
 
     public function pExpr_MethodCall(PHPParser_Node_Expr_MethodCall $node) {
