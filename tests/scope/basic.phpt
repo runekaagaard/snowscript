@@ -52,7 +52,13 @@ fn o
 	r = 10
 	p()
 	q()
-
+echo "......................."
+fn aa
+	fn dd
+		fn bb
+			xx = 10
+			fn cc
+				xx
 SNOW
 , 0);
 

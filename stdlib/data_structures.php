@@ -150,7 +150,7 @@ class SnowDict implements ArrayAccess, IteratorAggregate, Countable
     public function offsetExists($k)
     {
         $this->_assert_type($k);
-        return isset($this->arr[$k]);
+        return array_key_exists($k, $this->arr);
     }
     
     public function offsetUnset($k)

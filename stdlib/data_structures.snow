@@ -100,7 +100,7 @@ class SnowDict
 
     fn offsetExists(k)
         ._assert_type(k)
-        <- isset(.arr[k])
+        <- array_key_exists(k, .arr)
 
     fn offsetUnset(k)
         ._assert_type(k)

@@ -1,3 +1,4 @@
+
 fn rpl(string, search, replace)
     <- str_replace(search, replace, string)
 
@@ -37,8 +38,8 @@ class Snowscript_Visitors_Scope
     fn __construct(ns)
         .ns = ns
         .scopes = [{'names': {}, 'prefix': []}]
-        .func = null
         .in_assign = false
+        .global_vars = []
 
     fn scope_has_name(name, index)
         try
@@ -59,9 +60,17 @@ class Snowscript_Visitors_Scope
                 'new_name': null,
                 'is_global': null,
                 'global_name': global_name,
+                'func': null,
             }
         .scopes[-1].names[name].is_global = is_global
         .scopes[-1].names[name].nodes.append(node)
+        .rename_nodes(name, new_name, -1)
+        if is_global and .scopes[-1].get('func')
+            .scopes[-1].func.add_global_var(new_name)
+            if .scopes[-2].get('func')
+                .scopes[-2].func.add_global_var(new_name)
+        if is_global
+            .global_vars.append(new_name)
 
     fn rename_nodes(name, new_name, scope_index)
         .scopes[scope_index].names[name].new_name = new_name
@@ -82,59 +91,58 @@ class Snowscript_Visitors_Scope
             if scope.names.get(name)
                 .rename_nodes(name, new_name, k)
 
-    fn mark_name_as_global(name)
+    fn mark_name_as_global(name, new_name)
         for scope in .scopes
             try
                 scope.names[name].is_global = true
             catch KeyError e
                 pass
 
-    fn get_global_name_prev(name)
-        <- .scopes[-2].names[name].global_name
+        .global_vars.append(new_name)
 
-    fn create_name(node, name, locked, allow_creation)
+    fn create_name(node, name, allow_redefinition, allow_creation)
         is_global = false
         global_name = .global_name(name)
         if .scope_has_name(name, -2)
-            if locked
+            if not allow_redefinition
                 throw Exception("Cant redefine name from outer scope: " % name)
             is_global = true
-            if .scopes[-2].names[name].is_global
-                new_name = .get_global_name_prev(name)
-            else
-                new_name = .get_global_name_prev(name)
-                .mark_name_as_global(name)
+            new_name = .scopes[-2].names[name].global_name
+            if not .scopes[-2].names[name].is_global
+                new_name = .scopes[-2].names[name].global_name
+                .mark_name_as_global(name, new_name)
                 .rename_nodes_all_scopes(name, new_name)
         elif .scopes[-1].names.get(name)
-            if locked
+            if not allow_redefinition
                 throw Exception("Cant redefine name from same scope: " % name)
             new_name = .scopes[-1].names[name].new_name
         else
             if allow_creation
                 if count(.scopes) == 1
                     new_name = [.ns, name]->uu()
+                    is_global = true
                 else
                     new_name = name
             else
                 throw Exception("Variable doesn't exist: " % name)
 
         .add_node_to_scope(node, name, new_name, is_global, global_name)
-        .rename_nodes(name, new_name, -1)
 
     fn enterNode(PHPParser_Node node)
         if node isa PHPParser_Node_Expr_Assign
-            .create_name(node, node.var.name, false, true)
+            .create_name(node, node.var.name, true, true)
             .in_assign = true
         elif node isa PHPParser_Node_Stmt_Function
-            .create_name(node, node.name, true, true)
+            .create_name(node, node.name, false, true)
             .scopes.append(.scopes[-1].copy())
             .scopes[-1].prefix.append(node.name)
+            .scopes[-1].func = node
         elif node isa PHPParser_Node_Expr_Variable
             if not .in_assign
-                .create_name(node, node.name, false, false)
+                .create_name(node, node.name, true, false)
         elif node isa PHPParser_Node_Expr_FuncCall
             if count(node.name.parts) == 1
-                .create_name(node, node.name.parts[0], false, false)
+                .create_name(node, node.name.parts[0], true, false)
                 node.as_variable = true
 
     fn leaveNode(PHPParser_Node node)
@@ -146,6 +154,12 @@ class Snowscript_Visitors_Scope
             .in_assign = false
 
     fn afterTraverse(array nodes)
+        hmm = []
+        if .global_vars
+            node = PHPParser_Node_Stmt_Global(hmm.arr)
+            for global_var in .global_vars
+                node.vars [global_var]= PHPParser_Node_Expr_Variable(global_var)
+        array_unshift(nodes, node)
         <- nodes
 
     fn add_imports(node)
@@ -155,4 +169,4 @@ class Snowscript_Visitors_Scope
         prefix = paths->uu()
 
         for imp in node.imports
-            .scopes[0]['imports'][imp.name] = "{prefix}__{imp.name}"
+            .scopes[0]['imports'][imp.name] = [prefix, imp.name]->uu()

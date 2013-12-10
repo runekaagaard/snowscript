@@ -25,10 +25,17 @@ class PHPParser_Node_Stmt_Function extends PHPParser_Node_Stmt
                 'byRef'  => false,
                 'params' => array(),
                 'stmts'  => array(),
-                'uses' => array(),
             ),
             $line, $docComment
         );
         $this->name = $name;
     }
+
+    function add_global_var($name) {
+        if ($this->global_vars === null) {
+            $this->global_vars = new PHPParser_Node_Stmt_Global(array());
+        }
+        $this->global_vars->vars[$name] = new PHPParser_Node_Expr_Variable($name);
+    }
+
 }
